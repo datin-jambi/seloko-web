@@ -8,10 +8,10 @@ export const menuService = {
     // X-App-Code — header harus tetap "seloko" (gateway) agar lolos
     // authenticate backend.
     const activeApp = useAppStore.getState().activeAppCode
-    const res = await apiClient.get<ApiResponse<MenuItemTree[]>>('/menus/me', {
+    const res = await apiClient.get<ApiResponse<{ menus: MenuItemTree[] }>>('/menus/me', {
       params: { appCode: activeApp },
     })
-    return res.data.data
+    return res.data.data.menus
   },
 
   async getApplications(): Promise<ApplicationItem[]> {

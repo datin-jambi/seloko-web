@@ -45,15 +45,14 @@ export interface ApplicationItem {
   isActive: boolean
 }
 
-// Item Menu Dinamis (dari /api/menus/me)
+// Item Menu Dinamis (dari GET /api/menus/me → data.menus)
 export interface MenuItemTree {
   id: string
   code: string
   label: string
-  icon?: string | null
-  path?: string | null
+  icon: string | null
+  path: string | null
   isExternal: boolean
   sortOrder: number
-  isActive: boolean
-  children?: MenuItemTree[]
+  items: MenuItemTree[]
 }

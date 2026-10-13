@@ -27,6 +27,12 @@ export const authService = {
     return res.data.data
   },
 
+  // Tukar cookie HttpOnly refresh token dengan access token baru.
+  async refresh(): Promise<string> {
+    const res = await apiClient.post<ApiResponse<{ accessToken: string }>>('/auth/refresh')
+    return res.data.data.accessToken
+  },
+
   async getMe(): Promise<AuthUser> {
     const res = await apiClient.get<ApiResponse<AuthUser>>('/auth/me')
     return res.data.data

@@ -3,54 +3,44 @@ import { Navigate, Outlet } from 'react-router-dom'
 import { useAuthStore } from '@/stores/auth-store'
 import { authService } from '@/services/auth.service'
 
+// Pulihkan sesi setelah reload: access token hanya di memori, jadi tukar cookie
+// refresh dulu, baru ambil profil. Promise dibagi agar StrictMode (effect 2x)
+// tidak memicu dua kali refresh — refresh token dirotasi, panggilan kedua gagal.
+let restoring: Promise<void> | null = null
+function restoreSession() {
+  restoring ??= (async () => {
+    const token = await authService.refresh()
+    useAuthStore.setState({ accessToken: token })
+    useAuthStore.getState().setAuth(token, await authService.getMe())
+  })().finally(() => {
+    restoring = null
+  })
+  return restoring
+}
+
 export function ProtectedRoute() {
-  const { isAuthenticated, accessToken, setAuth, setUserProfile } =
-    useAuthStore()
-  const [isVerifying, setIsVerifying] = useState(!isAuthenticated)
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const [checked, setChecked] = useState(isAuthenticated)
 
   useEffect(() => {
-    async function checkSession() {
-      // Jika belum ada token di memory, coba refresh sesi via cookie HttpOnly
-      if (!accessToken) {
-        try {
-          const profile = await authService.getMe()
-          if (profile) {
-            setUserProfile(profile)
-            useAuthStore.setState({ isAuthenticated: true, user: profile })
-          }
-        } catch {
-          useAuthStore.setState({ isAuthenticated: false, accessToken: null })
-        } finally {
-          setIsVerifying(false)
-        }
-      } else {
-        setIsVerifying(false)
-      }
-    }
+    if (isAuthenticated || checked) return
+    restoreSession()
+      .catch(() => useAuthStore.getState().clearAuth())
+      .finally(() => setChecked(true))
+  }, [isAuthenticated, checked])
 
-    if (!isAuthenticated) {
-      checkSession()
-    } else {
-      setIsVerifying(false)
-    }
-  }, [accessToken, isAuthenticated, setAuth, setUserProfile])
-
-  if (isVerifying) {
+  if (!isAuthenticated && !checked) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <span className="text-xs font-medium text-muted-foreground">
-            Memverifikasi Sesi ASN...
-          </span>
+          <span className="text-xs font-medium text-muted-foreground">Memverifikasi sesi…</span>
         </div>
       </div>
     )
   }
 
-  if (!isAuthenticated && !accessToken) {
-    return <Navigate to="/login" replace />
-  }
+  if (!isAuthenticated) return <Navigate to="/login" replace />
 
   return <Outlet />
 }

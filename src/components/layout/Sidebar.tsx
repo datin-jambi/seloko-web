@@ -34,6 +34,13 @@ import {
   Receipt,
   PanelLeftClose,
   PanelLeftOpen,
+  BadgeCheck,
+  EyeOff,
+  FileDown,
+  Handshake,
+  House,
+  ShoppingCart,
+  Smartphone,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -64,6 +71,13 @@ const ICON_MAP: Record<string, React.ElementType> = {
   store: Store,
   package: Package,
   receipt: Receipt,
+  'badge-check': BadgeCheck,
+  'eye-off': EyeOff,
+  'file-down': FileDown,
+  handshake: Handshake,
+  home: House,
+  'shopping-cart': ShoppingCart,
+  smartphone: Smartphone,
 }
 
 function MenuIcon({ name }: { name?: string | null }) {
@@ -72,12 +86,9 @@ function MenuIcon({ name }: { name?: string | null }) {
   })
 }
 
-// Dipakai bila /api/menus/me kosong atau gagal.
+// Dipakai hanya bila /api/menus/me gagal. Daftar kosong = user memang tanpa akses.
 const FALLBACK_MENUS: MenuItemTree[] = [
-  { id: 'fb-dashboard', code: 'dashboard', label: 'Dasbor', icon: 'layout-dashboard', path: '/dashboard', isExternal: false, sortOrder: 0, isActive: true },
-  { id: 'fb-uptd', code: 'uptd', label: 'UPTD Samsat', icon: 'building-2', path: '/bapenda/uptds', isExternal: false, sortOrder: 1, isActive: true },
-  { id: 'fb-banner', code: 'banner', label: 'Banner', icon: 'panel-top', path: '/bapenda/banners', isExternal: false, sortOrder: 2, isActive: true },
-  { id: 'fb-news', code: 'news', label: 'Berita', icon: 'newspaper', path: '/bapenda/news', isExternal: false, sortOrder: 3, isActive: true },
+  { id: 'fb-dashboard', code: 'dashboard', label: 'Dasbor', icon: 'layout-dashboard', path: '/dashboard', isExternal: false, sortOrder: 0, items: [] },
 ]
 
 // Layar < md selalu mode ikon.
@@ -113,7 +124,7 @@ interface NavItemProps {
 }
 
 function SidebarNavItem({ item, currentPath, collapsed, onExpand }: NavItemProps) {
-  const children = item.children ?? []
+  const children = item.items
   const isChildActive = children.some((c) => matchPath(c.path, currentPath))
   const [isOpen, setIsOpen] = useState(isChildActive)
   const label = <span className={cn('truncate', collapsed && 'sr-only')}>{item.label}</span>
@@ -199,13 +210,13 @@ export function Sidebar() {
   const isNarrow = useIsNarrow()
   const collapsed = sidebarCollapsed || isNarrow
 
-  const { data: menus, isLoading } = useQuery({
+  const { data: menus, isLoading, isError } = useQuery({
     queryKey: ['menus', activeAppCode],
     queryFn: menuService.getMyMenus,
     retry: 1,
   })
 
-  const items = menus && menus.length > 0 ? menus : FALLBACK_MENUS
+  const items = isError ? FALLBACK_MENUS : (menus ?? [])
   const ToggleIcon = collapsed ? PanelLeftOpen : PanelLeftClose
 
   return (
