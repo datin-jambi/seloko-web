@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Shield, Sparkles, Lock, User, AlertCircle, ArrowRight, Eye, EyeOff } from 'lucide-react'
+import { Lock, User, AlertCircle, ArrowRight, Eye, EyeOff } from 'lucide-react'
 import type { AxiosError } from 'axios'
 
 export function LoginPage() {
@@ -52,27 +52,35 @@ export function LoginPage() {
 
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-background px-4 py-12">
-      {/* Dynamic Background Gradients */}
-      <div className="pointer-events-none absolute -top-40 -left-40 h-96 w-96 rounded-full bg-indigo-500/15 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-40 -right-40 h-96 w-96 rounded-full bg-emerald-500/10 blur-3xl" />
-      <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[500px] rounded-full bg-primary/5 blur-3xl" />
+      {/* Subtle Institutional Grid Texture */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(hsl(var(--muted-foreground)/0.12)_1px,transparent_1px)] [background-size:20px_20px] [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black_80%)]" />
 
       <div className="relative z-10 w-full max-w-md">
-        {/* Brand Logo Header */}
-        <div className="mb-8 flex flex-col items-center text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-emerald-400 text-white shadow-xl shadow-indigo-500/25 ring-4 ring-indigo-500/10">
-            <Shield className="h-6 w-6" />
+        {/* Brand Logos: Bapenda + Seloko */}
+        <div className="mb-7 flex flex-col items-center text-center">
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <img
+              src="/Assets/images/LOGO%20BAPENDA.png"
+              alt="Logo Bapenda Jambi"
+              className="h-12 w-auto object-contain"
+            />
+            <div className="h-8 w-px bg-border" />
+            <img
+              src="/Assets/images/LOGO%20SELOKO%20S.png"
+              alt="Logo Seloko"
+              className="h-11 w-auto object-contain"
+            />
           </div>
-          <h1 className="mt-4 text-2xl font-bold tracking-tight text-foreground">
+
+          <h1 className="mt-3 text-2xl font-bold tracking-tight text-foreground">
             SELOKO DASHBOARD
           </h1>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Badan Pengelola Keuangan dan Pendapatan Daerah (BPKPD) Provinsi Jambi
+          <p className="mt-1 text-xs text-muted-foreground font-medium">
+            Badan Pengelola Keuangan dan Pendapatan Daerah Provinsi Jambi
           </p>
-          <div className="mt-2.5">
-            <Badge variant="outline" className="border-primary/20 bg-primary/5 text-primary text-[10px] py-0.5">
-              <Sparkles className="mr-1 h-3 w-3" />
-              Centralized Core & Identity Gateway
+          <div className="mt-2.5 flex items-center gap-2">
+            <Badge variant="outline" className="text-[10px] font-semibold tracking-wide py-0.5 border-border bg-secondary/40 text-foreground">
+              Portal Layanan Internal ASN
             </Badge>
           </div>
         </div>

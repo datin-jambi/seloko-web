@@ -34,7 +34,6 @@ import {
   Store,
   Package,
   Receipt,
-  Sparkles,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -179,15 +178,17 @@ export function Sidebar() {
   return (
     <aside className="sticky top-0 flex h-screen w-64 flex-col border-r border-border/70 bg-card/70 backdrop-blur-md">
       {/* Brand Header */}
-      <div className="flex h-16 items-center gap-3 border-b border-border/70 px-5">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-emerald-400 text-white shadow-md shadow-indigo-500/20">
-          <Sparkles className="h-5 w-5" />
-        </div>
-        <div className="flex flex-col">
-          <span className="text-sm font-bold tracking-tight text-foreground">
+      <div className="flex h-16 items-center gap-3 border-b border-border/70 px-4">
+        <img
+          src="/Assets/images/LOGO%20SELOKO%20S.png"
+          alt="Seloko Logo"
+          className="h-9 w-9 object-contain shrink-0 rounded-lg"
+        />
+        <div className="flex flex-col min-w-0">
+          <span className="text-sm font-bold tracking-tight text-foreground truncate">
             SELOKO DASHBOARD
           </span>
-          <span className="text-[10px] font-medium text-muted-foreground">
+          <span className="text-[10px] font-medium text-muted-foreground truncate">
             BPKPD Provinsi Jambi
           </span>
         </div>
