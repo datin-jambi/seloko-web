@@ -1,7 +1,6 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
-import { API_BASE_URL } from '@/config/constants'
+import { API_BASE_URL, APP_CODES } from '@/config/constants'
 import { useAuthStore } from '@/stores/auth-store'
-import { useAppStore } from '@/stores/app-store'
 import type { ApiResponse } from '@/types'
 
 export const apiClient = axios.create({
@@ -17,14 +16,17 @@ export const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = useAuthStore.getState().accessToken
-    const activeApp = useAppStore.getState().activeAppCode
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
 
-    // Set header multi-tenancy X-App-Code
-    config.headers['X-App-Code'] = activeApp || 'seloko'
+    // Gateway multi-tenancy — untuk dashboard internal ini SELALU "seloko".
+    // Backend (authenticate) mewajibkan X-App-Code == appCode token; konteks
+    // aplikasi lain (bapenda-profile dkk) dikirim lewat query param atau path
+    // API (/api/bapenda/*), BUKAN lewat header ini. Mengikuti activeAppCode UI
+    // di sini menyebabkan 403 lintas konteks dan 401 saat login.
+    config.headers['X-App-Code'] = APP_CODES.SELOKO
 
     return config
   },
@@ -80,7 +82,12 @@ apiClient.interceptors.response.use(
         const refreshResponse = await axios.post<ApiResponse<{ accessToken: string }>>(
           `${API_BASE_URL}/auth/refresh`,
           {},
-          { withCredentials: true },
+          {
+            withCredentials: true,
+            // Refresh token terbit untuk konteks gateway — wajib cocok dengan
+            // X-App-Code, kalau tidak backend membalas 400/403.
+            headers: { 'X-App-Code': APP_CODES.SELOKO },
+          },
         )
 
         const newToken = refreshResponse.data.data.accessToken

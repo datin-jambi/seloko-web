@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { authService } from '@/services/auth.service'
 import { useAuthStore } from '@/stores/auth-store'
+import { useAppStore } from '@/stores/app-store'
+import { APP_CODES } from '@/config/constants'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,6 +14,7 @@ import type { AxiosError } from 'axios'
 export function LoginPage() {
   const navigate = useNavigate()
   const { setAuth } = useAuthStore()
+  const setActiveAppCode = useAppStore((s) => s.setActiveAppCode)
 
   const [identity, setIdentity] = useState('superadmin')
   const [password, setPassword] = useState('SelokoBapenda@2025!')
@@ -25,8 +28,10 @@ export function LoginPage() {
     setErrorMessage(null)
 
     try {
+      // Paksa konteks gateway SEBELUM request login — interceptor membaca
+      // store, jadi konteks lama di localStorage harus diganti dulu.
+      setActiveAppCode(APP_CODES.SELOKO)
       const data = await authService.login({ identity, password })
-      // Ambil profile lengkap
       const profile = await authService.getMe()
       setAuth(data.accessToken, profile)
       navigate('/dashboard')
@@ -86,7 +91,7 @@ export function LoginPage() {
         </div>
 
         {/* Login Card */}
-        <Card className="border-border/80 bg-card/80 shadow-2xl backdrop-blur-xl">
+        <Card className="border-border bg-card shadow-lg">
           <CardHeader className="space-y-1 pb-4">
             <CardTitle className="text-lg">Masuk Portal Internal</CardTitle>
             <CardDescription className="text-xs">
@@ -150,7 +155,6 @@ export function LoginPage() {
 
               <Button
                 type="submit"
-                variant="gradient"
                 className="w-full font-semibold mt-2"
                 disabled={isLoading}
               >

@@ -49,7 +49,24 @@ Dokumen skill ini adalah pedoman wajib bagi AI Agent dan developer untuk menghas
 
 ---
 
-## 📋 3. Checklist Sebelum Menyelesaikan Halaman (Self-Review)
+## 🤖 3. Audit Otomatis (Wajib Sebelum Selesai)
+Jalankan deteksi pola AI-slop secara otomatis:
+```bash
+npm run audit:ui
+```
+Script `scripts/audit-ai-slop.mjs` memindai `src/` untuk:
+- Ikon `Sparkles`/`Wand` — **error**
+- Blur blob (`blur-3xl`, `blur-2xl`) — **error**
+- Glassmorphism berlebihan (`backdrop-blur-xl/2xl`) — **error**
+- `variant="gradient"` — **error**
+- Metrik hardcoded palsu di dashboard — **error**
+- Banner gradient & shadow glow berwarna — **warning**
+
+Exit code `1` jika ada error → **dilarang** menyatakan halaman selesai sebelum audit lolos.
+
+---
+
+## 📋 4. Checklist Sebelum Menyelesaikan Halaman (Self-Review)
 Sebelum menyatakan pembuatan UI selesai, periksa:
 - [ ] Apakah ada elemen blur/glow warna-warni yang tidak fungsional? *(Hapus jika ada)*.
 - [ ] Apakah teks kontras dan terbaca jelas baik di Dark Mode maupun Light Mode?
