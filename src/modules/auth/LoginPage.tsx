@@ -7,7 +7,8 @@ import { APP_CODES } from '@/config/constants'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ThemeToggle } from '@/components/shared/ThemeToggle'
-import { AlertCircle, Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
+import { toast } from 'sonner'
 import type { AxiosError } from 'axios'
 
 // Akun seeder — hanya muncul di `npm run dev`, tidak ikut ke build produksi.
@@ -30,12 +31,10 @@ export function LoginPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    setErrorMessage(null)
 
     try {
       // Paksa konteks gateway SEBELUM request login — interceptor membaca
@@ -44,14 +43,15 @@ export function LoginPage() {
       const data = await authService.login({ identity, password })
       const profile = await authService.getMe()
       setAuth(data.accessToken, profile)
+      toast.success(`Selamat datang, ${profile.fullName}`)
       navigate('/dashboard')
     } catch (err: unknown) {
       const axiosErr = err as AxiosError<{ message?: string }>
-      setErrorMessage(
+      const message =
         axiosErr.response?.data?.message ||
-          axiosErr.message ||
-          'Gagal terhubung ke server. Coba lagi.',
-      )
+        axiosErr.message ||
+        'Gagal terhubung ke server. Coba lagi.'
+      toast.error('Gagal masuk', { description: message })
     } finally {
       setIsLoading(false)
     }
@@ -81,16 +81,6 @@ export function LoginPage() {
                   Gunakan NIP, username, atau email kedinasan
                 </p>
               </div>
-
-              {errorMessage && (
-                <div
-                  role="alert"
-                  className="flex items-start gap-2 rounded-md border border-destructive/25 bg-destructive/10 px-3 py-2 text-sm text-destructive"
-                >
-                  <AlertCircle className="mt-0.5 size-4 shrink-0" />
-                  <span>{errorMessage}</span>
-                </div>
-              )}
 
               <div className="grid gap-2">
                 <label htmlFor="identity" className="text-sm font-medium">
@@ -152,7 +142,6 @@ export function LoginPage() {
                         onClick={() => {
                           setIdentity(a.identity)
                           setPassword(a.password)
-                          setErrorMessage(null)
                         }}
                       >
                         {a.label}

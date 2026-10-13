@@ -7,6 +7,8 @@ import { DashboardPage } from '@/modules/core/DashboardPage'
 import { BapendaDashboardPage } from '@/modules/bapenda/BapendaDashboardPage'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { NotFoundPage } from '@/components/shared/NotFoundPage'
+import { TopLoader } from '@/components/shared/TopLoader'
+import { Toaster } from '@/components/ui/sonner'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,6 +24,8 @@ export function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
+        <TopLoader />
+        <Toaster />
         <BrowserRouter>
           <Routes>
             {/* Public Auth Routes */}

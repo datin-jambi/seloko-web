@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { LogOut, User, Shield, ChevronDown } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 function getInitials(name?: string) {
   if (!name) return 'ASN'
@@ -35,6 +36,7 @@ export function Header() {
       // Abaikan jika token sudah expired
     } finally {
       clearAuth()
+      toast.success('Anda telah keluar')
       navigate('/login')
     }
   }

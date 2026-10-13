@@ -3,6 +3,21 @@ import { API_BASE_URL, APP_CODES } from '@/config/constants'
 import { useAuthStore } from '@/stores/auth-store'
 import type { ApiResponse } from '@/types'
 
+// Jumlah request yang sedang berjalan — dibaca TopLoader.
+let pending = 0
+const listeners = new Set<() => void>()
+const track = (delta: number) => {
+  pending += delta
+  listeners.forEach((l) => l())
+}
+export const pendingRequests = {
+  subscribe: (l: () => void) => {
+    listeners.add(l)
+    return () => void listeners.delete(l)
+  },
+  isBusy: () => pending > 0,
+}
+
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
@@ -28,6 +43,7 @@ apiClient.interceptors.request.use(
     // di sini menyebabkan 403 lintas konteks dan 401 saat login.
     config.headers['X-App-Code'] = APP_CODES.SELOKO
 
+    track(1)
     return config
   },
   (error) => Promise.reject(error),
@@ -52,8 +68,13 @@ const processQueue = (error: Error | null) => {
 }
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    track(-1)
+    return response
+  },
   async (error: AxiosError) => {
+    // ponytail: request /auth/refresh (axios polos) tidak dihitung; bar bisa selesai sesaat sebelum retry.
+    track(-1)
     const originalRequest = error.config as InternalAxiosRequestConfig & {
       _retry?: boolean
     }

@@ -91,6 +91,12 @@
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: var(--radius);
   --radius-lg: calc(var(--radius) + 2px);
+
+  --animate-toploader: toploader 10s cubic-bezier(0.08, 0.8, 0.2, 1) forwards;
+  @keyframes toploader {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(0.9); }
+  }
 }
 
 @layer base {
