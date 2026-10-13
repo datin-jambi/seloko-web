@@ -5,7 +5,7 @@ import { FileQuestion, ArrowLeft } from 'lucide-react'
 export function NotFoundPage() {
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center text-center p-6">
-      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary text-muted-foreground mb-4">
+      <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-secondary text-muted-foreground mb-4">
         <FileQuestion className="h-8 w-8 text-primary" />
       </div>
       <h1 className="text-3xl font-extrabold tracking-tight text-foreground">404</h1>

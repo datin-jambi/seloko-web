@@ -60,7 +60,7 @@ export function BapendaDashboardPage() {
         <Card className="group transition-colors hover:border-primary/50">
           <CardHeader>
             <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-green-700/10 text-green-800 dark:text-green-400">
                 <MapPin className="h-4 w-4" />
               </div>
               <CardTitle className="text-sm">UPTD Samsat</CardTitle>
@@ -83,7 +83,7 @@ export function BapendaDashboardPage() {
         <Card className="group transition-colors hover:border-primary/50">
           <CardHeader>
             <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-600">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <Layers className="h-4 w-4" />
               </div>
               <CardTitle className="text-sm">Banner Carousel</CardTitle>
@@ -106,7 +106,7 @@ export function BapendaDashboardPage() {
         <Card className="group transition-colors hover:border-primary/50">
           <CardHeader>
             <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-600/10 text-amber-800 dark:text-amber-400">
                 <Newspaper className="h-4 w-4" />
               </div>
               <CardTitle className="text-sm">Berita & Artikel</CardTitle>
@@ -142,7 +142,7 @@ export function BapendaDashboardPage() {
         <CardContent className="space-y-4">
           <ol className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
             <li className="flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-secondary font-bold text-[10px]">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-secondary font-bold text-xs">
                 1
               </span>
               <span className="font-medium text-foreground">Draf</span>
@@ -151,7 +151,7 @@ export function BapendaDashboardPage() {
               &rarr;
             </li>
             <li className="flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-500/15 text-amber-600 font-bold text-[10px]">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-600/10 text-amber-800 dark:text-amber-400 font-bold text-xs">
                 2
               </span>
               <span className="font-medium text-foreground">Review</span>
@@ -160,7 +160,7 @@ export function BapendaDashboardPage() {
               &rarr;
             </li>
             <li className="flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600 font-bold text-[10px]">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-green-700/10 text-green-800 dark:text-green-400 font-bold text-xs">
                 3
               </span>
               <span className="font-medium text-foreground">Terbit</span>
@@ -196,11 +196,11 @@ export function BapendaDashboardPage() {
               <span className="font-semibold text-foreground">
                 Samsat Kota Jambi
               </span>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">
+              <p className="mt-0.5 text-xs text-muted-foreground">
                 Jl. Gajah Mada No. 1, Jelutung, Kota Jambi
               </p>
             </div>
-            <Badge variant="success" className="text-[10px] shrink-0">
+            <Badge variant="success" className="text-xs shrink-0">
               Aktif
             </Badge>
           </div>
@@ -209,11 +209,11 @@ export function BapendaDashboardPage() {
               <span className="font-semibold text-foreground">
                 Samsat Muaro Jambi
               </span>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">
+              <p className="mt-0.5 text-xs text-muted-foreground">
                 Jl. Lintas Timur KM 35, Sengeti
               </p>
             </div>
-            <Badge variant="success" className="text-[10px] shrink-0">
+            <Badge variant="success" className="text-xs shrink-0">
               Aktif
             </Badge>
           </div>

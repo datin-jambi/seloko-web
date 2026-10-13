@@ -1,75 +1,67 @@
 ---
 name: human-ui-crafting
-description: Standar pembuatan antarmuka (UI/UX) manusiawi dan profesional untuk menghindari kesan template generik buatan AI (Anti-AI-Slop)
+description: Standar UI SELOKO WEB agar tidak terlihat seperti template generik buatan AI (Anti-AI-Slop). Wajib dibaca sebelum membuat/mengubah halaman atau komponen.
 ---
 
-# Human-Crafted UI/UX Standards — Anti-AI-Slop Guidelines
+# Human-Crafted UI — Anti-AI-Slop
 
-Dokumen skill ini adalah pedoman wajib bagi AI Agent dan developer untuk menghasilkan tampilan yang **otentik, elegan, berwibawa, dan dirancang oleh manusia**, bukan seperti template klise bawaan AI.
+Token & spesifikasi lengkap: `.agents/prd/02-design-system.prd.md`. Dokumen ini = cara berpikir + larangan.
 
----
+## 1. Tentukan Jenis Halaman Dulu
 
-## 🚫 1. Pola Klise AI yang DILARANG KERAS (Anti-Patterns)
-1. **Dilarang memakai "Floating Glow / Blur Blobs" berlebihan**:
-   - ❌ Jangan meletakkan bola ungu/cyan blur besar melayang tanpa konteks fungsional di setiap sudut halaman.
-   - ✅ Gunakan latar belakang bertekstur arsitektural halus (subtle dot grid / delicate borders), atau kontras warna solid yang bersih.
-2. **Dilarang menggunakan Icon Sparkles / Magic Wand untuk hal biasa**:
-   - ❌ Jangan pasang ikon `Sparkles` di setiap judul card atau badge hanya untuk memperindah.
-   - ✅ Gunakan ikon fungsional yang merepresentasikan data nyata (misal: `Users`, `FileText`, `Building2`, `Shield`).
-3. **Dilarang Card Kosong Berlebihan (Low Data Density)**:
-   - ❌ Dashboard internal bukan landing page marketing. Jangan membuat kartu raksasa yang isinya hanya 1 baris angka dan ruang kosong melompong.
-   - ✅ Dashboard pemerintahan harus **Data-Dense**: tabel yang rapi, baris data terstruktur, filter pencarian jelas, status pill yang ringkas, dan pagination yang efisien.
-4. **Dilarang Efek Glassmorphism Berlebihan**:
-   - ❌ Jangan membuat seluruh elemen transparan buram (glass blur) sampai teks sulit dibaca.
-   - ✅ Gunakan latar belakang `bg-card` solid atau semi-solid dengan border kontras subtle `border-border/70` yang nyaman di mata.
+Sebelum menulis JSX, sebutkan jenis halamannya:
 
----
+| Jenis | Contoh di Seloko | Komposisi yang benar |
+|---|---|---|
+| Daftar/Operasi | Pengguna, Berita, UPTD | Judul + aksi utama, baris filter, **tabel**, pagination |
+| Form/Konfigurasi | Tambah pengguna, edit menu | Form satu kolom (maks `max-w-2xl`), label di atas, tombol simpan di bawah |
+| Detail | Profil pengguna, detail berita | Daftar `dl` dua kolom label/nilai, aksi di header |
+| Ringkasan | Dasbor | Daftar pekerjaan nyata (antrian review, data terbaru) — **bukan** kartu sambutan |
 
-## ✨ 2. Prinsip Desain Manusiawi (Human-Crafted Principles)
+Komposisi "hero + 3 kartu fitur sejajar" **tidak pernah** benar di aplikasi ini.
 
-### A. Tipografi Bertingkat Nyata (Real Visual Hierarchy)
-* **Font**: Gunakan **Plus Jakarta Sans** untuk kenyamanan membaca data panjang, dan **JetBrains Mono** untuk angka/NIP/kode UUID.
-* **Ukuran & Bobot**:
-  - Judul Halaman: `text-2xl font-bold tracking-tight text-foreground`.
-  - Subjudul / Helper: `text-xs text-muted-foreground font-medium`.
-  - Label Input: `text-xs font-semibold text-foreground`.
-  - Data Tabel: `text-xs text-foreground font-normal`.
+## 2. Sepuluh Tanda AI-Slop (Dilarang)
 
-### B. Palet Warna Nyata Institusi (Jambi Identity)
-* **Primer**: Deep Indigo / Slate Navy (`#4f46e5`) — melambangkan integritas dan teknologi inti.
-* **Sekunder**: Emerald Green (`#059669`) — warna khas Bapenda Jambi (layanan publik & pendapatan daerah).
-* **Netral**: Dark mode berbasis Slate Obsidian (`#0b0f19`), bukan pure black mati (`#000000`).
+1. Gradien (`bg-gradient-*`, `bg-linear-*`) dan warna indigo/violet/ungu.
+2. Blur: `backdrop-blur-*`, `blur-2xl/3xl`, blob bercahaya.
+3. Glow berwarna: `shadow-primary/20`, `shadow-blue-500/*`.
+4. Ikon dalam kotak berwarna di atas/di samping setiap judul kartu (ikon "topper"), apalagi tiap kartu beda warna.
+5. Grid kartu fitur sama besar berisi ikon + judul + kalimat promosi.
+6. Angka besar/metrik karangan ("1.234 pengguna", "+12%") tanpa data API.
+7. Label kecil `uppercase tracking-wider` sebagai judul grup; teks di bawah 12px.
+8. Badge dekoratif tanpa fungsi ("Multi-Tenancy", "v1.0.0", "Sesi Aktif").
+9. Ikon `Sparkles`/`Wand`/emoji untuk hal biasa.
+10. Kotak bersarang: card di dalam card, `rounded-2xl` besar, shadow di semua permukaan.
 
-### C. Aset Resmi (Real Identity Assets)
-* Selalu prioritaskan logo resmi instansi yang tersedia di `public/Assets/images/`:
-  - `LOGO SELOKO.png`
-  - `LOGO SELOKO S.png`
-  - `LOGO BAPENDA.png`
-* Jangan mengganti logo resmi dengan icon generik buatan AI.
+## 3. Yang Dilakukan Sebagai Gantinya
 
----
+- **Hierarki = ukuran & bobot teks.** Judul `text-xl font-semibold`, isi `text-sm`, meta `text-xs text-muted-foreground`.
+- **Pengelompokan = garis & jarak.** `border-b`, `divide-y`, `gap-*`. Card hanya bila konteks benar-benar terpisah.
+- **Satu aksen.** `primary` (royal blue dari logo). Warna lain hanya untuk status (sukses/peringatan/gagal).
+- **Ikon fungsional saja**: di menu, di tombol aksi yang ambigu tanpa ikon. Ukuran `h-4 w-4`, warna `currentColor`.
+- **Copy pendek & lugas**, bahasa kerja ASN: "Tambah Pengguna", "Simpan", "Hapus". Bukan "Kelola ekosistem secara mulus".
+- **Data nyata.** Tidak ada data dari API → `EmptyState`. Jangan isi contoh hardcoded di halaman produksi.
+- **Logo resmi** dari `public/Assets/images/` (`LOGO SELOKO S.png` untuk ikon, `LOGO SELOKO.png`, `LOGO BAPENDA.png` — logo Bapenda berwarna putih, hanya di latar gelap).
 
-## 🤖 3. Audit Otomatis (Wajib Sebelum Selesai)
-Jalankan deteksi pola AI-slop secara otomatis:
+## 4. Audit Otomatis (Wajib)
+
 ```bash
 npm run audit:ui
 ```
-Script `scripts/audit-ai-slop.mjs` memindai `src/` untuk:
-- Ikon `Sparkles`/`Wand` — **error**
-- Blur blob (`blur-3xl`, `blur-2xl`) — **error**
-- Glassmorphism berlebihan (`backdrop-blur-xl/2xl`) — **error**
-- `variant="gradient"` — **error**
-- Metrik hardcoded palsu di dashboard — **error**
-- Banner gradient & shadow glow berwarna — **warning**
 
-Exit code `1` jika ada error → **dilarang** menyatakan halaman selesai sebelum audit lolos.
+`scripts/audit-ai-slop.mjs` memindai `src/` — pola error menghasilkan exit code 1:
+- warna `indigo|violet|purple|fuchsia`, gradien, `backdrop-blur`, `blur-2xl/3xl`
+- glow `shadow-<warna>/<opasitas>`, ikon `Sparkles`/`Wand`, emoji
+- teks `text-[9px]`/`text-[10px]`, `variant="gradient"`
 
----
+Warning (perlu alasan jika dipertahankan): `uppercase tracking-wider`, `rounded-2xl/3xl`, `shadow-lg/xl/2xl` di luar komponen mengambang.
 
-## 📋 4. Checklist Sebelum Menyelesaikan Halaman (Self-Review)
-Sebelum menyatakan pembuatan UI selesai, periksa:
-- [ ] Apakah ada elemen blur/glow warna-warni yang tidak fungsional? *(Hapus jika ada)*.
-- [ ] Apakah teks kontras dan terbaca jelas baik di Dark Mode maupun Light Mode?
-- [ ] Apakah tabel dan form memiliki feedback state (Loading skeleton, Empty state jika kosong, Error alert)?
-- [ ] Apakah form input memiliki helper text dan pesan validasi yang jelas di bawah input?
-- [ ] Apakah tombol aksi memiliki transisi `active:scale-[0.98]` dan disabled state saat loading?
+Halaman **belum selesai** sebelum audit lolos.
+
+## 5. Checklist Manual
+
+- [ ] Jenis halaman sudah ditentukan dan komposisi sesuai §1.
+- [ ] Light & dark mode terbaca; sidebar terbuka & ciut tetap rapi.
+- [ ] Loading (skeleton), kosong (`EmptyState`), gagal (`ErrorState`) tersedia.
+- [ ] Form: label, helper/error di bawah input, tombol disabled saat submit.
+- [ ] Tidak ada data karangan atau elemen tanpa fungsi.

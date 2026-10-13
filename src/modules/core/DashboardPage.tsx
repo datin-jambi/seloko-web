@@ -85,7 +85,7 @@ export function DashboardPage() {
           <Card className="group transition-colors hover:border-primary/50">
             <CardHeader>
               <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-green-700/10 text-green-800 dark:text-green-400">
                   <Building2 className="h-4 w-4" />
                 </div>
                 <CardTitle className="text-sm">UPTD Samsat Jambi</CardTitle>
@@ -108,7 +108,7 @@ export function DashboardPage() {
           <Card className="group transition-colors hover:border-primary/50">
             <CardHeader>
               <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-600">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <Layers className="h-4 w-4" />
                 </div>
                 <CardTitle className="text-sm">Banner Portal Publik</CardTitle>
@@ -131,7 +131,7 @@ export function DashboardPage() {
           <Card className="group transition-colors hover:border-primary/50">
             <CardHeader>
               <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-600/10 text-amber-800 dark:text-amber-400">
                   <Newspaper className="h-4 w-4" />
                 </div>
                 <CardTitle className="text-sm">Berita & Artikel</CardTitle>

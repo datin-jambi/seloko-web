@@ -35,9 +35,9 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div className="flex min-h-screen w-full items-center justify-center bg-background p-4">
-          <Card className="max-w-md w-full border-destructive/30 shadow-xl">
+          <Card className="max-w-md w-full border-destructive/30 ">
             <CardHeader className="text-center pb-2">
-              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
                 <AlertTriangle className="h-6 w-6" />
               </div>
               <CardTitle className="text-lg text-foreground">
@@ -49,7 +49,7 @@ export class ErrorBoundary extends Component<Props, State> {
             </CardHeader>
             <CardContent className="space-y-4 pt-2">
               {this.state.error?.message && (
-                <div className="rounded-lg bg-muted/50 p-2.5 font-mono text-[11px] text-muted-foreground break-all">
+                <div className="rounded-lg bg-muted/50 p-2.5 font-mono text-xs text-muted-foreground break-all">
                   {this.state.error.message}
                 </div>
               )}

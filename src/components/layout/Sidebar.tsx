@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useSyncExternalStore } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { menuService } from '@/services/menu.service'
@@ -28,12 +28,12 @@ import {
   Images,
   MapPin,
   ChevronDown,
-  ChevronRight,
   Circle,
-  HelpCircle,
   Store,
   Package,
   Receipt,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -66,59 +66,100 @@ const ICON_MAP: Record<string, React.ElementType> = {
   receipt: Receipt,
 }
 
-function resolveIcon(iconName?: string | null): React.ElementType {
-  if (!iconName) return Circle
-  return ICON_MAP[iconName] || Circle
+function MenuIcon({ name }: { name?: string | null }) {
+  return React.createElement((name && ICON_MAP[name]) || Circle, {
+    className: 'h-4 w-4 shrink-0',
+  })
 }
 
-interface MenuItemProps {
+// Dipakai bila /api/menus/me kosong atau gagal.
+const FALLBACK_MENUS: MenuItemTree[] = [
+  { id: 'fb-dashboard', code: 'dashboard', label: 'Dasbor', icon: 'layout-dashboard', path: '/dashboard', isExternal: false, sortOrder: 0, isActive: true },
+  { id: 'fb-uptd', code: 'uptd', label: 'UPTD Samsat', icon: 'building-2', path: '/bapenda/uptds', isExternal: false, sortOrder: 1, isActive: true },
+  { id: 'fb-banner', code: 'banner', label: 'Banner', icon: 'panel-top', path: '/bapenda/banners', isExternal: false, sortOrder: 2, isActive: true },
+  { id: 'fb-news', code: 'news', label: 'Berita', icon: 'newspaper', path: '/bapenda/news', isExternal: false, sortOrder: 3, isActive: true },
+]
+
+// Layar < md selalu mode ikon.
+const narrowQuery = '(max-width: 767px)'
+function useIsNarrow() {
+  return useSyncExternalStore(
+    (cb) => {
+      const mq = matchMedia(narrowQuery)
+      mq.addEventListener('change', cb)
+      return () => mq.removeEventListener('change', cb)
+    },
+    () => matchMedia(narrowQuery).matches,
+  )
+}
+
+const itemBase =
+  'relative flex h-9 w-full items-center gap-3 rounded-md px-3 text-sm transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-sidebar-indicator/60'
+const itemIdle = 'text-sidebar-foreground hover:bg-sidebar-active/70 hover:text-white'
+const itemActive =
+  'bg-sidebar-active font-medium text-white before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:rounded-r before:bg-sidebar-indicator'
+
+function matchPath(path: string | null | undefined, current: string) {
+  if (!path) return false
+  const base = path.split('?')[0]
+  return current === base || current.startsWith(`${base}/`)
+}
+
+interface NavItemProps {
   item: MenuItemTree
   currentPath: string
+  collapsed: boolean
+  onExpand: () => void
 }
 
-function SidebarNavItem({ item, currentPath }: MenuItemProps) {
-  const hasChildren = item.children && item.children.length > 0
-  const isChildActive =
-    hasChildren &&
-    item.children?.some(
-      (c) => c.path && currentPath.startsWith(c.path.split('?')[0]),
-    )
-  const [isOpen, setIsOpen] = useState(isChildActive ?? false)
+function SidebarNavItem({ item, currentPath, collapsed, onExpand }: NavItemProps) {
+  const children = item.children ?? []
+  const isChildActive = children.some((c) => matchPath(c.path, currentPath))
+  const [isOpen, setIsOpen] = useState(isChildActive)
+  const label = <span className={cn('truncate', collapsed && 'sr-only')}>{item.label}</span>
 
-  const IconComp = resolveIcon(item.icon)
-  const isActive = item.path
-    ? currentPath === item.path || currentPath.startsWith(`${item.path}/`)
-    : false
-
-  if (hasChildren) {
+  if (children.length > 0) {
     return (
-      <div className="space-y-1">
+      <div>
         <button
           type="button"
-          onClick={() => setIsOpen(!isOpen)}
+          title={collapsed ? item.label : undefined}
+          aria-expanded={!collapsed && isOpen}
+          onClick={() => {
+            if (collapsed) {
+              onExpand()
+              setIsOpen(true)
+            } else setIsOpen(!isOpen)
+          }}
           className={cn(
-            'flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground',
-            (isOpen || isChildActive) && 'text-foreground',
+            itemBase,
+            itemIdle,
+            isChildActive && 'text-white',
+            collapsed && isChildActive && itemActive,
+            collapsed && 'justify-center px-0',
           )}
         >
-          <div className="flex items-center gap-2.5">
-            <IconComp className="h-4 w-4 shrink-0 text-muted-foreground" />
-            <span>{item.label}</span>
-          </div>
-          {isOpen ? (
-            <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
-          ) : (
-            <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
+          <MenuIcon name={item.icon} />
+          {label}
+          {!collapsed && (
+            <ChevronDown
+              className={cn(
+                'ml-auto h-4 w-4 shrink-0 opacity-60 transition-transform motion-reduce:transition-none',
+                !isOpen && '-rotate-90',
+              )}
+            />
           )}
         </button>
 
-        {isOpen && (
-          <div className="ml-4 space-y-1 border-l border-border/60 pl-2">
-            {item.children?.map((child) => (
+        {!collapsed && isOpen && (
+          <div className="ml-[1.375rem] mt-0.5 space-y-0.5 border-l border-sidebar-border pl-2">
+            {children.map((child) => (
               <SidebarNavItem
                 key={child.id || child.code}
                 item={child}
                 currentPath={currentPath}
+                collapsed={false}
+                onExpand={onExpand}
               />
             ))}
           </div>
@@ -127,47 +168,36 @@ function SidebarNavItem({ item, currentPath }: MenuItemProps) {
     )
   }
 
+  const className = cn(
+    itemBase,
+    matchPath(item.path, currentPath) ? itemActive : itemIdle,
+    collapsed && 'justify-center px-0',
+  )
+  const title = collapsed ? item.label : undefined
+
   if (item.isExternal && item.path) {
     return (
-      <a
-        href={item.path}
-        target="_blank"
-        rel="noreferrer"
-        className="flex items-center justify-between rounded-lg px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-      >
-        <div className="flex items-center gap-2.5">
-          <IconComp className="h-4 w-4 shrink-0" />
-          <span>{item.label}</span>
-        </div>
-        <ExternalLink className="h-3 w-3 text-muted-foreground/70" />
+      <a href={item.path} target="_blank" rel="noreferrer" title={title} className={className}>
+        <MenuIcon name={item.icon} />
+        {label}
+        {!collapsed && <ExternalLink className="ml-auto h-3.5 w-3.5 opacity-50" />}
       </a>
     )
   }
 
   return (
-    <Link
-      to={item.path || '#'}
-      className={cn(
-        'flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium transition-all duration-150',
-        isActive
-          ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20 font-semibold'
-          : 'text-muted-foreground hover:bg-accent/70 hover:text-foreground',
-      )}
-    >
-      <IconComp
-        className={cn(
-          'h-4 w-4 shrink-0',
-          isActive ? 'text-primary-foreground' : 'text-muted-foreground',
-        )}
-      />
-      <span>{item.label}</span>
+    <Link to={item.path || '#'} title={title} className={className}>
+      <MenuIcon name={item.icon} />
+      {label}
     </Link>
   )
 }
 
 export function Sidebar() {
   const location = useLocation()
-  const { activeAppCode } = useAppStore()
+  const { activeAppCode, sidebarCollapsed, toggleSidebar } = useAppStore()
+  const isNarrow = useIsNarrow()
+  const collapsed = sidebarCollapsed || isNarrow
 
   const { data: menus, isLoading } = useQuery({
     queryKey: ['menus', activeAppCode],
@@ -175,115 +205,66 @@ export function Sidebar() {
     retry: 1,
   })
 
+  const items = menus && menus.length > 0 ? menus : FALLBACK_MENUS
+  const ToggleIcon = collapsed ? PanelLeftOpen : PanelLeftClose
+
   return (
-    <aside className="sticky top-0 flex h-screen w-64 flex-col border-r border-border/70 bg-card/70 backdrop-blur-md">
-      {/* Brand Header */}
-      <div className="flex h-16 items-center gap-3 border-b border-border/70 px-4">
+    <aside
+      className={cn(
+        'sticky top-0 flex h-screen shrink-0 flex-col bg-sidebar text-sidebar-foreground transition-[width] duration-200 ease-out motion-reduce:transition-none',
+        collapsed ? 'w-16' : 'w-60',
+      )}
+    >
+      <div
+        className={cn(
+          'flex h-14 shrink-0 items-center gap-2.5 border-b border-sidebar-border',
+          collapsed ? 'justify-center' : 'px-4',
+        )}
+      >
         <img
           src="/Assets/images/LOGO%20SELOKO%20S.png"
-          alt="Seloko Logo"
-          className="h-9 w-9 object-contain shrink-0 rounded-lg"
+          alt="Seloko"
+          className="h-8 w-8 shrink-0 object-contain"
         />
-        <div className="flex flex-col min-w-0">
-          <span className="text-sm font-bold tracking-tight text-foreground truncate">
-            SELOKO DASHBOARD
-          </span>
-          <span className="text-[10px] font-medium text-muted-foreground truncate">
-            BPKPD Provinsi Jambi
-          </span>
-        </div>
-      </div>
-
-      {/* Nav List */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-        <div className="px-3 pb-2 text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
-          Navigasi Menu
-        </div>
-
-        {isLoading ? (
-          <div className="space-y-2 px-3 py-2">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div
-                key={i}
-                className="h-8 rounded-lg bg-muted/40 animate-pulse"
-              />
-            ))}
-          </div>
-        ) : menus && menus.length > 0 ? (
-          menus.map((item) => (
-            <SidebarNavItem
-              key={item.id || item.code}
-              item={item}
-              currentPath={location.pathname}
-            />
-          ))
-        ) : (
-          <div className="space-y-1">
-            {/* Fallback menu items if not logged in or backend menu is empty */}
-            <Link
-              to="/dashboard"
-              className={cn(
-                'flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium',
-                location.pathname === '/dashboard'
-                  ? 'bg-primary text-primary-foreground font-semibold'
-                  : 'text-muted-foreground hover:bg-accent',
-              )}
-            >
-              <LayoutDashboard className="h-4 w-4" />
-              <span>Dasbor Utama</span>
-            </Link>
-            <Link
-              to="/bapenda/uptds"
-              className={cn(
-                'flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium',
-                location.pathname.startsWith('/bapenda/uptds')
-                  ? 'bg-primary text-primary-foreground font-semibold'
-                  : 'text-muted-foreground hover:bg-accent',
-              )}
-            >
-              <Building2 className="h-4 w-4" />
-              <span>UPTD Samsat Jambi</span>
-            </Link>
-            <Link
-              to="/bapenda/banners"
-              className={cn(
-                'flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium',
-                location.pathname.startsWith('/bapenda/banners')
-                  ? 'bg-primary text-primary-foreground font-semibold'
-                  : 'text-muted-foreground hover:bg-accent',
-              )}
-            >
-              <Layers className="h-4 w-4" />
-              <span>Banner Promo</span>
-            </Link>
-            <Link
-              to="/bapenda/news"
-              className={cn(
-                'flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium',
-                location.pathname.startsWith('/bapenda/news')
-                  ? 'bg-primary text-primary-foreground font-semibold'
-                  : 'text-muted-foreground hover:bg-accent',
-              )}
-            >
-              <Newspaper className="h-4 w-4" />
-              <span>Berita & Artikel</span>
-            </Link>
+        {!collapsed && (
+          <div className="min-w-0 leading-tight">
+            <div className="text-sm font-bold tracking-wide text-white">SELOKO</div>
+            <div className="truncate text-xs text-sidebar-foreground">BPKPD Provinsi Jambi</div>
           </div>
         )}
       </div>
 
-      {/* Footer Info */}
-      <div className="border-t border-border/70 p-3">
-        <div className="rounded-lg bg-secondary/50 p-2.5 text-[11px] text-muted-foreground">
-          <div className="flex items-center gap-1.5 font-medium text-foreground">
-            <HelpCircle className="h-3.5 w-3.5 text-primary" />
-            <span>Pusat Bantuan ASN</span>
-          </div>
-          <p className="mt-1 text-[10px] leading-relaxed">
-            Terhubung dengan Gateway API Seloko v1.0.0
-          </p>
+      <nav aria-label="Menu utama" className="flex-1 space-y-0.5 overflow-y-auto overflow-x-hidden px-2 py-3">
+        {isLoading
+          ? Array.from({ length: 5 }, (_, i) => (
+              <div key={i} className="h-9 animate-pulse rounded-md bg-sidebar-active/60" />
+            ))
+          : items.map((item) => (
+              <SidebarNavItem
+                key={item.id || item.code}
+                item={item}
+                currentPath={location.pathname}
+                collapsed={collapsed}
+                // ponytail: di layar < md grup tidak bisa dibuka (selalu ikon); tambah drawer mobile bila perlu.
+                onExpand={() => sidebarCollapsed && toggleSidebar()}
+              />
+            ))}
+      </nav>
+
+      {!isNarrow && (
+        <div className="shrink-0 border-t border-sidebar-border p-2">
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            title={collapsed ? 'Perluas sidebar' : undefined}
+            aria-label={collapsed ? 'Perluas sidebar' : 'Ciutkan sidebar'}
+            className={cn(itemBase, itemIdle, collapsed && 'justify-center px-0')}
+          >
+            <ToggleIcon className="h-4 w-4 shrink-0" />
+            {!collapsed && <span>Ciutkan</span>}
+          </button>
         </div>
-      </div>
+      )}
     </aside>
   )
 }

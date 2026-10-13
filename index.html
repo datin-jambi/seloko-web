@@ -4,19 +4,26 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/Assets/images/LOGO%20SELOKO%20S.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Seloko Dashboard — BPKPD Provinsi Jambi</title>
+    <title>SELOKO</title>
     <meta
       name="description"
-      content="Dashboard Terpusat & Ekosistem Multi-Aplikasi Badan Pengelola Keuangan dan Pendapatan Daerah Provinsi Jambi"
+      content="Dashboard internal Badan Pengelola Keuangan dan Pendapatan Daerah Provinsi Jambi"
     />
+    <script>
+      // Pasang tema sebelum render agar tidak berkedip.
+      if (
+        localStorage.theme === 'dark' ||
+        (!('theme' in localStorage) && matchMedia('(prefers-color-scheme: dark)').matches)
+      ) document.documentElement.classList.add('dark')
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
   </head>
-  <body class="font-['Plus_Jakarta_Sans',sans-serif]">
+  <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

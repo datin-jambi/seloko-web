@@ -18,8 +18,8 @@ export function EmptyState({
   onAction,
 }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border/80 bg-card/40 p-12 text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary text-muted-foreground">
+    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border/80 bg-card/40 p-12 text-center">
+      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-secondary text-muted-foreground">
         <Icon className="h-6 w-6" />
       </div>
       <h3 className="mt-4 text-sm font-semibold text-foreground">{title}</h3>

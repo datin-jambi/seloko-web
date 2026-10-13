@@ -25,4 +25,4 @@ SELOKO WEB adalah dashboard terpusat yang melayani pengelolaan multi-aplikasi BP
 ### D. Design System
 * Basis: Tailwind CSS + Radix UI (shadcn/ui design language).
 * Variasi tema: Light & Dark mode dengan persistensi di local storage.
-* Palet warna: Aksen modern profesional khas pemerintahan digital (Deep Navy / Indigo & Emerald).
+* Palet warna, tipografi, dan layout shell (sidebar ciut/perluas): lihat `02-design-system.prd.md`.

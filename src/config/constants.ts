@@ -9,25 +9,22 @@ export type AppCode = (typeof APP_CODES)[keyof typeof APP_CODES]
 
 export const APP_CONFIGS: Record<
   string,
-  { name: string; description: string; icon: string; badgeColor: string }
+  { name: string; description: string; icon: string }
 > = {
   [APP_CODES.SELOKO]: {
-    name: 'Seloko Core Gateway',
-    description: 'Manajemen Pengguna, Hak Akses & Ekosistem Multi-Aplikasi',
+    name: 'Seloko',
+    description: 'Pengguna, hak akses, aplikasi, dan menu',
     icon: 'shield',
-    badgeColor: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20',
   },
   [APP_CODES.BAPENDA_PROFILE]: {
-    name: 'CMS Portal Bapenda',
-    description: 'Pengelolaan Kantor UPTD Samsat, Banner, Berita & Halaman',
+    name: 'Portal Bapenda',
+    description: 'UPTD Samsat, banner, berita, dan halaman',
     icon: 'building-2',
-    badgeColor: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
   },
   [APP_CODES.LAPAK_JAMBI_WEB]: {
-    name: 'Lapak Jambi Web',
-    description: 'Verifikasi Merchant UMKM & Katalog Produk Daerah',
+    name: 'Lapak Jambi',
+    description: 'Verifikasi merchant UMKM dan katalog produk',
     icon: 'store',
-    badgeColor: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
   },
 }
 
