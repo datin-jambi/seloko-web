@@ -1,8 +1,7 @@
-import { useState } from 'react'
 import { AppSwitcher } from './AppSwitcher'
+import { ThemeToggle } from '@/components/shared/ThemeToggle'
 import { useAuthStore } from '@/stores/auth-store'
 import { authService } from '@/services/auth.service'
-import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
@@ -12,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Moon, Sun, LogOut, User, Shield, ChevronDown } from 'lucide-react'
+import { LogOut, User, Shield, ChevronDown } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 function getInitials(name?: string) {
@@ -28,17 +27,6 @@ function getInitials(name?: string) {
 export function Header() {
   const { user, clearAuth } = useAuthStore()
   const navigate = useNavigate()
-  // Kelas awal dipasang skrip inline di index.html.
-  const [isDark, setIsDark] = useState(() =>
-    document.documentElement.classList.contains('dark'),
-  )
-
-  const toggleTheme = () => {
-    const next = !isDark
-    document.documentElement.classList.toggle('dark', next)
-    localStorage.setItem('theme', next ? 'dark' : 'light')
-    setIsDark(next)
-  }
 
   const handleLogout = async () => {
     try {
@@ -56,16 +44,7 @@ export function Header() {
       <AppSwitcher />
 
       <div className="flex items-center gap-1">
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={toggleTheme}
-          className="text-muted-foreground hover:text-foreground"
-          aria-label={isDark ? 'Mode terang' : 'Mode gelap'}
-          title={isDark ? 'Mode terang' : 'Mode gelap'}
-        >
-          {isDark ? <Sun /> : <Moon />}
-        </Button>
+        <ThemeToggle />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

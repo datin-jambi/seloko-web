@@ -6,18 +6,28 @@ import { useAppStore } from '@/stores/app-store'
 import { APP_CODES } from '@/config/constants'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Lock, User, AlertCircle, ArrowRight, Eye, EyeOff } from 'lucide-react'
+import { ThemeToggle } from '@/components/shared/ThemeToggle'
+import { AlertCircle, Eye, EyeOff } from 'lucide-react'
 import type { AxiosError } from 'axios'
+
+// Akun seeder — hanya muncul di `npm run dev`, tidak ikut ke build produksi.
+const DEV_ACCOUNTS = import.meta.env.DEV
+  ? [
+      { label: 'Superadmin', identity: 'superadmin', password: 'SelokoBapenda@2025!' },
+      { label: 'Admin Seloko', identity: 'admin.seloko', password: 'Seloko@2025!' },
+      { label: 'Editor Bapenda', identity: 'editor.profil', password: 'Seloko@2025!' },
+    ]
+  : []
+
+const YEAR = new Date().getFullYear()
 
 export function LoginPage() {
   const navigate = useNavigate()
   const { setAuth } = useAuthStore()
   const setActiveAppCode = useAppStore((s) => s.setActiveAppCode)
 
-  const [identity, setIdentity] = useState('superadmin')
-  const [password, setPassword] = useState('SelokoBapenda@2025!')
+  const [identity, setIdentity] = useState('')
+  const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -36,177 +46,139 @@ export function LoginPage() {
       setAuth(data.accessToken, profile)
       navigate('/dashboard')
     } catch (err: unknown) {
-      const axiosErr = err as AxiosError<{ message?: string; details?: Record<string, string> }>
-      if (axiosErr.response?.data?.message) {
-        setErrorMessage(axiosErr.response.data.message)
-      } else if (axiosErr.message) {
-        setErrorMessage(axiosErr.message)
-      } else {
-        setErrorMessage('Gagal terhubung ke Seloko API. Pastikan backend aktif.')
-      }
+      const axiosErr = err as AxiosError<{ message?: string }>
+      setErrorMessage(
+        axiosErr.response?.data?.message ||
+          axiosErr.message ||
+          'Gagal terhubung ke server. Coba lagi.',
+      )
     } finally {
       setIsLoading(false)
     }
   }
 
-  const fillCredential = (userText: string, passText: string) => {
-    setIdentity(userText)
-    setPassword(passText)
-    setErrorMessage(null)
-  }
-
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-background px-4 py-12">
-      {/* Subtle Institutional Grid Texture */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(hsl(var(--muted-foreground)/0.12)_1px,transparent_1px)] [background-size:20px_20px] [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black_80%)]" />
-
-      <div className="relative z-10 w-full max-w-md">
-        {/* Brand Logos: Bapenda + Seloko */}
-        <div className="mb-7 flex flex-col items-center text-center">
-          <div className="flex items-center justify-center gap-3 mb-2">
-            <img
-              src="/Assets/images/LOGO%20BAPENDA.png"
-              alt="Logo Bapenda Jambi"
-              className="h-12 w-auto object-contain"
-            />
-            <div className="h-8 w-px bg-border" />
+    <div className="grid min-h-svh lg:grid-cols-2">
+      <div className="flex flex-col gap-4 p-6 md:p-10">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 font-semibold">
             <img
               src="/Assets/images/LOGO%20SELOKO%20S.png"
-              alt="Logo Seloko"
-              className="h-11 w-auto object-contain"
+              alt=""
+              className="size-7 object-contain"
             />
+            SELOKO
           </div>
-
-          <h1 className="mt-3 text-2xl font-bold tracking-tight text-foreground">
-            SELOKO DASHBOARD
-          </h1>
-          <p className="mt-1 text-xs text-muted-foreground font-medium">
-            Badan Pengelola Keuangan dan Pendapatan Daerah Provinsi Jambi
-          </p>
-          <div className="mt-2.5 flex items-center gap-2">
-            <Badge variant="outline" className="text-xs font-semibold tracking-wide py-0.5 border-border bg-secondary/40 text-foreground">
-              Portal Layanan Internal ASN
-            </Badge>
-          </div>
+          <ThemeToggle />
         </div>
 
-        {/* Login Card */}
-        <Card className="border-border bg-card">
-          <CardHeader className="space-y-1 pb-4">
-            <CardTitle className="text-lg">Masuk Portal Internal</CardTitle>
-            <CardDescription className="text-xs">
-              Gunakan NIP, username, atau email kedinasan ASN Anda
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent>
-            {errorMessage && (
-              <div className="mb-4 flex items-center gap-2.5 rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive">
-                <AlertCircle className="h-4 w-4 shrink-0" />
-                <span>{errorMessage}</span>
+        <div className="flex flex-1 items-center justify-center">
+          <div className="w-full max-w-xs">
+            <form onSubmit={handleLogin} className="flex flex-col gap-6">
+              <div className="flex flex-col items-center gap-1 text-center">
+                <h1 className="text-2xl font-bold">Masuk ke akun Anda</h1>
+                <p className="text-balance text-sm text-muted-foreground">
+                  Gunakan NIP, username, atau email kedinasan
+                </p>
               </div>
-            )}
 
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground">
-                  Identitas Pengguna
-                </label>
-                <div className="relative">
-                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder="Username, email, atau NIP"
-                    value={identity}
-                    onChange={(e) => setIdentity(e.target.value)}
-                    className="pl-9"
-                    required
-                  />
+              {errorMessage && (
+                <div
+                  role="alert"
+                  className="flex items-start gap-2 rounded-md border border-destructive/25 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+                >
+                  <AlertCircle className="mt-0.5 size-4 shrink-0" />
+                  <span>{errorMessage}</span>
                 </div>
+              )}
+
+              <div className="grid gap-2">
+                <label htmlFor="identity" className="text-sm font-medium">
+                  NIP / Username / Email
+                </label>
+                <Input
+                  id="identity"
+                  autoComplete="username"
+                  value={identity}
+                  onChange={(e) => setIdentity(e.target.value)}
+                  required
+                  autoFocus
+                />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground">
-                  Kata Sandi
+              <div className="grid gap-2">
+                <label htmlFor="password" className="text-sm font-medium">
+                  Kata sandi
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
+                    id="password"
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="••••••••••••"
+                    autoComplete="current-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-9 pr-9"
+                    className="pr-9"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                    aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+                    className="absolute inset-y-0 right-0 flex w-9 items-center justify-center text-muted-foreground hover:text-foreground"
                   >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
+                    {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                   </button>
                 </div>
               </div>
 
-              <Button
-                type="submit"
-                className="w-full font-semibold mt-2"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <span className="flex items-center gap-2">
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                    Memverifikasi...
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2">
-                    Masuk ke Dashboard
-                    <ArrowRight className="h-4 w-4" />
-                  </span>
-                )}
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? 'Memverifikasi…' : 'Masuk'}
               </Button>
+
+              {DEV_ACCOUNTS.length > 0 && (
+                <div className="grid gap-2">
+                  <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:border-t after:border-border">
+                    <span className="relative z-10 bg-background px-2 text-muted-foreground">
+                      Akun uji (dev)
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {DEV_ACCOUNTS.map((a) => (
+                      <Button
+                        key={a.identity}
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setIdentity(a.identity)
+                          setPassword(a.password)
+                          setErrorMessage(null)
+                        }}
+                      >
+                        {a.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </form>
+          </div>
+        </div>
 
-            {/* Quick Testing Credentials Pills */}
-            <div className="mt-6 border-t border-border/60 pt-4">
-              <span className="text-xs font-semibold text-muted-foreground block mb-2">
-                Akun Uji Coba Cepat (Seeder):
-              </span>
-              <div className="flex flex-wrap gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => fillCredential('superadmin', 'SelokoBapenda@2025!')}
-                  className="rounded-md border border-border bg-secondary/40 px-2 py-1 text-xs font-medium text-foreground hover:bg-secondary transition-colors"
-                >
-                  Superadmin
-                </button>
-                <button
-                  type="button"
-                  onClick={() => fillCredential('admin.seloko', 'Seloko@2025!')}
-                  className="rounded-md border border-border bg-secondary/40 px-2 py-1 text-xs font-medium text-foreground hover:bg-secondary transition-colors"
-                >
-                  Admin Seloko
-                </button>
-                <button
-                  type="button"
-                  onClick={() => fillCredential('editor.profil', 'Seloko@2025!')}
-                  className="rounded-md border border-border bg-secondary/40 px-2 py-1 text-xs font-medium text-foreground hover:bg-secondary transition-colors"
-                >
-                  Editor Bapenda
-                </button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <p className="text-center text-xs text-muted-foreground md:text-left">
+          © {YEAR} BPKPD Provinsi Jambi
+        </p>
+      </div>
 
-        {/* Footer info */}
-        <p className="mt-6 text-center text-xs text-muted-foreground">
-          &copy; 2026 Pemerintah Provinsi Jambi. Seluruh hak cipta dilindungi undang-undang.
+      {/* Panel kanan: logo Bapenda berwarna putih, butuh latar gelap. */}
+      <div className="relative hidden flex-col items-center justify-end border-l border-sidebar-border bg-sidebar p-10 lg:flex">
+        <img
+          src="/Assets/images/LOGO%20BAPENDA.png"
+          alt="Bapenda Provinsi Jambi"
+          className="absolute inset-0 m-auto w-3/5 max-w-md object-contain"
+        />
+        <p className="relative text-center text-xs text-sidebar-foreground">
+          Badan Pengelola Keuangan dan Pendapatan Daerah Provinsi Jambi
         </p>
       </div>
     </div>

@@ -14,7 +14,7 @@ const ERRORS = [
   [/\b(?:Sparkles|Wand2?|WandSparkles)\b/, 'ikon Sparkles/Wand'],
   [/text-\[(?:[0-9]|1[01])px\]/, 'teks < 12px'],
   [/variant=["']gradient["']/, 'variant gradient'],
-  [/\p{Extended_Pictographic}/u, 'emoji'],
+  [/(?![©®™])\p{Extended_Pictographic}/u, 'emoji'],
 ]
 // Komponen mengambang boleh pakai shadow besar.
 const FLOATING = /dropdown-menu|dialog|sheet|popover|tooltip|select|toast|sonner/
