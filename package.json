@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "audit:ui": "node scripts/audit-ai-slop.mjs",
+    "check:agents": "node scripts/check-agents-docs.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -15,7 +15,7 @@ Aplikasi ini adalah dashboard frontend internal yang dibangun menggunakan **Reac
 
 ### B. Aturan Wajib (Rules):
 1. **Multi-Tenancy via `X-App-Code` & App Switcher:** Buka [`.agents/rules/seloko-web-standards.md`](file:///.agents/rules/seloko-web-standards.md)
-   - Setiap pemanggilan Axios **wajib** menyertakan header `X-App-Code` sesuai aplikasi aktif (`seloko`, `bapenda-profile`, dll.).
+   - Header `X-App-Code` selalu `seloko` (gateway); konteks aplikasi aktif dikirim lewat query param `appCode` atau path domain.
    - App Switcher di header secara otomatis mengubah active app code, me-reload menu dinamis (`/api/menus/me`), dan me-reset filter konteks.
 2. **Kredensial & Autentikasi (JWT + HttpOnly Cookie):**
    - Access token disimpan di in-memory auth state / memory storage.
@@ -34,6 +34,14 @@ Aplikasi ini adalah dashboard frontend internal yang dibangun menggunakan **Reac
 - `npm run dev` — Menjalankan development server Vite.
 - `npm run build` — Memvalidasi TypeScript dan membuat production bundle.
 - `npm run lint` — Memeriksa linter kode.
+- `npm run audit:ui` — Memeriksa pola UI "AI-slop" (lihat skill `human-ui-crafting`).
+- `npm run check:agents` — Memeriksa dokumen `.agents/` masih sinkron dengan struktur repo.
+- `npm run preview` — Menjalankan hasil build secara lokal.
+
+---
+
+## 🔄 Menjaga Dokumen Tetap Sinkron
+Setiap perubahan struktur, aturan, token desain, alur API, atau keputusan baru dari user **wajib** memperbarui (atau membuat) file terkait di `.agents/` pada perubahan yang sama. Peta "ubah X → perbarui Y" ada di [`.agents/rules/seloko-web-standards.md` §5](file:///.agents/rules/seloko-web-standards.md). Tutup pekerjaan dengan `npm run check:agents`.
 
 ---
 

@@ -10,7 +10,7 @@ SELOKO WEB adalah dashboard terpusat yang melayani pengelolaan multi-aplikasi BP
 * Komponen dropdown di navbar/sidebar yang menampilkan daftar aplikasi yang dapat diakses oleh user yang sedang login.
 * Mengganti aplikasi aktif akan:
   - Mengubah konteks `activeAppCode` di global store.
-  - Mengubah header HTTP `X-App-Code` pada seluruh API request berikutnya.
+  - Mengirim konteks baru lewat query param `appCode` (header `X-App-Code` tetap `seloko`, lihat PRD 03).
   - Me-refresh query `/api/menus/me` untuk menampilkan navigasi sidebar yang sesuai dengan aplikasi tersebut.
 
 ### B. Dynamic Navigation Tree

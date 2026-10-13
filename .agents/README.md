@@ -19,3 +19,5 @@ Repositori ini dilengkapi dengan sistem agen terstruktur untuk memastikan setiap
     ├── resilience-error-workflow/          # SOP Error Boundary, 403, 404, dan visual state
     └── add-page-workflow/                  # SOP penambahan modul/halaman baru
 ```
+
+Dokumen ini wajib diperbarui bersamaan dengan perubahan kode — lihat `rules/seloko-web-standards.md` §5. Cek dengan `npm run check:agents`.

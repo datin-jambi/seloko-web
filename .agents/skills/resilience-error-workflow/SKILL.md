@@ -17,7 +17,11 @@ Aplikasi tingkat enterprise tidak boleh mengalami *blank white screen* atau cras
    - Jangan biarkan halaman kosong. Tampilkan komponen `<ErrorState message="..." onRetry={...} />`.
 3. **Level Otorisasi (403 Forbidden)**:
    - Jika akun pegawai tidak memiliki hak akses permission ke modul tersebut, tampilkan halaman sopan: *"Akses Ditolak — Anda tidak memiliki izin [permission:code] untuk membuka halaman ini"*.
-4. **Level Aplikasi (React Error Boundary)**:
+4. **Level Aksi (Mutasi / Login / Logout)**:
+   - Berhasil → `toast.success(...)`, gagal → `toast.error('Gagal …', { description: pesanDariApi })` dari `sonner` (posisi tengah atas, sudah dikonfigurasi global).
+   - Progres request ditangani otomatis oleh `TopLoader`; cukup `disabled` tombol saat `isPending`.
+   - Aturan lengkap: `.agents/prd/02-design-system.prd.md` §7a.
+5. **Level Aplikasi (React Error Boundary)**:
    - Tangkap uncaught exceptions dan tampilkan tombol *"Muat Ulang Halaman"* atau *"Kembali ke Dasbor"*.
 
 ---

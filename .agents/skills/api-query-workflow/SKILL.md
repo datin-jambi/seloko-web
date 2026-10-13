@@ -49,9 +49,11 @@ export function useUptdList(params: { page: number; search?: string }) {
 ---
 
 ## 3. Pola Penulisan Mutasi & Auto-Invalidation
-Setiap kali melakukan operasi create/update/delete:
+Setiap kali melakukan operasi create/update/delete (feedback toast wajib, top loader otomatis lewat `apiClient`):
 ```typescript
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import type { AxiosError } from 'axios'
 import { useAppStore } from '@/stores/app-store'
 import { uptdService } from '@/services/uptd.service'
 import { uptdKeys } from './uptd-keys'
@@ -65,9 +67,13 @@ export function useCreateUptd() {
     onSuccess: () => {
       // Invalidate hanya daftar UPTD pada aplikasi aktif
       queryClient.invalidateQueries({ queryKey: uptdKeys.lists(activeAppCode) })
+      toast.success('UPTD disimpan')
     },
-    onError: (error) => {
-      // Tangani pesan error atau field validation
+    onError: (error: AxiosError<{ message?: string }>) => {
+      // Error field (400 details) dipetakan ke bawah input; sisanya toast.
+      toast.error('Gagal menyimpan', {
+        description: error.response?.data?.message ?? error.message,
+      })
     },
   })
 }

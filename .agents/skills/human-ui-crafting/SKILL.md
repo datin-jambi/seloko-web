@@ -64,4 +64,5 @@ Halaman **belum selesai** sebelum audit lolos.
 - [ ] Light & dark mode terbaca; sidebar terbuka & ciut tetap rapi.
 - [ ] Loading (skeleton), kosong (`EmptyState`), gagal (`ErrorState`) tersedia.
 - [ ] Form: label, helper/error di bawah input, tombol disabled saat submit.
+- [ ] Aksi berhasil/gagal memberi toast (tengah atas) sesuai PRD 02 §7a — satu pesan, tidak dobel dengan kotak inline.
 - [ ] Tidak ada data karangan atau elemen tanpa fungsi.

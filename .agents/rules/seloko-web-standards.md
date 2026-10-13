@@ -5,12 +5,12 @@ Dokumen ini adalah aturan resmi yang wajib dipatuhi saat menulis kode di `seloko
 ---
 
 ## 1. Konsep Multi-Tenancy & App Switcher
-* **Header `X-App-Code`**: Setiap request ke API harus membawa `X-App-Code` sesuai aplikasi aktif yang sedang dipilih di App Switcher (`seloko`, `bapenda-profile`, dsb.).
+* **Header `X-App-Code` selalu `seloko`** (gateway). Backend mewajibkan header ini sama dengan `appCode` token; mengikuti aplikasi aktif menyebabkan 401/403.
+* **Konteks aplikasi aktif** (`bapenda-profile`, dsb.) dikirim lewat **query param** (`?appCode=`) atau path API domain (`/api/bapenda/*`), bukan header.
 * **State Sinkronisasi**: Saat user mengganti aplikasi di App Switcher:
   1. Update active app di Zustand `useAppStore`.
-  2. Cache header Axios otomatis terbarui.
-  3. Query menu dinamis (`/api/menus/me`) di-refetch untuk me-render pohon sidebar baru.
-  4. Halaman diarahkan ke default dashboard aplikasi tersebut.
+  2. Query menu dinamis (`/api/menus/me?appCode=…`) di-refetch untuk me-render pohon sidebar baru.
+  3. Halaman diarahkan ke default dashboard aplikasi tersebut.
 
 ---
 
@@ -18,7 +18,7 @@ Dokumen ini adalah aturan resmi yang wajib dipatuhi saat menulis kode di `seloko
 * **Sesi**: `accessToken` disimpan di memori (`useAuthStore`).
 * **Refresh Token**: Dikelola via `HttpOnly Cookie` oleh browser (`withCredentials: true`).
 * **Interceptor**:
-  - Request: Tambahkan `Authorization: Bearer <accessToken>` dan `X-App-Code: <currentAppCode>`.
+  - Request: Tambahkan `Authorization: Bearer <token>` dan `X-App-Code: seloko`.
   - Response: Tangani error `401`. Lakukan antrian refresh token (`POST /api/auth/refresh`), jika gagal redirect ke `/login`.
 
 ---
@@ -53,4 +53,31 @@ src/
 ├── App.tsx          # Router & Providers setup
 ├── index.css        # Tailwind & Design tokens
 └── main.tsx         # React bootstrap
+scripts/             # Pemeriksa otomatis (audit:ui, check:agents)
 ```
+
+---
+
+## 5. Sinkronisasi Dokumen `.agents/` (Wajib)
+
+Dokumen di `.agents/` dan `AGENTS.md` adalah sumber kebenaran untuk agent berikutnya. Dokumen yang basi lebih berbahaya daripada tidak ada dokumen. **Perubahan kode yang menyentuh hal di bawah ini belum selesai sebelum dokumennya diperbarui pada perubahan yang sama:**
+
+| Jika berubah… | Perbarui |
+|---|---|
+| Folder baru / pindah / hapus di `src/` atau `scripts/` | Pohon §4 di file ini |
+| Script npm (`package.json`) | Daftar perintah di `AGENTS.md` |
+| Token warna, font, radius, komponen `ui/`, layout shell, toast/loader | `.agents/prd/02-design-system.prd.md` |
+| Interceptor, header, alur auth, format response, service pattern | `.agents/prd/03-api-integration.prd.md` + §1–2 file ini |
+| App Switcher, store, routing, arsitektur modul | `.agents/prd/01-seloko-web-architecture.prd.md` |
+| Cara kerja berulang baru (pola halaman, form, upload, dsb.) | Skill baru `.agents/skills/<nama>/SKILL.md` + daftar di `.agents/README.md` |
+| PRD baru | File `.agents/prd/NN-<nama>.prd.md` + daftar di `.agents/prd/README.md` |
+| Keputusan/koreksi dari user yang mengubah aturan | Aturan terkait (rules/PRD/skill) — tulis aturannya, bukan riwayatnya |
+| Fitur roadmap selesai | Status roadmap di `AGENTS.md` |
+
+Cara menulis:
+- Ubah dokumen yang sudah ada sebelum membuat file baru. Satu topik = satu tempat; dokumen lain cukup merujuk.
+- Tulis kondisi **sekarang** sebagai aturan ("Header X-App-Code selalu `seloko`"), bukan catatan perubahan ("dulu… sekarang…").
+- Path, nama file, dan perintah harus persis seperti di repo.
+- Skill baru memakai frontmatter `name` + `description` seperti skill yang ada.
+
+Verifikasi: `npm run check:agents` (`scripts/check-agents-docs.mjs`) memastikan path yang dirujuk ada, folder `src/` tercatat di §4, skill/PRD terdaftar di indeks, dan script npm tercatat di `AGENTS.md`. Isi aturan (seperti header atau alur auth) tidak bisa dicek otomatis — baca ulang bagian terkait saat mengubah kodenya.

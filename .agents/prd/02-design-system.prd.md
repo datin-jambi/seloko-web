@@ -98,6 +98,22 @@ Di dark mode gunakan tingkat 400. Jangan pakai `-500` untuk teks di atas putih (
 | DropdownMenu | Solid `bg-popover`, `shadow-md`, tanpa blur. |
 | Table | Header `text-xs font-medium text-muted-foreground`, baris `text-sm`, garis `border-b`, hover `bg-muted/50`. |
 | Dialog/Sheet | Overlay `bg-black/40` tanpa blur. |
+| Toast | `sonner` via `src/components/ui/sonner.tsx` (`<Toaster />` sekali di `App.tsx`). Posisi **tengah atas**, ada tombol tutup, warna ikut token tema. |
+| Top loader | `src/components/shared/TopLoader.tsx` (dipasang sekali di `App.tsx`). Bar `primary` 2px di atas layar, otomatis aktif selama ada request `apiClient`. |
+
+## 7a. Feedback Aksi
+
+| Situasi | Pakai | Jangan |
+|---|---|---|
+| Request API berjalan | Top loader (otomatis) + tombol aksi `disabled` dengan label proses ("Menyimpan…") | Spinner layar penuh, overlay yang memblokir |
+| Aksi berhasil (simpan, hapus, login, logout) | `toast.success('Data disimpan')` — kalimat pendek, tanpa tanda seru | Toast untuk aksi yang hasilnya sudah terlihat jelas di layar (mis. ganti tema, buka menu) |
+| Aksi gagal | `toast.error('Gagal menyimpan', { description: pesanDariApi })` | Pesan teknis mentah (stack, kode HTTP) sebagai judul |
+| Validasi field form (400 `details`) | Pesan merah di bawah input terkait | Toast per field |
+| Memuat data halaman/tabel | Skeleton | Top loader saja tanpa skeleton |
+
+- Satu aksi = satu toast. Jangan tampilkan pesan yang sama di toast dan kotak inline sekaligus.
+- Import langsung `import { toast } from 'sonner'`; jangan buat wrapper/helper toast sendiri.
+- Request di luar `apiClient` (axios polos/`fetch`) tidak menggerakkan top loader — selalu lewat `apiClient`.
 
 ## 8. Checklist Sebelum Selesai
 

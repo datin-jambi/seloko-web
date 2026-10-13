@@ -7,17 +7,16 @@
 
 ## 2. Request Interceptor
 ```typescript
-client.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().accessToken;
-  const activeApp = useAppStore.getState().activeAppCode;
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  config.headers['X-App-Code'] = activeApp || 'seloko';
-  return config;
-});
+apiClient.interceptors.request.use((config) => {
+  const token = useAuthStore.getState().accessToken
+  if (token) config.headers.Authorization = `Bearer ${token}`
+  // Selalu gateway — backend mewajibkan sama dengan appCode token.
+  config.headers['X-App-Code'] = APP_CODES.SELOKO
+  return config
+})
 ```
+* Konteks aplikasi aktif dikirim per request lewat query param, contoh `menuService.getMyMenus()` → `GET /menus/me?appCode=<activeAppCode>`, atau lewat path domain (`/api/bapenda/*`).
+* Interceptor juga menghitung request berjalan (`pendingRequests`) untuk `TopLoader` — semua request wajib lewat `apiClient`.
 
 ## 3. Response Interceptor & Token Refresh Queue
 * Menangkap status HTTP `401 Unauthorized`.
