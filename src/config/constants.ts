@@ -9,24 +9,34 @@ export type AppCode = (typeof APP_CODES)[keyof typeof APP_CODES]
 
 export const APP_CONFIGS: Record<
   string,
-  { name: string; description: string; icon: string }
+  { name: string; description: string; icon: string; home: string }
 > = {
   [APP_CODES.SELOKO]: {
     name: 'Seloko',
     description: 'Pengguna, hak akses, aplikasi, dan menu',
     icon: 'shield',
+    home: '/seloko/dashboard',
   },
   [APP_CODES.BAPENDA_PROFILE]: {
     name: 'Portal Bapenda',
     description: 'UPTD Samsat, banner, berita, dan halaman',
     icon: 'building-2',
+    home: '/bapenda/dashboard',
   },
   [APP_CODES.LAPAK_JAMBI_WEB]: {
     name: 'Lapak Jambi',
     description: 'Verifikasi merchant UMKM dan katalog produk',
     icon: 'store',
+    home: '/lapak/dashboard',
   },
 }
+
+// Path menu di DB berprefix aplikasi (/seloko, /bapenda, /lapak). Prefix → kode app.
+const segment = (path: string) => path.split('/')[1]
+export const appCodeFromPath = (pathname: string) =>
+  Object.keys(APP_CONFIGS).find((code) => segment(APP_CONFIGS[code].home) === segment(pathname))
+
+export const appHome = (code: string) => APP_CONFIGS[code]?.home ?? APP_CONFIGS[APP_CODES.SELOKO].home
 
 export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'

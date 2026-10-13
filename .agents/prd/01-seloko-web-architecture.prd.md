@@ -26,3 +26,10 @@ SELOKO WEB adalah dashboard terpusat yang melayani pengelolaan multi-aplikasi BP
 * Basis: Tailwind CSS + Radix UI (shadcn/ui design language).
 * Variasi tema: Light & Dark mode dengan persistensi di local storage.
 * Palet warna, tipografi, dan layout shell (sidebar ciut/perluas): lihat `02-design-system.prd.md`.
+
+### E. Routing per Aplikasi
+* Path halaman = path menu di DB (`../seloko-api/prisma/seeds/core/menus.json`), berprefix aplikasi: `/seloko/…`, `/bapenda/…`, `/lapak/…`. Semua rute ada di `src/App.tsx`.
+* Dasbor tiap aplikasi = `APP_CONFIGS[code].home` (`src/config/constants.ts`); `/` diarahkan ke dasbor Seloko. Isi dasbor = pintasan dari menu milik user, bukan metrik karangan.
+* **URL adalah sumber kebenaran konteks app**: `DashboardLayout` membaca prefix URL (`appCodeFromPath`) dan menyetel `activeAppCode`, jadi tautan langsung ke `/bapenda/berita` membuka sidebar Bapenda. App Switcher berpindah ke `home` aplikasi tujuan.
+* Item sidebar aktif = path menu terpanjang yang menjadi prefix URL (`findActivePath`), grup induknya otomatis terbuka.
+* Menu yang endpoint API-nya belum ada tetap punya rute, dirender `PendingApiPage` (status saat ini: penugasan role, log audit, galeri, seluruh modul lapak, form tambah pengguna).

@@ -22,7 +22,7 @@ export function ForbiddenPage({ permissionCode }: { permissionCode?: string }) {
         untuk mengakses halaman ini. Hubungi Super Administrator jika Anda membutuhkan akses.
       </p>
       <Button asChild variant="outline" size="sm" className="mt-6 text-xs">
-        <Link to="/dashboard">
+        <Link to="/">
           <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
           Kembali ke Dasbor Utama
         </Link>

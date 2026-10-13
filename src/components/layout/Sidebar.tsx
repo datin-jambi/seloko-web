@@ -88,7 +88,7 @@ function MenuIcon({ name }: { name?: string | null }) {
 
 // Dipakai hanya bila /api/menus/me gagal. Daftar kosong = user memang tanpa akses.
 const FALLBACK_MENUS: MenuItemTree[] = [
-  { id: 'fb-dashboard', code: 'dashboard', label: 'Dasbor', icon: 'layout-dashboard', path: '/dashboard', isExternal: false, sortOrder: 0, items: [] },
+  { id: 'fb-dashboard', code: 'dashboard', label: 'Dasbor', icon: 'layout-dashboard', path: '/seloko/dashboard', isExternal: false, sortOrder: 0, items: [] },
 ]
 
 // Layar < md selalu mode ikon.
@@ -110,23 +110,38 @@ const itemIdle = 'text-sidebar-foreground hover:bg-sidebar-active/70 hover:text-
 const itemActive =
   'bg-sidebar-active font-medium text-white before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:rounded-r before:bg-sidebar-indicator'
 
-function matchPath(path: string | null | undefined, current: string) {
-  if (!path) return false
-  const base = path.split('?')[0]
-  return current === base || current.startsWith(`${base}/`)
+// Item aktif = path menu terpanjang yang menjadi prefix URL. Tanpa ini
+// /lapak/merchant/verifikasi ikut menyalakan /lapak/merchant.
+function findActivePath(menus: MenuItemTree[], current: string) {
+  let best = ''
+  const walk = (items: MenuItemTree[]) =>
+    items.forEach((m) => {
+      const base = m.path?.split('?')[0]
+      if (!m.isExternal && base && base.length > best.length && (current === base || current.startsWith(`${base}/`)))
+        best = base
+      walk(m.items)
+    })
+  walk(menus)
+  return best
 }
 
 interface NavItemProps {
   item: MenuItemTree
-  currentPath: string
+  activePath: string
   collapsed: boolean
   onExpand: () => void
 }
 
-function SidebarNavItem({ item, currentPath, collapsed, onExpand }: NavItemProps) {
+function SidebarNavItem({ item, activePath, collapsed, onExpand }: NavItemProps) {
   const children = item.items
-  const isChildActive = children.some((c) => matchPath(c.path, currentPath))
+  const isChildActive = children.some((c) => c.path === activePath)
   const [isOpen, setIsOpen] = useState(isChildActive)
+  // Buka grup saat navigasi masuk ke salah satu anaknya (pola "adjust state on prop change").
+  const [prevActive, setPrevActive] = useState(isChildActive)
+  if (isChildActive !== prevActive) {
+    setPrevActive(isChildActive)
+    if (isChildActive) setIsOpen(true)
+  }
   const label = <span className={cn('truncate', collapsed && 'sr-only')}>{item.label}</span>
 
   if (children.length > 0) {
@@ -168,7 +183,7 @@ function SidebarNavItem({ item, currentPath, collapsed, onExpand }: NavItemProps
               <SidebarNavItem
                 key={child.id || child.code}
                 item={child}
-                currentPath={currentPath}
+                activePath={activePath}
                 collapsed={false}
                 onExpand={onExpand}
               />
@@ -181,7 +196,7 @@ function SidebarNavItem({ item, currentPath, collapsed, onExpand }: NavItemProps
 
   const className = cn(
     itemBase,
-    matchPath(item.path, currentPath) ? itemActive : itemIdle,
+    item.path === activePath ? itemActive : itemIdle,
     collapsed && 'justify-center px-0',
   )
   const title = collapsed ? item.label : undefined
@@ -217,6 +232,7 @@ export function Sidebar() {
   })
 
   const items = isError ? FALLBACK_MENUS : (menus ?? [])
+  const activePath = findActivePath(items, location.pathname)
   const ToggleIcon = collapsed ? PanelLeftOpen : PanelLeftClose
 
   return (
@@ -254,7 +270,7 @@ export function Sidebar() {
               <SidebarNavItem
                 key={item.id || item.code}
                 item={item}
-                currentPath={location.pathname}
+                activePath={activePath}
                 collapsed={collapsed}
                 // ponytail: di layar < md grup tidak bisa dibuka (selalu ikon); tambah drawer mobile bila perlu.
                 onExpand={() => sidebarCollapsed && toggleSidebar()}

@@ -39,17 +39,17 @@ src/
 ├── components/      # Komponen UI
 │   ├── ui/          # Komponen dasar shadcn (Button, Dialog, Card, Input, dll.)
 │   ├── layout/      # Sidebar, Header, AppSwitcher, DashboardLayout
-│   └── shared/      # Komponen pakai ulang (DataTable, ConfirmModal, FileUploader)
+│   └── shared/      # Pakai ulang: PageHeader, DataTable, SearchBar, PendingApiPage, TopLoader
 ├── config/          # Konfigurasi aplikasi & konstanta (APP_CODES, env)
-├── hooks/           # Custom React hooks (useAuth, usePermissions, useTheme)
+├── hooks/           # Custom React hooks (use-list: data halaman daftar)
 ├── lib/             # Helper murni (utils, axios instance, formatters)
 ├── modules/         # Fitur per domain
 │   ├── auth/        # Login page, auth guard
-│   ├── core/        # Dashboard, Users, Roles, Apps, Menus
-│   └── bapenda/     # UPTD Samsat, Banners, News/Articles, Pages
+│   ├── core/        # DashboardPage (semua app) + pages.tsx: pengguna, role, permission, aplikasi, menu
+│   └── bapenda/     # pages.tsx: berita, review, kategori, halaman, banner
 ├── services/        # API service layer (auth.service, menu.service, dll.)
 ├── stores/          # Zustand store (authStore, appStore, themeStore)
-├── types/           # TypeScript interfaces & DTOs
+├── types/           # DTO: index.ts (umum), core.ts, bapenda.ts
 ├── App.tsx          # Router & Providers setup
 ├── index.css        # Tailwind & Design tokens
 └── main.tsx         # React bootstrap

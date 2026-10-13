@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useAppStore } from '@/stores/app-store'
-import { APP_CODES, APP_CONFIGS } from '@/config/constants'
+import { APP_CONFIGS, appHome } from '@/config/constants'
 import { Shield, Building2, Store, ChevronsUpDown, Check, LayoutGrid } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
@@ -34,7 +34,7 @@ export function AppSwitcher() {
     setActiveAppCode(code)
     queryClient.invalidateQueries({ queryKey: ['menus'] })
     queryClient.invalidateQueries({ queryKey: ['me'] })
-    navigate(code === APP_CODES.BAPENDA_PROFILE ? '/bapenda' : '/dashboard')
+    navigate(appHome(code))
   }
 
   return (

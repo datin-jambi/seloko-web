@@ -1,8 +1,20 @@
-import { Outlet } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Outlet, useLocation } from 'react-router-dom'
+import { useAppStore } from '@/stores/app-store'
+import { appCodeFromPath } from '@/config/constants'
 import { Sidebar } from './Sidebar'
 import { Header } from './Header'
 
 export function DashboardLayout() {
+  const { pathname } = useLocation()
+  const { activeAppCode, setActiveAppCode } = useAppStore()
+
+  // URL adalah sumber kebenaran konteks app: buka /bapenda/... → sidebar Bapenda.
+  useEffect(() => {
+    const code = appCodeFromPath(pathname)
+    if (code && code !== activeAppCode) setActiveAppCode(code)
+  }, [pathname, activeAppCode, setActiveAppCode])
+
   return (
     <div className="flex min-h-screen bg-background text-foreground">
       <Sidebar />

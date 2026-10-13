@@ -16,7 +16,7 @@ export function NotFoundPage() {
         Tautan yang Anda tuju mungkin telah dipindahkan, dinonaktifkan, atau tidak terdaftar di sistem Seloko.
       </p>
       <Button asChild variant="outline" size="sm" className="mt-6 text-xs">
-        <Link to="/dashboard">
+        <Link to="/">
           <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
           Kembali ke Dasbor Utama
         </Link>

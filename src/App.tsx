@@ -4,11 +4,20 @@ import { LoginPage } from '@/modules/auth/LoginPage'
 import { ProtectedRoute } from '@/components/shared/ProtectedRoute'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { DashboardPage } from '@/modules/core/DashboardPage'
-import { BapendaDashboardPage } from '@/modules/bapenda/BapendaDashboardPage'
+import { ApplicationsPage, MenusPage, PermissionsPage, RolesPage, UsersPage } from '@/modules/core/pages'
+import {
+  BannersPage,
+  NewsCategoriesPage,
+  NewsPage,
+  NewsReviewPage,
+  PagesPage,
+} from '@/modules/bapenda/pages'
+import { PendingApiPage } from '@/components/shared/PendingApiPage'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { NotFoundPage } from '@/components/shared/NotFoundPage'
 import { TopLoader } from '@/components/shared/TopLoader'
 import { Toaster } from '@/components/ui/sonner'
+import { APP_CONFIGS } from '@/config/constants'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -20,6 +29,9 @@ const queryClient = new QueryClient({
   },
 })
 
+// Path = path menu di ../seloko-api/prisma/seeds/core/menus.json. Lihat PRD 01 §E.
+const pending = (title: string, note: string) => <PendingApiPage title={title} note={note} />
+
 export function App() {
   return (
     <ErrorBoundary>
@@ -28,55 +40,45 @@ export function App() {
         <Toaster />
         <BrowserRouter>
           <Routes>
-            {/* Public Auth Routes */}
             <Route path="/login" element={<LoginPage />} />
 
-            {/* Protected Dashboard Routes */}
             <Route element={<ProtectedRoute />}>
               <Route element={<DashboardLayout />}>
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/dashboard" element={<DashboardPage />} />
-                <Route path="/bapenda" element={<BapendaDashboardPage />} />
+                <Route path="/" element={<Navigate to={APP_CONFIGS.seloko.home} replace />} />
+                {Object.values(APP_CONFIGS).map((c) => (
+                  <Route key={c.home} path={c.home} element={<DashboardPage />} />
+                ))}
 
-                {/* Placeholder rute modul domain */}
-                <Route
-                  path="/bapenda/uptds"
-                  element={
-                    <div className="space-y-4">
-                      <h1 className="text-xl font-bold">Direktori UPTD Samsat Jambi</h1>
-                      <p className="text-xs text-muted-foreground">
-                        Modul pengelolaan 11 kantor Samsat, status aktif, dan peta sebaran publik.
-                      </p>
-                    </div>
-                  }
-                />
-                <Route
-                  path="/bapenda/banners"
-                  element={
-                    <div className="space-y-4">
-                      <h1 className="text-xl font-bold">Manajemen Banner Portal</h1>
-                      <p className="text-xs text-muted-foreground">
-                        Modul banner promosi dan pengumuman dengan drag-and-drop ordering.
-                      </p>
-                    </div>
-                  }
-                />
-                <Route
-                  path="/bapenda/news"
-                  element={
-                    <div className="space-y-4">
-                      <h1 className="text-xl font-bold">Manajemen Berita & Artikel</h1>
-                      <p className="text-xs text-muted-foreground">
-                        Daftar berita, kategori, dan antrian review alur publikasi.
-                      </p>
-                    </div>
-                  }
-                />
+                {/* Seloko */}
+                <Route path="/seloko/pengguna" element={<UsersPage />} />
+                <Route path="/seloko/pengguna/tambah" element={pending('Tambah Pengguna', 'form POST /users')} />
+                <Route path="/seloko/pengguna/penugasan" element={pending('Penugasan Role', 'belum ada GET daftar penugasan lintas pengguna')} />
+                <Route path="/seloko/akses/role" element={<RolesPage />} />
+                <Route path="/seloko/akses/permission" element={<PermissionsPage />} />
+                <Route path="/seloko/sistem/aplikasi" element={<ApplicationsPage />} />
+                <Route path="/seloko/sistem/menu" element={<MenusPage />} />
+                <Route path="/seloko/sistem/audit" element={pending('Log Audit', 'belum ada GET log audit')} />
+
+                {/* Portal Bapenda */}
+                <Route path="/bapenda/berita" element={<NewsPage />} />
+                <Route path="/bapenda/berita/review" element={<NewsReviewPage />} />
+                <Route path="/bapenda/berita/kategori" element={<NewsCategoriesPage />} />
+                <Route path="/bapenda/halaman" element={<PagesPage />} />
+                <Route path="/bapenda/banner" element={<BannersPage />} />
+                <Route path="/bapenda/galeri" element={pending('Galeri', 'modul galeri belum ada')} />
+
+                {/* Lapak Jambi — modul lapak belum ada di API */}
+                <Route path="/lapak/merchant" element={pending('Merchant', 'modul lapak belum ada')} />
+                <Route path="/lapak/merchant/verifikasi" element={pending('Verifikasi Merchant', 'modul lapak belum ada')} />
+                <Route path="/lapak/produk" element={pending('Produk', 'modul lapak belum ada')} />
+                <Route path="/lapak/produk/verifikasi" element={pending('Verifikasi Produk', 'modul lapak belum ada')} />
+                <Route path="/lapak/kategori" element={pending('Kategori', 'modul lapak belum ada')} />
+                <Route path="/lapak/pesanan" element={pending('Pesanan', 'modul lapak belum ada')} />
+                <Route path="/lapak/pesanan/ekspor" element={pending('Ekspor Laporan', 'modul lapak belum ada')} />
+
+                <Route path="*" element={<NotFoundPage />} />
               </Route>
             </Route>
-
-            {/* Fallback 404 Not Found */}
-            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </BrowserRouter>
       </QueryClientProvider>

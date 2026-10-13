@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { authService } from '@/services/auth.service'
 import { useAuthStore } from '@/stores/auth-store'
 import { useAppStore } from '@/stores/app-store'
-import { APP_CODES } from '@/config/constants'
+import { APP_CODES, appHome } from '@/config/constants'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ThemeToggle } from '@/components/shared/ThemeToggle'
@@ -44,7 +44,7 @@ export function LoginPage() {
       const profile = await authService.getMe()
       setAuth(data.accessToken, profile)
       toast.success(`Selamat datang, ${profile.fullName}`)
-      navigate('/dashboard')
+      navigate(appHome(APP_CODES.SELOKO))
     } catch (err: unknown) {
       const axiosErr = err as AxiosError<{ message?: string }>
       const message =

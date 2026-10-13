@@ -63,7 +63,7 @@ export class ErrorBoundary extends Component<Props, State> {
                   Muat Ulang Halaman
                 </Button>
                 <Button
-                  onClick={() => (window.location.href = '/dashboard')}
+                  onClick={() => (window.location.href = '/')}
                   variant="outline"
                   className="text-xs"
                 >

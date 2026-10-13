@@ -43,6 +43,11 @@ interface ApiResponse<T> {
 }
 ```
 
+## 4a. Pagination & Filter List
+* Envelope list core: `{ success, message, data, meta: { page, limit, total, totalPages, hasNextPage, hasPreviousPage } }`.
+* Modul bapenda memakai `totalItems` alih-alih `total`. `useList` (`src/hooks/use-list.ts`) menormalkan ke `PaginationMeta.total`.
+* Filter boolean dikirim sebagai string `'true' | 'false'`. Pencarian: `search`. Halaman: `page`.
+
 ## 5. Menu Sidebar — `GET /api/menus/me?appCode=<kode>`
 
 Sumber: `../seloko-api/src/modules/core/menus/menus.service.ts` (`getMyMenus`). Response **bukan** array langsung:
