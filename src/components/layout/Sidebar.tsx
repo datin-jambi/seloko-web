@@ -1,4 +1,4 @@
-import React, { useState, useSyncExternalStore } from 'react'
+import React, { useEffect, useState, useSyncExternalStore } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { menuService } from '@/services/menu.service'
@@ -91,7 +91,7 @@ const FALLBACK_MENUS: MenuItemTree[] = [
   { id: 'fb-dashboard', code: 'dashboard', label: 'Dasbor', icon: 'layout-dashboard', path: '/seloko/dashboard', isExternal: false, sortOrder: 0, items: [] },
 ]
 
-// Layar < md selalu mode ikon.
+// Layar < md: sidebar jadi drawer (tersembunyi, dibuka dari tombol menu di Header).
 const narrowQuery = '(max-width: 767px)'
 function useIsNarrow() {
   return useSyncExternalStore(
@@ -221,9 +221,24 @@ function SidebarNavItem({ item, activePath, collapsed, onExpand }: NavItemProps)
 
 export function Sidebar() {
   const location = useLocation()
-  const { activeAppCode, sidebarCollapsed, toggleSidebar } = useAppStore()
+  const { activeAppCode, sidebarCollapsed, toggleSidebar, mobileNavOpen, setMobileNavOpen } = useAppStore()
   const isNarrow = useIsNarrow()
-  const collapsed = sidebarCollapsed || isNarrow
+  // Drawer mobile selalu lebar penuh (label terlihat).
+  const collapsed = sidebarCollapsed && !isNarrow
+
+  // Tutup drawer setiap pindah halaman.
+  const [prevPath, setPrevPath] = useState(location.pathname)
+  if (prevPath !== location.pathname) {
+    setPrevPath(location.pathname)
+    if (mobileNavOpen) setMobileNavOpen(false)
+  }
+
+  useEffect(() => {
+    if (!mobileNavOpen) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMobileNavOpen(false)
+    addEventListener('keydown', onKey)
+    return () => removeEventListener('keydown', onKey)
+  }, [mobileNavOpen, setMobileNavOpen])
 
   const { data: menus, isLoading, isError } = useQuery({
     queryKey: ['menus', activeAppCode],
@@ -236,12 +251,22 @@ export function Sidebar() {
   const ToggleIcon = collapsed ? PanelLeftOpen : PanelLeftClose
 
   return (
-    <aside
-      className={cn(
-        'sticky top-0 flex h-screen shrink-0 flex-col bg-sidebar text-sidebar-foreground transition-[width] duration-200 ease-out motion-reduce:transition-none',
-        collapsed ? 'w-16' : 'w-60',
+    <>
+      {isNarrow && mobileNavOpen && (
+        <div aria-hidden className="fixed inset-0 z-40 bg-black/60" onClick={() => setMobileNavOpen(false)} />
       )}
-    >
+      <aside
+        id="sidebar"
+        className={cn(
+          'flex h-screen shrink-0 flex-col bg-sidebar text-sidebar-foreground motion-reduce:transition-none',
+          isNarrow
+            ? cn(
+                'fixed inset-y-0 left-0 z-50 w-64 transition-transform duration-200 ease-out',
+                !mobileNavOpen && 'invisible -translate-x-full',
+              )
+            : cn('sticky top-0 transition-[width] duration-200 ease-out', collapsed ? 'w-16' : 'w-60'),
+        )}
+      >
       <div
         className={cn(
           'flex h-14 shrink-0 items-center gap-2.5 border-b border-sidebar-border',
@@ -272,7 +297,6 @@ export function Sidebar() {
                 item={item}
                 activePath={activePath}
                 collapsed={collapsed}
-                // ponytail: di layar < md grup tidak bisa dibuka (selalu ikon); tambah drawer mobile bila perlu.
                 onExpand={() => sidebarCollapsed && toggleSidebar()}
               />
             ))}
@@ -292,6 +316,7 @@ export function Sidebar() {
           </button>
         </div>
       )}
-    </aside>
+      </aside>
+    </>
   )
 }

@@ -72,7 +72,9 @@ export function DataTable<T>({
       {error ? (
         <ErrorState message={apiErrorMessage(error)} onRetry={list.refetch} />
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-border bg-card">
+        // relative: wadah posisi untuk elemen absolute di dalam tabel (label sr-only). Tanpanya
+        // label itu diposisikan terhadap halaman dan membuat seluruh halaman melebar di mobile.
+        <div className="relative overflow-x-auto rounded-lg border border-border bg-card">
           <table className="w-full text-sm">
             <thead className="bg-table-head">
               <tr className="border-b-2 border-input">
@@ -132,7 +134,8 @@ export function DataTable<T>({
                           if (!(e.target as HTMLElement).closest('button, a, [role=menuitem]')) onRowClick(row)
                         })
                       }
-                      className={cn('transition-colors hover:bg-muted/50', onRowClick && 'cursor-pointer')}
+                      // group/row: sel bisa bereaksi saat baris di-hover (mis. nama digarisbawahi).
+                      className={cn('group/row transition-colors hover:bg-muted/50', onRowClick && 'cursor-pointer')}
                     >
                       {columns.map((c) => (
                         <td key={c.header} className={cn('h-11 whitespace-nowrap px-3 align-middle', c.className)}>

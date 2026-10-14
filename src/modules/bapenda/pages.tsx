@@ -18,7 +18,7 @@ const ACTIVE: [string, string][] = [
 ]
 
 const STATUS: Record<ArticleStatus, [string, BadgeProps['variant']]> = {
-  DRAFT: ['Draf', 'outline'],
+  DRAFT: ['Draf', 'neutral'],
   PENDING_REVIEW: ['Menunggu review', 'warning'],
   APPROVED: ['Disetujui', 'info'],
   REJECTED: ['Ditolak', 'destructive'],
@@ -34,7 +34,11 @@ const articleColumns: Column<ArticleListItem>[] = [
     header: 'Status',
     cell: (a) => {
       const [label, variant] = STATUS[a.status] ?? [a.status, 'outline']
-      return <Badge variant={variant}>{label}</Badge>
+      return (
+        <Badge dot variant={variant}>
+          {label}
+        </Badge>
+      )
     },
   },
   { header: 'Dibuat', sortKey: 'createdAt', cell: (a) => formatDate(a.createdAt) },

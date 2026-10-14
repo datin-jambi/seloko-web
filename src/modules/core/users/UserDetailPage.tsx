@@ -54,7 +54,7 @@ export function UserDetailPage() {
       {back}
       <PageHeader
         title={u.fullName}
-        description={u.email}
+        description={<span className="break-all">{u.email}</span>}
         actions={
           <>
             {act.canToggle(u) && (
@@ -137,9 +137,10 @@ export function UserDetailPage() {
 
 function Row({ label, mono, children }: { label: string; mono?: boolean; children: ReactNode }) {
   return (
-    <div className="grid grid-cols-[9rem_minmax(0,1fr)] gap-3 px-4 py-2.5">
+    <div className="grid grid-cols-[8.5rem_minmax(0,1fr)] gap-3 px-4 py-2.5">
       <dt className="text-muted-foreground">{label}</dt>
-      <dd className={mono ? 'truncate tabular-nums' : 'min-w-0'}>{children ?? '—'}</dd>
+      {/* NIP/ID dibiarkan turun baris, bukan dipotong — harus terbaca utuh. */}
+      <dd className={mono ? 'break-all tabular-nums' : 'min-w-0'}>{children ?? '—'}</dd>
     </div>
   )
 }

@@ -2,21 +2,24 @@ import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
+// Badge status: tinggi tetap 22px, latar lembut + teks tegas (kontras AA di kedua tema).
+// Varian status boleh memakai titik penanda (`dot`) agar status terbaca tanpa bergantung warna saja.
 const badgeVariants = cva(
-  'inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-xs font-medium leading-none whitespace-nowrap',
+  'inline-flex h-[22px] shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border px-2 text-xs font-medium leading-none [&_svg]:size-3',
   {
     variants: {
       variant: {
         default: 'border-transparent bg-primary text-primary-foreground',
         secondary: 'border-transparent bg-secondary text-secondary-foreground',
-        destructive:
-          'border-destructive/25 bg-destructive/10 text-destructive',
-        outline: 'border-border text-muted-foreground',
+        outline: 'border-border bg-transparent text-foreground',
+        neutral: 'border-input bg-muted text-secondary-foreground/80',
+        info: 'border-primary/25 bg-primary/10 text-primary dark:border-primary/40 dark:bg-primary/15 dark:text-blue-300',
         success:
-          'border-green-700/20 bg-green-700/10 text-green-800 dark:border-green-400/25 dark:bg-green-400/10 dark:text-green-400',
+          'border-emerald-600/25 bg-emerald-50 text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-300',
         warning:
-          'border-amber-700/20 bg-amber-600/10 text-amber-800 dark:border-amber-400/25 dark:bg-amber-400/10 dark:text-amber-400',
-        info: 'border-primary/20 bg-primary/10 text-primary',
+          'border-amber-600/25 bg-amber-50 text-amber-800 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-300',
+        destructive:
+          'border-destructive/25 bg-destructive/10 text-destructive dark:border-red-400/30 dark:bg-red-400/10 dark:text-red-300',
       },
     },
     defaultVariants: {
@@ -25,12 +28,18 @@ const badgeVariants = cva(
   },
 )
 
-export interface BadgeProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {}
+export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement>, VariantProps<typeof badgeVariants> {
+  /** Titik bulat di depan label, warna mengikuti teks. */
+  dot?: boolean
+}
 
-function Badge({ className, variant, ...props }: BadgeProps) {
-  return <div className={cn(badgeVariants({ variant }), className)} {...props} />
+function Badge({ className, variant, dot, children, ...props }: BadgeProps) {
+  return (
+    <span className={cn(badgeVariants({ variant }), className)} {...props}>
+      {dot && <span aria-hidden className="size-1.5 rounded-full bg-current" />}
+      {children}
+    </span>
+  )
 }
 
 export { Badge, badgeVariants }

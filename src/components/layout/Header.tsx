@@ -11,7 +11,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { LogOut, User, Shield, ChevronDown } from 'lucide-react'
+import { LogOut, User, Shield, ChevronDown, Menu } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { useAppStore } from '@/stores/app-store'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -27,6 +29,7 @@ function getInitials(name?: string) {
 
 export function Header() {
   const { user, clearAuth } = useAuthStore()
+  const { mobileNavOpen, setMobileNavOpen } = useAppStore()
   const navigate = useNavigate()
 
   const handleLogout = async () => {
@@ -43,7 +46,20 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-4 border-b border-border bg-card px-4 md:px-6">
-      <AppSwitcher />
+      <div className="flex min-w-0 items-center gap-1">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="-ml-2 md:hidden"
+          aria-label="Buka menu"
+          aria-controls="sidebar"
+          aria-expanded={mobileNavOpen}
+          onClick={() => setMobileNavOpen(true)}
+        >
+          <Menu />
+        </Button>
+        <AppSwitcher />
+      </div>
 
       <div className="flex items-center gap-1">
         <ThemeToggle />

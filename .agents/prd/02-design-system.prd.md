@@ -30,7 +30,7 @@ Satu warna aksen saja: **royal blue**. Cyan hanya untuk penanda item aktif di si
 | `sidebar` | `#0A1F4D` | `#070F22` | Rel navigasi navy (dua mode) |
 | `sidebar-indicator` | `#00B4F5` | sama | Garis 3px item menu aktif |
 
-Status (Badge): `success` hijau-700, `warning` amber-700, `info` = primary, `destructive` merah.
+Status (Badge): `success` emerald, `warning` amber, `info` = primary, `destructive` merah, `neutral` abu (nonaktif/draf). Latar lembut + teks tegas, varian dark punya warna teks sendiri (-300) agar kontras.
 Di dark mode gunakan tingkat 400. Jangan pakai `-500` untuk teks di atas putih (kontras kurang).
 
 **Dilarang:** `indigo-*`, `violet-*`, `purple-*`, `fuchsia-*`, gradien apa pun, warna ikon berbeda-beda per kartu.
@@ -80,7 +80,8 @@ Di dark mode gunakan tingkat 400. Jangan pakai `-500` untuk teks di atas putih (
   - Lebar `240px` (terbuka) / `64px` (ciut). Tombol **Ciutkan / Perluas** di kaki sidebar.
   - Status ciut disimpan di `useAppStore.sidebarCollapsed` (persist `localStorage`).
   - Mode ciut: hanya ikon; label tampil sebagai `title` + `aria-label`. Klik grup menu saat ciut → sidebar terbuka dan grup terekspansi.
-  - Layar `< md`: selalu mode ikon, tombol ciut disembunyikan.
+  - Layar `< md`: sidebar jadi **drawer** (`fixed`, lebar 256px, tersembunyi) dibuka dari tombol menu (☰) di kiri Header. Overlay `bg-black/60`; tertutup saat overlay diklik, tekan Esc, atau pindah halaman. State `useAppStore.mobileNavOpen` (tidak disimpan). Tombol ciut disembunyikan.
+  - Konten tidak boleh mendorong lebar halaman di mobile: tabel lebar menggulir di dalam wadahnya sendiri (`relative overflow-x-auto`). Elemen `absolute` (mis. `sr-only`) wajib punya induk `relative` di dalam wadah gulir — tanpa itu ia dihitung terhadap halaman dan membuat seluruh halaman melebar.
   - Item aktif: latar sedikit lebih terang + garis cyan 3px di kiri + teks putih. Bukan pil biru solid.
   - Header sidebar: logo Seloko + "SELOKO" + nama instansi. Tanpa label "Navigasi Menu", tanpa kotak bantuan/versi API.
 - **Header**: latar `card` solid, border bawah. Isi: App Switcher (kiri), toggle tema + menu user (kanan). Tanpa ikon notifikasi sampai fitur notifikasi benar-benar ada.
@@ -93,7 +94,8 @@ Di dark mode gunakan tingkat 400. Jangan pakai `-500` untuk teks di atas putih (
 |---|---|
 | Button | `default` (primary), `outline`, `secondary`, `ghost`, `destructive`, `link`. Tinggi `h-9`, `sm` `h-8`. Tanpa shadow. |
 | Card | `rounded-lg border bg-card`, tanpa shadow, tanpa hover-lift. Gunakan hanya bila memang mengelompokkan konten berbeda — jangan bungkus satu tabel dengan card lalu card lagi. |
-| Badge | `rounded` (bukan pil penuh), `text-xs font-medium`. Varian status di §2. |
+| Badge | `<span>` tinggi tetap 22px, `rounded-md`, `text-xs font-medium`, border tipis. Badge **status** pakai `dot` (titik warna di depan label) agar terbaca tanpa bergantung warna saja — `ActiveBadge` sudah memakainya. Badge hanya untuk status/sifat penting (Aktif, Superadmin, status berita); nilai biasa (Internal/Publik) tetap teks polos. Varian di §2. |
+| Tooltip | `src/components/ui/tooltip.tsx` (Radix), `TooltipProvider` sekali di `App.tsx`. Pemicu harus elemen fokus-able (button/link) agar terbuka juga lewat keyboard. Dipakai untuk ringkasan yang detailnya opsional (mis. kolom Aplikasi: "3 aplikasi" → nama aplikasi). |
 | Input/Select | `h-9`, border `input`, fokus `ring-2 ring-ring/30` + `border-primary`. Label di atas, pesan error di bawah. Dropdown pilihan selalu shadcn `Select` (`src/components/ui/select.tsx`, Radix) — bukan `<select>` native. |
 | DropdownMenu | Solid `bg-popover`, `shadow-md`, tanpa blur. |
 | Table | Header kontras: latar token `--table-head` (`bg-table-head`), teks `text-xs font-semibold text-foreground` (bukan uppercase — `audit:ui`), garis bawah `border-b-2 border-input`. Baris `text-sm`, `whitespace-nowrap`, garis `border-b`, hover `bg-muted/50`. |

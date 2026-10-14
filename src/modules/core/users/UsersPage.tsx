@@ -1,7 +1,8 @@
-import { useNavigate } from 'react-router-dom'
-import { Eye, Trash2, UserCheck, UserX } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Eye, LayoutGrid, Trash2, UserCheck, UserX } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
-import { DataTable, Truncate, type Column } from '@/components/shared/DataTable'
+import { DataTable, type Column } from '@/components/shared/DataTable'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { FilterSelect, SearchBar } from '@/components/shared/SearchBar'
 import { ActiveBadge } from '@/components/shared/ActiveBadge'
 import { RowActions } from '@/components/shared/RowActions'
@@ -13,12 +14,46 @@ import { useUserActions } from './use-user-actions'
 
 const mono = 'font-mono text-xs tabular-nums'
 
+// Jumlah aplikasi; nama aplikasi muncul di tooltip (hover / fokus keyboard).
+function AppCount({ apps }: { apps: UserListItem['applications'] }) {
+  if (apps.length === 0) return <span className="text-muted-foreground">—</span>
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          className="inline-flex items-center gap-1.5 rounded-sm tabular-nums underline decoration-muted-foreground/60 decoration-dotted underline-offset-4 transition-colors hover:text-primary hover:decoration-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+        >
+          <LayoutGrid className="size-3.5 text-muted-foreground" />
+          {apps.length} aplikasi
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" align="start">
+        <p className="mb-1.5 font-medium text-muted-foreground">Akses aplikasi</p>
+        <ul className="space-y-1">
+          {apps.map((a) => (
+            <li key={a.id}>{a.name}</li>
+          ))}
+        </ul>
+      </TooltipContent>
+    </Tooltip>
+  )
+}
+
+export const USER_DETAIL = (id: string) => `/seloko/pengguna/${id}`
+
 const columns: Column<UserListItem>[] = [
   {
     header: 'Nama',
     cell: (u) => (
       <div>
-        <div className="font-medium">{u.fullName}</div>
+        {/* Baris bisa diklik: nama tebal + garis bawah saat baris di-hover. Link = akses keyboard. */}
+        <Link
+          to={USER_DETAIL(u.id)}
+          className="font-medium underline-offset-2 hover:underline focus-visible:underline focus-visible:outline-none group-hover/row:font-bold group-hover/row:underline"
+        >
+          {u.fullName}
+        </Link>
         <div className="text-xs text-muted-foreground">{u.email}</div>
       </div>
     ),
@@ -26,14 +61,19 @@ const columns: Column<UserListItem>[] = [
   { header: 'NIP / Username', cell: (u) => <span className={mono}>{u.nip ?? u.username ?? '—'}</span> },
   {
     header: 'Jenis',
-    cell: (u) => (u.isSuperAdmin ? <Badge variant="info">Superadmin</Badge> : u.accountType === 'INTERNAL' ? 'Internal' : 'Publik'),
+    cell: (u) =>
+      u.isSuperAdmin ? (
+        <Badge variant="info">Superadmin</Badge>
+      ) : u.accountType === 'INTERNAL' ? (
+        'Internal'
+      ) : (
+        'Publik'
+      ),
   },
-  { header: 'Aplikasi', cell: (u) => <Truncate text={u.applications.map((a) => a.name).join(', ')} /> },
+  { header: 'Aplikasi', cell: (u) => <AppCount apps={u.applications} /> },
   { header: 'Login terakhir', cell: (u) => formatDate(u.lastLoginAt) },
   { header: 'Status', cell: (u) => <ActiveBadge active={u.isActive} /> },
 ]
-
-export const USER_DETAIL = (id: string) => `/seloko/pengguna/${id}`
 
 export function UsersPage() {
   const navigate = useNavigate()

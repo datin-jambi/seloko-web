@@ -6,6 +6,9 @@ interface AppState {
   setActiveAppCode: (code: AppCode | string) => void
   sidebarCollapsed: boolean
   toggleSidebar: () => void
+  /** Drawer navigasi di layar < md. Tidak disimpan. */
+  mobileNavOpen: boolean
+  setMobileNavOpen: (open: boolean) => void
 }
 
 const STORAGE_KEY = 'seloko_active_app'
@@ -24,4 +27,6 @@ export const useAppStore = create<AppState>((set) => ({
       localStorage.setItem(SIDEBAR_KEY, s.sidebarCollapsed ? '0' : '1')
       return { sidebarCollapsed: !s.sidebarCollapsed }
     }),
+  mobileNavOpen: false,
+  setMobileNavOpen: (open) => set({ mobileNavOpen: open }),
 }))

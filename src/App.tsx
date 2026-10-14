@@ -19,6 +19,7 @@ import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { NotFoundPage } from '@/components/shared/NotFoundPage'
 import { TopLoader } from '@/components/shared/TopLoader'
 import { Toaster } from '@/components/ui/sonner'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { APP_CONFIGS } from '@/config/constants'
 
 const queryClient = new QueryClient({
@@ -40,6 +41,7 @@ export function App() {
       <QueryClientProvider client={queryClient}>
         <TopLoader />
         <Toaster />
+        <TooltipProvider delayDuration={200}>
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
@@ -84,6 +86,7 @@ export function App() {
             </Route>
           </Routes>
         </BrowserRouter>
+        </TooltipProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   )

@@ -69,7 +69,7 @@ Endpoint tanpa pagination: `GET /bapenda/news/categories` (mengembalikan seluruh
 * `DataTable` menangani: skeleton (memuat), `ErrorState` + coba lagi (gagal), kosong ("Belum ada …" vs "Tidak ada hasil" + tombol **Hapus filter** bila ada search/filter), header urut (`aria-sort`), footer pagination.
 * Footer pagination (tampil bila `meta.total > 0`): `Tampilkan [limit]` · `1–20 dari 61` · `Halaman 1 / 4` · tombol sebelumnya/berikutnya. Endpoint tanpa `meta` (kategori berita) tidak menampilkan footer.
 * Tombol **Reset** (outline, ikon `RotateCcw`) muncul otomatis di ujung toolbar saat ada search/filter aktif; mengosongkan seluruh query string. Filter `Select` yang aktif diberi border `primary` agar terlihat daftar sedang dipersempit.
-* Kolom aksi: prop `actions={(row) => <RowActions … />}`. Klik baris: prop `onRowClick` (klik pada tombol/menu di dalam baris tidak memicunya).
+* Kolom aksi: prop `actions={(row) => <RowActions … />}`. Klik baris: prop `onRowClick` (klik pada tombol/menu/tautan di dalam baris tidak memicunya). Baris punya `group/row`: kolom utama (nama) dibuat `<Link>` ke detail dengan `group-hover/row:font-bold group-hover/row:underline` sebagai petunjuk baris bisa diklik dan akses keyboard.
 * Toolbar: `SearchBar` (beri `key={params.search}` agar sinkron saat URL berubah) + `FilterSelect` (shadcn `Select` dari `src/components/ui/select.tsx`, opsi `[nilai, label]`, item pertama "Semua" = param dihapus). Jangan pakai `<select>` native.
 
 Contoh lengkap: skill `add-page-workflow`.

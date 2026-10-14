@@ -20,7 +20,7 @@ export function SearchBar({
     onSearch(text.trim())
   }
   return (
-    <form onSubmit={submit} role="search" className="relative w-full max-w-xs">
+    <form onSubmit={submit} role="search" className="relative w-full sm:max-w-xs">
       <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
       <Input
         type="search"
