@@ -1,22 +1,31 @@
-import { useState } from 'react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { useSearchParams } from 'react-router-dom'
 import { apiClient } from '@/lib/api-client'
 import type { PaginationMeta } from '@/types'
 
 // Core memakai meta.total, modul bapenda meta.totalItems.
 type RawMeta = Omit<PaginationMeta, 'total'> & { total?: number; totalItems?: number }
+export type SortOrder = 'asc' | 'desc'
 
-// Data halaman daftar: GET <path>?page=&search=&...filters. Lihat PRD 03 §6.
-export function useList<T>(path: string, filters: Record<string, string> = {}) {
-  const [page, setPage] = useState(1)
-  const [search, setSearchValue] = useState('')
+// Aman untuk semua endpoint (maks API 100; permissions & menus 200). PRD 03 §4a.
+export const PAGE_SIZES = [10, 20, 50, 100]
+
+const NONE: Record<string, string> = {}
+
+/**
+ * Data halaman daftar. Aturan: PRD 03 §4a.
+ * State list (page, search, filter, sortBy/sortOrder) = query string URL → refresh,
+ * back, dan bagikan tautan tetap di posisi yang sama. Semua param URL diteruskan ke API.
+ * `fixed` = param yang selalu dikirim dan tidak bisa diubah user (mis. status antrian review).
+ */
+export function useList<T>(path: string, fixed: Record<string, string> = NONE) {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const params = { ...Object.fromEntries(searchParams), ...fixed }
 
   const query = useQuery({
-    queryKey: [path, filters, page, search],
+    queryKey: [path, params],
     queryFn: async () => {
-      const res = await apiClient.get<{ data: T[]; meta?: RawMeta }>(path, {
-        params: { ...filters, page, search: search || undefined },
-      })
+      const res = await apiClient.get<{ data: T[]; meta?: RawMeta }>(path, { params })
       const m = res.data.meta
       const meta: PaginationMeta | undefined = m && { ...m, total: m.total ?? m.totalItems ?? 0 }
       return { rows: res.data.data, meta }
@@ -24,16 +33,40 @@ export function useList<T>(path: string, filters: Record<string, string> = {}) {
     placeholderData: keepPreviousData,
   })
 
+  // Nilai kosong menghapus param. Perubahan apa pun selain page kembali ke halaman 1.
+  const update = (patch: Record<string, string | undefined>) =>
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        for (const [k, v] of Object.entries(patch)) {
+          if (v) next.set(k, v)
+          else next.delete(k)
+        }
+        if (!('page' in patch) || patch.page === '1') next.delete('page')
+        return next
+      },
+      { replace: true },
+    )
+
+  const sortBy = params.sortBy
+  const sortOrder = params.sortOrder as SortOrder | undefined
+
   return {
     rows: query.data?.rows,
     meta: query.data?.meta,
     isLoading: query.isPending,
     error: query.error,
     refetch: () => void query.refetch(),
-    setPage,
-    setSearch: (value: string) => {
-      setSearchValue(value)
-      setPage(1)
-    },
+    params,
+    setPage: (page: number) => update({ page: String(page) }),
+    setLimit: (limit: number) => update({ limit: String(limit) }),
+    setSearch: (search: string) => update({ search }),
+    setFilter: (key: string, value?: string) => update({ [key]: value }),
+    reset: () => setSearchParams({}, { replace: true }),
+    sort: { by: sortBy, order: sortOrder },
+    toggleSort: (key: string) =>
+      update({ sortBy: key, sortOrder: sortBy === key && sortOrder === 'asc' ? 'desc' : 'asc' }),
   }
 }
+
+export type ListState<T> = ReturnType<typeof useList<T>>

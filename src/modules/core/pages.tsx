@@ -1,13 +1,24 @@
 import { PageHeader } from '@/components/shared/PageHeader'
 import { DataTable, Truncate, type Column } from '@/components/shared/DataTable'
-import { SearchBar } from '@/components/shared/SearchBar'
+import { FilterSelect, SearchBar } from '@/components/shared/SearchBar'
 import { ActiveBadge } from '@/components/shared/ActiveBadge'
 import { Badge } from '@/components/ui/badge'
 import { useList } from '@/hooks/use-list'
 import { formatDate } from '@/lib/utils'
 import type { ApplicationListItem, MenuListItem, PermissionListItem, RoleListItem, UserListItem } from '@/types/core'
 
+// Query tiap endpoint: ../seloko-api/src/modules/core/*/*.schema.ts (List*QuerySchema).
+// Endpoint core tidak mendukung sortBy — kolom tidak diberi sortKey.
+
 const mono = 'font-mono text-xs tabular-nums'
+const ACTIVE: [string, string][] = [
+  ['true', 'Aktif'],
+  ['false', 'Nonaktif'],
+]
+const AUDIENCE: [string, string][] = [
+  ['INTERNAL', 'Internal'],
+  ['PUBLIC', 'Publik'],
+]
 
 const userColumns: Column<UserListItem>[] = [
   {
@@ -24,24 +35,29 @@ const userColumns: Column<UserListItem>[] = [
     header: 'Jenis',
     cell: (u) => (u.isSuperAdmin ? <Badge variant="info">Superadmin</Badge> : u.accountType === 'INTERNAL' ? 'Internal' : 'Publik'),
   },
-  { header: 'Aplikasi', cell: (u) => u.applications.map((a) => a.name).join(', ') || '—' },
+  { header: 'Aplikasi', cell: (u) => <Truncate text={u.applications.map((a) => a.name).join(', ')} /> },
   { header: 'Login terakhir', cell: (u) => formatDate(u.lastLoginAt) },
   { header: 'Status', cell: (u) => <ActiveBadge active={u.isActive} /> },
 ]
 
 export function UsersPage() {
   const list = useList<UserListItem>('/users')
+  const { params, setSearch, setFilter } = list
   return (
     <>
       <PageHeader title="Pengguna" description="Akun pegawai internal dan warga yang terdaftar." />
       <DataTable
-        {...list}
+        list={list}
         columns={userColumns}
         rowKey={(u) => u.id}
-        onRetry={list.refetch}
-        onPageChange={list.setPage}
         emptyTitle="Belum ada pengguna"
-        toolbar={<SearchBar onSearch={list.setSearch} placeholder="Cari nama, email, atau username" />}
+        toolbar={
+          <>
+            <SearchBar key={params.search} value={params.search} onSearch={setSearch} placeholder="Cari nama, email, atau username" />
+            <FilterSelect label="Jenis" value={params.accountType} options={AUDIENCE} onChange={(v) => setFilter('accountType', v)} />
+            <FilterSelect label="Status" value={params.isActive} options={ACTIVE} onChange={(v) => setFilter('isActive', v)} />
+          </>
+        }
       />
     </>
   )
@@ -66,17 +82,22 @@ const roleColumns: Column<RoleListItem>[] = [
 
 export function RolesPage() {
   const list = useList<RoleListItem>('/roles')
+  const { params, setSearch, setFilter } = list
   return (
     <>
       <PageHeader title="Role" description="Kumpulan permission yang diberikan ke pengguna per aplikasi." />
       <DataTable
-        {...list}
+        list={list}
         columns={roleColumns}
         rowKey={(r) => r.id}
-        onRetry={list.refetch}
-        onPageChange={list.setPage}
         emptyTitle="Belum ada role"
-        toolbar={<SearchBar onSearch={list.setSearch} placeholder="Cari role" />}
+        toolbar={
+          <>
+            <SearchBar key={params.search} value={params.search} onSearch={setSearch} placeholder="Cari role" />
+            <FilterSelect label="Audiens" value={params.audience} options={AUDIENCE} onChange={(v) => setFilter('audience', v)} />
+            <FilterSelect label="Status" value={params.isActive} options={ACTIVE} onChange={(v) => setFilter('isActive', v)} />
+          </>
+        }
       />
     </>
   )
@@ -97,13 +118,11 @@ export function PermissionsPage() {
     <>
       <PageHeader title="Permission" description="Hak akses terkecil yang dicek oleh API." />
       <DataTable
-        {...list}
+        list={list}
         columns={permissionColumns}
         rowKey={(p) => p.id}
-        onRetry={list.refetch}
-        onPageChange={list.setPage}
         emptyTitle="Belum ada permission"
-        toolbar={<SearchBar onSearch={list.setSearch} placeholder="Cari kode atau nama" />}
+        toolbar={<SearchBar key={list.params.search} value={list.params.search} onSearch={list.setSearch} placeholder="Cari kode atau nama" />}
       />
     </>
   )
@@ -128,17 +147,22 @@ const appColumns: Column<ApplicationListItem>[] = [
 
 export function ApplicationsPage() {
   const list = useList<ApplicationListItem>('/applications')
+  const { params, setSearch, setFilter } = list
   return (
     <>
       <PageHeader title="Aplikasi" description="Aplikasi yang terhubung ke gateway Seloko." />
       <DataTable
-        {...list}
+        list={list}
         columns={appColumns}
         rowKey={(a) => a.id}
-        onRetry={list.refetch}
-        onPageChange={list.setPage}
         emptyTitle="Belum ada aplikasi"
-        toolbar={<SearchBar onSearch={list.setSearch} placeholder="Cari kode atau nama" />}
+        toolbar={
+          <>
+            <SearchBar key={params.search} value={params.search} onSearch={setSearch} placeholder="Cari kode atau nama" />
+            <FilterSelect label="Audiens" value={params.audience} options={AUDIENCE} onChange={(v) => setFilter('audience', v)} />
+            <FilterSelect label="Status" value={params.isActive} options={ACTIVE} onChange={(v) => setFilter('isActive', v)} />
+          </>
+        }
       />
     </>
   )
@@ -155,7 +179,7 @@ const menuColumns: Column<MenuListItem>[] = [
     ),
   },
   { header: 'Aplikasi', cell: (m) => m.application.name },
-  { header: 'Path', cell: (m) => <span className={mono}>{m.path ?? '—'}</span> },
+  { header: 'Path', cell: (m) => <Truncate text={m.path} className={mono} /> },
   { header: 'Permission', cell: (m) => <span className={mono}>{m.permission?.code ?? '—'}</span> },
   { header: 'Urutan', cell: (m) => m.sortOrder, className: 'text-right tabular-nums' },
   { header: 'Status', cell: (m) => <ActiveBadge active={m.isActive} /> },
@@ -163,17 +187,21 @@ const menuColumns: Column<MenuListItem>[] = [
 
 export function MenusPage() {
   const list = useList<MenuListItem>('/menus')
+  const { params, setSearch, setFilter } = list
   return (
     <>
       <PageHeader title="Menu Sidebar" description="Item navigasi per aplikasi beserta permission pembatasnya." />
       <DataTable
-        {...list}
+        list={list}
         columns={menuColumns}
         rowKey={(m) => m.id}
-        onRetry={list.refetch}
-        onPageChange={list.setPage}
         emptyTitle="Belum ada menu"
-        toolbar={<SearchBar onSearch={list.setSearch} placeholder="Cari label atau kode" />}
+        toolbar={
+          <>
+            <SearchBar key={params.search} value={params.search} onSearch={setSearch} placeholder="Cari label atau kode" />
+            <FilterSelect label="Status" value={params.isActive} options={ACTIVE} onChange={(v) => setFilter('isActive', v)} />
+          </>
+        }
       />
     </>
   )

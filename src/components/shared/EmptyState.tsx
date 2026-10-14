@@ -1,6 +1,7 @@
 import React from 'react'
 import { Inbox } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 interface EmptyStateProps {
   title?: string
@@ -8,6 +9,8 @@ interface EmptyStateProps {
   icon?: React.ElementType
   actionLabel?: string
   onAction?: () => void
+  /** Tanpa bingkai — untuk di dalam wadah lain (mis. tabel). */
+  bare?: boolean
 }
 
 export function EmptyState({
@@ -16,9 +19,15 @@ export function EmptyState({
   icon: Icon = Inbox,
   actionLabel,
   onAction,
+  bare,
 }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border/80 bg-card/40 p-12 text-center">
+    <div
+      className={cn(
+        'flex flex-col items-center justify-center p-12 text-center',
+        !bare && 'rounded-lg border border-dashed border-border/80 bg-card/40',
+      )}
+    >
       <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-secondary text-muted-foreground">
         <Icon className="h-6 w-6" />
       </div>

@@ -94,7 +94,7 @@ Di dark mode gunakan tingkat 400. Jangan pakai `-500` untuk teks di atas putih (
 | Button | `default` (primary), `outline`, `secondary`, `ghost`, `destructive`, `link`. Tinggi `h-9`, `sm` `h-8`. Tanpa shadow. |
 | Card | `rounded-lg border bg-card`, tanpa shadow, tanpa hover-lift. Gunakan hanya bila memang mengelompokkan konten berbeda — jangan bungkus satu tabel dengan card lalu card lagi. |
 | Badge | `rounded` (bukan pil penuh), `text-xs font-medium`. Varian status di §2. |
-| Input/Select | `h-9`, border `input`, fokus `ring-2 ring-ring/30` + `border-primary`. Label di atas, pesan error di bawah. |
+| Input/Select | `h-9`, border `input`, fokus `ring-2 ring-ring/30` + `border-primary`. Label di atas, pesan error di bawah. Dropdown pilihan selalu shadcn `Select` (`src/components/ui/select.tsx`, Radix) — bukan `<select>` native. |
 | DropdownMenu | Solid `bg-popover`, `shadow-md`, tanpa blur. |
 | Table | Header `text-xs font-medium text-muted-foreground`, baris `text-sm`, garis `border-b`, hover `bg-muted/50`. |
 | Dialog/Sheet | Overlay `bg-black/40` tanpa blur. |

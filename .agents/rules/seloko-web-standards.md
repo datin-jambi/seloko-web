@@ -41,7 +41,7 @@ src/
 │   ├── layout/      # Sidebar, Header, AppSwitcher, DashboardLayout
 │   └── shared/      # Pakai ulang: PageHeader, DataTable, SearchBar, PendingApiPage, TopLoader
 ├── config/          # Konfigurasi aplikasi & konstanta (APP_CODES, env)
-├── hooks/           # Custom React hooks (use-list: data halaman daftar)
+├── hooks/           # Custom React hooks (use-list: fetch list — page/search/filter/sort di URL)
 ├── lib/             # Helper murni (utils, axios instance, formatters)
 ├── modules/         # Fitur per domain
 │   ├── auth/        # Login page, auth guard
