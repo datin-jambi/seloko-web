@@ -4,7 +4,7 @@ import { LoginPage } from '@/modules/auth/LoginPage'
 import { ProtectedRoute } from '@/components/shared/ProtectedRoute'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { DashboardPage } from '@/modules/core/DashboardPage'
-import { ApplicationsPage, MenusPage, PermissionsPage, RolesPage } from '@/modules/core/pages'
+import { ApplicationDetailPage, ApplicationsPage, MenusPage, PermissionsPage, RolesPage } from '@/modules/core/pages'
 import { UsersPage } from '@/modules/core/users/UsersPage'
 import { UserDetailPage } from '@/modules/core/users/UserDetailPage'
 import {
@@ -61,6 +61,7 @@ export function App() {
                 <Route path="/seloko/akses/role" element={<RolesPage />} />
                 <Route path="/seloko/akses/permission" element={<PermissionsPage />} />
                 <Route path="/seloko/sistem/aplikasi" element={<ApplicationsPage />} />
+                <Route path="/seloko/sistem/aplikasi/:id" element={<ApplicationDetailPage />} />
                 <Route path="/seloko/sistem/menu" element={<MenusPage />} />
                 <Route path="/seloko/sistem/audit" element={pending('Log Audit', 'belum ada GET log audit')} />
 

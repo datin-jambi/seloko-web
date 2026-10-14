@@ -54,14 +54,96 @@ export interface PermissionListItem {
   menuCount: number
 }
 
+export interface ApplicationSettings {
+  branding?: {
+    shortName?: string | null
+    primaryColor?: string | null
+    accentColor?: string | null
+    faviconUrl?: string | null
+  } | null
+  contact?: {
+    email?: string | null
+    phone?: string | null
+    whatsapp?: string | null
+    address?: string | null
+    googleMapsUrl?: string | null
+    workingHours?: string | null
+  } | null
+  features?: {
+    maintenanceMode?: boolean
+    maintenanceMessage?: string | null
+    enablePayment?: boolean
+    enableRegistration?: boolean
+  } | null
+  [key: string]: unknown
+}
+
 export interface ApplicationListItem {
   id: string
   code: string
   name: string
   tagline: string | null
+  description?: string | null
+  baseUrl?: string | null
+  icon?: string | null
   audience: Audience
+  logoUrl?: string | null
   isActive: boolean
   counts: { permissions: number; roles: number; menuItems: number; userAppRoles: number }
+}
+
+export interface ApplicationDetailRole {
+  id: string
+  name: string
+  description: string | null
+  audience: Audience
+  isSystemRole: boolean
+  isActive: boolean
+  permissionCount: number
+}
+
+export interface ApplicationPermissionGroup {
+  module: string
+  permissions: { id: string; code: string; name: string }[]
+}
+
+export interface ApplicationDetail extends ApplicationListItem {
+  description: string | null
+  baseUrl: string | null
+  icon: string | null
+  logoUrl: string | null
+  logoDarkUrl: string | null
+  faviconUrl: string | null
+  ogImageUrl: string | null
+  settings: ApplicationSettings
+  createdAt: string
+  updatedAt: string
+  roles: ApplicationDetailRole[]
+  permissionsByModule: ApplicationPermissionGroup[]
+}
+
+export interface CreateApplicationDTO {
+  code: string
+  name: string
+  audience: Audience
+  tagline?: string | null
+  description?: string | null
+  baseUrl?: string | null
+  icon?: string | null
+  logoUrl?: string | null
+  isActive?: boolean
+  settings?: ApplicationSettings
+}
+
+export interface UpdateApplicationDTO {
+  name?: string
+  tagline?: string | null
+  description?: string | null
+  baseUrl?: string | null
+  icon?: string | null
+  logoUrl?: string | null
+  isActive?: boolean
+  settings?: ApplicationSettings
 }
 
 export interface MenuListItem {

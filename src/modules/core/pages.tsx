@@ -4,7 +4,7 @@ import { FilterSelect, SearchBar } from '@/components/shared/SearchBar'
 import { ActiveBadge } from '@/components/shared/ActiveBadge'
 import { Badge } from '@/components/ui/badge'
 import { useList } from '@/hooks/use-list'
-import type { ApplicationListItem, MenuListItem, PermissionListItem, RoleListItem } from '@/types/core'
+import type { MenuListItem, PermissionListItem, RoleListItem } from '@/types/core'
 
 // Query tiap endpoint: ../seloko-api/src/modules/core/*/*.schema.ts (List*QuerySchema).
 // Endpoint core tidak mendukung sortBy — kolom tidak diberi sortKey.
@@ -84,45 +84,8 @@ export function PermissionsPage() {
   )
 }
 
-const appColumns: Column<ApplicationListItem>[] = [
-  {
-    header: 'Aplikasi',
-    cell: (a) => (
-      <div>
-        <div className="font-medium">{a.name}</div>
-        {a.tagline && <Truncate text={a.tagline} className="text-xs text-muted-foreground" />}
-      </div>
-    ),
-  },
-  { header: 'Kode', cell: (a) => <span className={mono}>{a.code}</span> },
-  { header: 'Audiens', cell: (a) => (a.audience === 'INTERNAL' ? 'Internal' : 'Publik') },
-  { header: 'Role', cell: (a) => a.counts.roles, className: 'text-right tabular-nums' },
-  { header: 'Menu', cell: (a) => a.counts.menuItems, className: 'text-right tabular-nums' },
-  { header: 'Status', cell: (a) => <ActiveBadge active={a.isActive} /> },
-]
-
-export function ApplicationsPage() {
-  const list = useList<ApplicationListItem>('/applications')
-  const { params, setSearch, setFilter } = list
-  return (
-    <>
-      <PageHeader title="Aplikasi" description="Aplikasi yang terhubung ke gateway Seloko." />
-      <DataTable
-        list={list}
-        columns={appColumns}
-        rowKey={(a) => a.id}
-        emptyTitle="Belum ada aplikasi"
-        toolbar={
-          <>
-            <SearchBar key={params.search} value={params.search} onSearch={setSearch} placeholder="Cari kode atau nama" />
-            <FilterSelect label="Audiens" value={params.audience} options={AUDIENCE} onChange={(v) => setFilter('audience', v)} />
-            <FilterSelect label="Status" value={params.isActive} options={ACTIVE} onChange={(v) => setFilter('isActive', v)} />
-          </>
-        }
-      />
-    </>
-  )
-}
+export { ApplicationsPage } from './applications/ApplicationsPage'
+export { ApplicationDetailPage } from './applications/ApplicationDetailPage'
 
 const menuColumns: Column<MenuListItem>[] = [
   {

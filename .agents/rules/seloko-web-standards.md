@@ -45,7 +45,8 @@ src/
 ├── lib/             # Helper murni (utils, axios instance, formatters)
 ├── modules/         # Fitur per domain
 │   ├── auth/        # Login page, auth guard
-│   ├── core/        # DashboardPage (semua app) + pages.tsx: role, permission, aplikasi, menu
+│   ├── core/        # DashboardPage (semua app) + pages.tsx: role, permission, menu
+│   │   ├── applications/ # ApplicationsPage, ApplicationDetailPage, ApplicationFormDialog, use-application-actions
 │   │   └── users/   # UsersPage, UserDetailPage, use-user-actions (aktif/nonaktif, hapus)
 │   └── bapenda/     # pages.tsx: berita, review, kategori, halaman, banner
 ├── services/        # API service layer (auth.service, menu.service, dll.)
