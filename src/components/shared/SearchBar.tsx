@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 // Pencarian dikirim saat Enter/submit, bukan tiap ketik — hemat request.
@@ -54,7 +55,11 @@ export function FilterSelect({
 }) {
   return (
     <Select value={value ?? ALL} onValueChange={(v) => onChange(v === ALL ? undefined : v)}>
-      <SelectTrigger aria-label={label} className="w-auto min-w-36">
+      <SelectTrigger
+        aria-label={label}
+        // Filter aktif ditandai agar terlihat bahwa daftar sedang dipersempit.
+        className={cn('w-auto min-w-36', value && 'border-primary/60 bg-primary/5')}
+      >
         <span className="text-muted-foreground">{label}:</span>
         <SelectValue />
       </SelectTrigger>

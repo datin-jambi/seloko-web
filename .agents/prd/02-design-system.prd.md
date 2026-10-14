@@ -96,8 +96,9 @@ Di dark mode gunakan tingkat 400. Jangan pakai `-500` untuk teks di atas putih (
 | Badge | `rounded` (bukan pil penuh), `text-xs font-medium`. Varian status di §2. |
 | Input/Select | `h-9`, border `input`, fokus `ring-2 ring-ring/30` + `border-primary`. Label di atas, pesan error di bawah. Dropdown pilihan selalu shadcn `Select` (`src/components/ui/select.tsx`, Radix) — bukan `<select>` native. |
 | DropdownMenu | Solid `bg-popover`, `shadow-md`, tanpa blur. |
-| Table | Header `text-xs font-medium text-muted-foreground`, baris `text-sm`, garis `border-b`, hover `bg-muted/50`. |
-| Dialog/Sheet | Overlay `bg-black/40` tanpa blur. |
+| Table | Header kontras: latar token `--table-head` (`bg-table-head`), teks `text-xs font-semibold text-foreground` (bukan uppercase — `audit:ui`), garis bawah `border-b-2 border-input`. Baris `text-sm`, `whitespace-nowrap`, garis `border-b`, hover `bg-muted/50`. |
+| Aksi baris | Kolom terakhir tanpa judul (label `sr-only` "Aksi"), `RowActions` = tombol ⋯ `ghost icon-sm` → DropdownMenu. Aksi destruktif di bawah garis pemisah, teks `text-destructive`. Aksi tanpa permission disembunyikan, bukan dinonaktifkan. |
+| Dialog/Sheet | `src/components/ui/dialog.tsx`. Overlay `bg-black/60` tanpa blur, panel `border bg-card shadow-lg`. Konfirmasi aksi berisiko lewat `ConfirmDialog` (tombol konfirmasi `destructive` untuk hapus/nonaktifkan, tetap terbuka sampai request selesai). |
 | Toast | `sonner` via `src/components/ui/sonner.tsx` (`<Toaster />` sekali di `App.tsx`). Posisi **tengah atas**, ada tombol tutup, warna ikut token tema. |
 | Top loader | `src/components/shared/TopLoader.tsx` (dipasang sekali di `App.tsx`). Bar `primary` 2px di atas layar, otomatis aktif selama ada request `apiClient`. |
 

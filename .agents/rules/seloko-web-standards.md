@@ -39,13 +39,14 @@ src/
 ├── components/      # Komponen UI
 │   ├── ui/          # Komponen dasar shadcn (Button, Dialog, Card, Input, dll.)
 │   ├── layout/      # Sidebar, Header, AppSwitcher, DashboardLayout
-│   └── shared/      # Pakai ulang: PageHeader, DataTable, SearchBar, PendingApiPage, TopLoader
+│   └── shared/      # Pakai ulang: PageHeader, DataTable, RowActions, ConfirmDialog, SearchBar, PendingApiPage, TopLoader
 ├── config/          # Konfigurasi aplikasi & konstanta (APP_CODES, env)
 ├── hooks/           # Custom React hooks (use-list: fetch list — page/search/filter/sort di URL)
 ├── lib/             # Helper murni (utils, axios instance, formatters)
 ├── modules/         # Fitur per domain
 │   ├── auth/        # Login page, auth guard
-│   ├── core/        # DashboardPage (semua app) + pages.tsx: pengguna, role, permission, aplikasi, menu
+│   ├── core/        # DashboardPage (semua app) + pages.tsx: role, permission, aplikasi, menu
+│   │   └── users/   # UsersPage, UserDetailPage, use-user-actions (aktif/nonaktif, hapus)
 │   └── bapenda/     # pages.tsx: berita, review, kategori, halaman, banner
 ├── services/        # API service layer (auth.service, menu.service, dll.)
 ├── stores/          # Zustand store (authStore, appStore, themeStore)

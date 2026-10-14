@@ -4,8 +4,7 @@ import { FilterSelect, SearchBar } from '@/components/shared/SearchBar'
 import { ActiveBadge } from '@/components/shared/ActiveBadge'
 import { Badge } from '@/components/ui/badge'
 import { useList } from '@/hooks/use-list'
-import { formatDate } from '@/lib/utils'
-import type { ApplicationListItem, MenuListItem, PermissionListItem, RoleListItem, UserListItem } from '@/types/core'
+import type { ApplicationListItem, MenuListItem, PermissionListItem, RoleListItem } from '@/types/core'
 
 // Query tiap endpoint: ../seloko-api/src/modules/core/*/*.schema.ts (List*QuerySchema).
 // Endpoint core tidak mendukung sortBy — kolom tidak diberi sortKey.
@@ -19,49 +18,6 @@ const AUDIENCE: [string, string][] = [
   ['INTERNAL', 'Internal'],
   ['PUBLIC', 'Publik'],
 ]
-
-const userColumns: Column<UserListItem>[] = [
-  {
-    header: 'Nama',
-    cell: (u) => (
-      <div>
-        <div className="font-medium">{u.fullName}</div>
-        <div className="text-xs text-muted-foreground">{u.email}</div>
-      </div>
-    ),
-  },
-  { header: 'NIP / Username', cell: (u) => <span className={mono}>{u.nip ?? u.username ?? '—'}</span> },
-  {
-    header: 'Jenis',
-    cell: (u) => (u.isSuperAdmin ? <Badge variant="info">Superadmin</Badge> : u.accountType === 'INTERNAL' ? 'Internal' : 'Publik'),
-  },
-  { header: 'Aplikasi', cell: (u) => <Truncate text={u.applications.map((a) => a.name).join(', ')} /> },
-  { header: 'Login terakhir', cell: (u) => formatDate(u.lastLoginAt) },
-  { header: 'Status', cell: (u) => <ActiveBadge active={u.isActive} /> },
-]
-
-export function UsersPage() {
-  const list = useList<UserListItem>('/users')
-  const { params, setSearch, setFilter } = list
-  return (
-    <>
-      <PageHeader title="Pengguna" description="Akun pegawai internal dan warga yang terdaftar." />
-      <DataTable
-        list={list}
-        columns={userColumns}
-        rowKey={(u) => u.id}
-        emptyTitle="Belum ada pengguna"
-        toolbar={
-          <>
-            <SearchBar key={params.search} value={params.search} onSearch={setSearch} placeholder="Cari nama, email, atau username" />
-            <FilterSelect label="Jenis" value={params.accountType} options={AUDIENCE} onChange={(v) => setFilter('accountType', v)} />
-            <FilterSelect label="Status" value={params.isActive} options={ACTIVE} onChange={(v) => setFilter('isActive', v)} />
-          </>
-        }
-      />
-    </>
-  )
-}
 
 const roleColumns: Column<RoleListItem>[] = [
   {

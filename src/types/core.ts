@@ -16,6 +16,22 @@ export interface UserListItem {
   applications: { id: string; code: string; name: string }[]
 }
 
+// GET /users/:id — UserDetailShape
+export interface UserDetail extends Omit<UserListItem, 'applications'> {
+  phoneNumber: string | null
+  avatarUrl: string | null
+  emailVerifiedAt: string | null
+  createdAt: string
+  updatedAt: string
+  totalApplications: number
+  applications: {
+    id: string
+    code: string
+    name: string
+    roles: { id: string; roleId: string; roleName: string; expiresAt: string | null; createdAt: string }[]
+  }[]
+}
+
 export interface RoleListItem {
   id: string
   applicationName: string

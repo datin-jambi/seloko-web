@@ -4,7 +4,9 @@ import { LoginPage } from '@/modules/auth/LoginPage'
 import { ProtectedRoute } from '@/components/shared/ProtectedRoute'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { DashboardPage } from '@/modules/core/DashboardPage'
-import { ApplicationsPage, MenusPage, PermissionsPage, RolesPage, UsersPage } from '@/modules/core/pages'
+import { ApplicationsPage, MenusPage, PermissionsPage, RolesPage } from '@/modules/core/pages'
+import { UsersPage } from '@/modules/core/users/UsersPage'
+import { UserDetailPage } from '@/modules/core/users/UserDetailPage'
 import {
   BannersPage,
   NewsCategoriesPage,
@@ -53,6 +55,7 @@ export function App() {
                 <Route path="/seloko/pengguna" element={<UsersPage />} />
                 <Route path="/seloko/pengguna/tambah" element={pending('Tambah Pengguna', 'form POST /users')} />
                 <Route path="/seloko/pengguna/penugasan" element={pending('Penugasan Role', 'belum ada GET daftar penugasan lintas pengguna')} />
+                <Route path="/seloko/pengguna/:id" element={<UserDetailPage />} />
                 <Route path="/seloko/akses/role" element={<RolesPage />} />
                 <Route path="/seloko/akses/permission" element={<PermissionsPage />} />
                 <Route path="/seloko/sistem/aplikasi" element={<ApplicationsPage />} />

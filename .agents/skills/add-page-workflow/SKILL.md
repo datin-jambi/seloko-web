@@ -37,6 +37,11 @@ Halaman mengikuti **path menu di database** (`../seloko-api/prisma/seeds/core/me
    - Hanya pasang filter yang ada di `List*QuerySchema` endpoint itu. Jangan tambah filter yang tidak diminta.
    - Teks panjang → `<Truncate />` (sel tidak turun baris). Status aktif/terbit → `<ActiveBadge />`; status lain → `Badge` varian PRD 02 §2.
    - Opsi filter relasi (kategori, aplikasi) → `useQuery` ke endpoint list terkait, `staleTime` panjang.
+   - Modul besar (punya detail/aksi) → folder sendiri `src/modules/<domain>/<modul>/` seperti `core/users/`.
+5a. **Detail & aksi** (contoh lengkap: `src/modules/core/users/`)
+   - Detail = rute `/<app>/<modul>/:id`, `useQuery({ queryKey: ['/<endpoint>', id] })`. Daftar membuka detail lewat `onRowClick` + aksi "Lihat detail".
+   - Aksi baris → `actions={(row) => <RowActions label=… actions={[…]} />}`; `show: hasPermission('<kode>')` sesuai `requirePermission` di `*.routes.ts`. Jangan tawarkan aksi ke akun sendiri bila berisiko mengunci diri.
+   - Aksi berisiko → `ConfirmDialog`; mutasi + toast + `invalidateQueries({ queryKey: ['/<endpoint>'] })` dikumpulkan dalam satu hook `use-<modul>-actions.tsx` agar dipakai daftar dan detail.
 5. **API belum ada** → tetap daftarkan rute dengan `pending('Judul', 'alasan')` (`PendingApiPage`). Jangan isi data karangan.
 6. **Daftarkan rute di `src/App.tsx`** di blok aplikasinya. Dasbor tiap app otomatis dari `APP_CONFIGS[code].home`.
 7. **Aplikasi baru** → tambah entri `APP_CONFIGS` (`home: '/<prefix>/dashboard'`); konteks app aktif dibaca dari prefix URL (`appCodeFromPath`).

@@ -22,6 +22,7 @@
     --destructive: 0 72% 45%;
     --destructive-foreground: 0 0% 100%;
     --border: 217 24% 89%;
+    --table-head: 215 32% 88%;
     --input: 217 20% 82%;
     --ring: 216 90% 41%;
     --radius: 0.375rem;
@@ -52,6 +53,7 @@
     --destructive: 0 65% 55%;
     --destructive-foreground: 0 0% 100%;
     --border: 220 30% 20%;
+    --table-head: 220 36% 23%;
     --input: 220 28% 26%;
     --ring: 216 68% 55%;
 
@@ -75,6 +77,7 @@
   --color-secondary: hsl(var(--secondary));
   --color-secondary-foreground: hsl(var(--secondary-foreground));
   --color-muted: hsl(var(--muted));
+  --color-table-head: hsl(var(--table-head));
   --color-muted-foreground: hsl(var(--muted-foreground));
   --color-accent: hsl(var(--accent));
   --color-accent-foreground: hsl(var(--accent-foreground));
