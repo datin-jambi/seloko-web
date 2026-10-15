@@ -231,3 +231,63 @@ export interface MenuListItem {
   isActive: boolean
   permission: { code: string } | null
 }
+
+// ── Menu CMS (../seloko-api/src/modules/core/menus/menus.schema.ts) ────────────
+
+// GET /menus?tree=true — MenuItemCmsNodeSchema (rekursif).
+export interface MenuCmsNode {
+  id: string
+  applicationId: string
+  parentId: string | null
+  code: string
+  label: string
+  icon: string | null
+  path: string | null
+  isExternal: boolean
+  sortOrder: number
+  isActive: boolean
+  permissionId: string | null
+  permission: { id: string; code: string; name: string } | null
+  roles: { id: string; name: string }[]
+  items: MenuCmsNode[]
+}
+
+export interface MenuListItemFull extends Omit<MenuCmsNode, 'items'> {
+  rolesCount: number
+  childrenCount: number
+  createdAt: string
+  updatedAt: string
+}
+
+// POST/PATCH /menus — `code` dan `applicationId` terkunci setelah dibuat.
+export interface CreateMenuBody {
+  applicationId: string
+  parentId?: string | null
+  code: string
+  label: string
+  icon?: string | null
+  path?: string | null
+  isExternal?: boolean
+  sortOrder?: number
+  isActive?: boolean
+  permissionId?: string | null
+  roleIds?: string[]
+}
+
+export interface UpdateMenuBody {
+  parentId?: string | null
+  label?: string
+  icon?: string | null
+  path?: string | null
+  isExternal?: boolean
+  sortOrder?: number
+  isActive?: boolean
+  permissionId?: string | null
+  roleIds?: string[]
+}
+
+// PATCH /menus/reorder — urutan (dan induk) banyak item sekaligus.
+export interface ReorderMenusBody {
+  applicationId: string
+  items: { id: string; sortOrder: number; parentId?: string | null }[]
+}

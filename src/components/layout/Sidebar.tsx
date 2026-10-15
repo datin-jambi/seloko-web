@@ -1,91 +1,12 @@
-import React, { useEffect, useState, useSyncExternalStore } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { menuService } from '@/services/menu.service'
 import { useAppStore } from '@/stores/app-store'
-import type { MenuItemTree } from '@/types'
-import {
-  LayoutDashboard,
-  Users,
-  User,
-  UserPlus,
-  UserCog,
-  Shield,
-  ShieldCheck,
-  Key,
-  Settings,
-  LayoutGrid,
-  FolderTree,
-  FileText,
-  ExternalLink,
-  Building2,
-  Newspaper,
-  Send,
-  Tags,
-  File,
-  Layers,
-  Image,
-  Images,
-  MapPin,
-  ChevronDown,
-  Circle,
-  Store,
-  Package,
-  Receipt,
-  PanelLeftClose,
-  PanelLeftOpen,
-  BadgeCheck,
-  EyeOff,
-  FileDown,
-  Handshake,
-  House,
-  ShoppingCart,
-  Smartphone,
-} from 'lucide-react'
+import { MenuIcon } from '@/components/shared/MenuIcon'
+import { ChevronDown, ExternalLink, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-const ICON_MAP: Record<string, React.ElementType> = {
-  'layout-dashboard': LayoutDashboard,
-  users: Users,
-  user: User,
-  'user-plus': UserPlus,
-  'user-cog': UserCog,
-  shield: Shield,
-  'shield-check': ShieldCheck,
-  key: Key,
-  settings: Settings,
-  'layout-grid': LayoutGrid,
-  'list-tree': FolderTree,
-  'scroll-text': FileText,
-  'external-link': ExternalLink,
-  'building-2': Building2,
-  newspaper: Newspaper,
-  send: Send,
-  tags: Tags,
-  file: File,
-  'file-text': FileText,
-  'panel-top': Layers,
-  image: Image,
-  images: Images,
-  'map-pin': MapPin,
-  store: Store,
-  package: Package,
-  receipt: Receipt,
-  'badge-check': BadgeCheck,
-  'eye-off': EyeOff,
-  'file-down': FileDown,
-  handshake: Handshake,
-  home: House,
-  'shopping-cart': ShoppingCart,
-  smartphone: Smartphone,
-}
-
-function MenuIcon({ name }: { name?: string | null }) {
-  return React.createElement((name && ICON_MAP[name]) || Circle, {
-    className: 'h-4 w-4 shrink-0',
-  })
-}
-
+import type { MenuItemTree } from '@/types'
 // Dipakai hanya bila /api/menus/me gagal. Daftar kosong = user memang tanpa akses.
 const FALLBACK_MENUS: MenuItemTree[] = [
   { id: 'fb-dashboard', code: 'dashboard', label: 'Dasbor', icon: 'layout-dashboard', path: '/seloko/dashboard', isExternal: false, sortOrder: 0, items: [] },
@@ -165,7 +86,7 @@ function SidebarNavItem({ item, activePath, collapsed, onExpand }: NavItemProps)
             collapsed && 'justify-center px-0',
           )}
         >
-          <MenuIcon name={item.icon} />
+          <MenuIcon name={item.icon} className="h-4 w-4 shrink-0" />
           {label}
           {!collapsed && (
             <ChevronDown
@@ -204,7 +125,7 @@ function SidebarNavItem({ item, activePath, collapsed, onExpand }: NavItemProps)
   if (item.isExternal && item.path) {
     return (
       <a href={item.path} target="_blank" rel="noreferrer" title={title} className={className}>
-        <MenuIcon name={item.icon} />
+        <MenuIcon name={item.icon} className="h-4 w-4 shrink-0" />
         {label}
         {!collapsed && <ExternalLink className="ml-auto h-3.5 w-3.5 opacity-50" />}
       </a>
@@ -213,7 +134,7 @@ function SidebarNavItem({ item, activePath, collapsed, onExpand }: NavItemProps)
 
   return (
     <Link to={item.path || '#'} title={title} className={className}>
-      <MenuIcon name={item.icon} />
+      <MenuIcon name={item.icon} className="h-4 w-4 shrink-0" />
       {label}
     </Link>
   )

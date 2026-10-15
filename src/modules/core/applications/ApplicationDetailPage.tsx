@@ -7,6 +7,7 @@ import {
   ExternalLink,
   Key,
   Layers,
+  ListTree,
   Power,
   PowerOff,
   Shield,
@@ -27,6 +28,7 @@ import { ApplicationFormDialog } from './ApplicationFormDialog'
 import { AppRolesCard } from './AppRolesCard'
 import { AppPermissionsCard } from './AppPermissionsCard'
 import { AppUsersCard } from './AppUsersCard'
+import { AppMenusCard } from './AppMenusCard'
 import { appUsersKey, fetchAppUsers } from './app-users'
 import { APPLICATIONS_LIST } from './application-paths'
 
@@ -298,6 +300,11 @@ export function ApplicationDetailPage() {
               </TabsTrigger>
               {/* Angka = jumlah pengguna sungguhan (superadmin + yang punya penugasan), bukan
                   `counts.userAppRoles` yang hanya menghitung penugasan. */}
+              <TabsTrigger value="menus">
+                <ListTree className="size-4" />
+                Menu
+                <span className="ml-1 text-xs tabular-nums text-muted-foreground">{counts.menuItems}</span>
+              </TabsTrigger>
               <TabsTrigger value="users">
                 <Users className="size-4" />
                 Pengguna
@@ -315,6 +322,9 @@ export function ApplicationDetailPage() {
             </TabsContent>
             <TabsContent value="users" className="mt-4">
               <AppUsersCard app={app} data={users.data} />
+            </TabsContent>
+            <TabsContent value="menus" className="mt-4">
+              <AppMenusCard app={app} />
             </TabsContent>
           </Tabs>
         </div>
