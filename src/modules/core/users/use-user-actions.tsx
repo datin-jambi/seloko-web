@@ -19,8 +19,9 @@ export function useUserActions(onDeleted?: () => void) {
   const can = useAuthStore((s) => s.hasPermission)
   const [pending, setPending] = useState<Pending>(null)
 
-  const done = () => {
-    void qc.invalidateQueries({ queryKey: ['/users'] })
+  // `skip`: id yang baru dihapus — detailnya jangan di-refetch (halaman detail masih terpasang → 404).
+  const done = (skip?: string) => {
+    void qc.invalidateQueries({ queryKey: ['/users'], predicate: (q) => q.queryKey[1] !== skip })
     setPending(null)
   }
 
@@ -37,7 +38,7 @@ export function useUserActions(onDeleted?: () => void) {
     mutationFn: (u: Target) => userService.remove(u.id),
     onSuccess: (_, u) => {
       toast.success(`${u.fullName} dihapus`)
-      done()
+      done(u.id)
       onDeleted?.()
     },
     onError: (e) => toast.error('Gagal menghapus pengguna', { description: apiErrorMessage(e) }),

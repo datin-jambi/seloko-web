@@ -16,3 +16,10 @@ export const formatDateTime = (value?: string | null) => (value ? dateTimeFmt.fo
 export const apiErrorMessage = (error: unknown) =>
   (isAxiosError<{ message?: string }>(error) && error.response?.data?.message) ||
   (error instanceof Error ? error.message : 'Terjadi kesalahan')
+
+// Error per field dari 400 VALIDATION_ERROR (`details: { field: pesan }`). PRD 03 §4.
+export const apiFieldErrors = (error: unknown): Record<string, string> =>
+  (isAxiosError<{ code?: string; details?: Record<string, string> }>(error) &&
+    error.response?.data?.code === 'VALIDATION_ERROR' &&
+    error.response.data.details) ||
+  {}

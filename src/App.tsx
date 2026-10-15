@@ -7,6 +7,8 @@ import { DashboardPage } from '@/modules/core/DashboardPage'
 import { ApplicationDetailPage, ApplicationsPage, MenusPage, PermissionsPage, RolesPage } from '@/modules/core/pages'
 import { UsersPage } from '@/modules/core/users/UsersPage'
 import { UserDetailPage } from '@/modules/core/users/UserDetailPage'
+import { UserCreatePage } from '@/modules/core/users/UserCreatePage'
+import { UserEditPage } from '@/modules/core/users/UserEditPage'
 import {
   BannersPage,
   NewsCategoriesPage,
@@ -55,9 +57,10 @@ export function App() {
 
                 {/* Seloko */}
                 <Route path="/seloko/pengguna" element={<UsersPage />} />
-                <Route path="/seloko/pengguna/tambah" element={pending('Tambah Pengguna', 'form POST /users')} />
+                <Route path="/seloko/pengguna/tambah" element={<UserCreatePage />} />
                 <Route path="/seloko/pengguna/penugasan" element={pending('Penugasan Role', 'belum ada GET daftar penugasan lintas pengguna')} />
                 <Route path="/seloko/pengguna/:id" element={<UserDetailPage />} />
+                <Route path="/seloko/pengguna/:id/ubah" element={<UserEditPage />} />
                 <Route path="/seloko/akses/role" element={<RolesPage />} />
                 <Route path="/seloko/akses/permission" element={<PermissionsPage />} />
                 <Route path="/seloko/sistem/aplikasi" element={<ApplicationsPage />} />

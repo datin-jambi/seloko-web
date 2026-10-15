@@ -38,7 +38,10 @@ Dua bentuk envelope hidup berdampingan di SELOKO API — frontend wajib menerima
 `meta` lainnya sama: `{ page, limit, totalPages, hasNextPage, hasPreviousPage }`.
 
 Error (dari `setErrorHandler` `../seloko-api/src/app.ts`): `{ statusCode, code, message, details? }`.
-* `code: "VALIDATION_ERROR"` (400) → `details: { [field]: pesan }` — tampilkan di bawah input terkait.
+* `code: "VALIDATION_ERROR"` (400) → `details: { [field]: pesan }` — tampilkan di bawah input terkait (`apiFieldErrors()` di `src/lib/utils.ts`).
+* Penugasan role (`POST /users/:id/roles`): role wajib seaudiens dengan jenis akun — dialog hanya memuat `GET /roles?applicationId&audience=<accountType>&isActive=true`. Upsert: pasangan sama hanya memperbarui `expiresAt`. `expiresAt` dikirim ISO akhir hari lokal.
+* 409 duplikat (mis. `Username "x" sudah digunakan`) → arahkan ke field-nya (`conflictField()`), bukan toast.
+* Form memvalidasi di klien dengan aturan yang sama dengan skema Zod API (fungsi murni, mis. `validateCreateUser` di `src/modules/core/users/user-form.ts`, diuji `npm run check:forms`). Server tetap sumber kebenaran.
 * Selain itu tampilkan `message` (toast untuk aksi, `ErrorState` untuk daftar).
 
 ## 4a. Fetch Data List (Pagination, Search, Filter, Sort)

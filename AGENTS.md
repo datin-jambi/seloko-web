@@ -36,6 +36,7 @@ Aplikasi ini adalah dashboard frontend internal yang dibangun menggunakan **Reac
 - `npm run lint` — Memeriksa linter kode.
 - `npm run audit:ui` — Memeriksa pola UI "AI-slop" (lihat skill `human-ui-crafting`).
 - `npm run check:agents` — Memeriksa dokumen `.agents/` masih sinkron dengan struktur repo.
+- `npm run check:forms` — Self-check validasi form (`scripts/check-*.ts`, Node `--experimental-strip-types`).
 - `npm run preview` — Menjalankan hasil build secara lokal.
 
 ---

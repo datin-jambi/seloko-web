@@ -41,6 +41,9 @@ Halaman mengikuti **path menu di database** (`../seloko-api/prisma/seeds/core/me
 5a. **Detail & aksi** (contoh lengkap: `src/modules/core/users/`)
    - Detail = rute `/<app>/<modul>/:id`, `useQuery({ queryKey: ['/<endpoint>', id] })`. Daftar membuka detail lewat `onRowClick` + aksi "Lihat detail".
    - Aksi baris → `actions={(row) => <RowActions label=… actions={[…]} />}`; `show: hasPermission('<kode>')` sesuai `requirePermission` di `*.routes.ts`. Jangan tawarkan aksi ke akun sendiri bila berisiko mengunci diri.
+   - Form ubah → `/<modul>/:id/ubah` (contoh `UserEditPage.tsx`): isi dari query detail, `key={id}` pada form, kirim **hanya field yang berubah** (PATCH menolak body kosong), tombol simpan nonaktif sampai ada perubahan, field yang tidak bisa diubah API tampil read-only.
+   - Relasi yang dikelola di detail (mis. role pengguna) → kartu sendiri (`UserRolesCard.tsx`): tambah lewat `Dialog` + `Select` bertingkat (opsi kedua tergantung pilihan pertama, opsi yang sudah dimiliki disembunyikan), hapus per item lewat tombol × + `ConfirmDialog`.
+   - Form tambah/ubah → rute statis (`/<modul>/tambah`) + halaman form (contoh: `UserCreatePage.tsx`): `FormField` + `Input`, validasi klien di file `.ts` murni + self-check di `scripts/check-*.ts` (daftarkan di `check:forms`), error 400/409 ke field, sukses → toast + `invalidateQueries` + navigasi ke detail. Konstanta path modul di file `.ts` (bukan file komponen) agar fast-refresh tidak terganggu.
    - Aksi berisiko → `ConfirmDialog`; mutasi + toast + `invalidateQueries({ queryKey: ['/<endpoint>'] })` dikumpulkan dalam satu hook `use-<modul>-actions.tsx` agar dipakai daftar dan detail.
 5. **API belum ada** → tetap daftarkan rute dengan `pending('Judul', 'alasan')` (`PendingApiPage`). Jangan isi data karangan.
 6. **Daftarkan rute di `src/App.tsx`** di blok aplikasinya. Dasbor tiap app otomatis dari `APP_CONFIGS[code].home`.

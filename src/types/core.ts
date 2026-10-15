@@ -32,8 +32,35 @@ export interface UserDetail extends Omit<UserListItem, 'applications'> {
   }[]
 }
 
+// POST /users — CreateUserBodySchema. Hanya membuat akun INTERNAL (pegawai).
+export interface CreateUserBody {
+  username: string
+  email: string
+  fullName: string
+  password: string
+  nip?: string
+  phoneNumber?: string
+  isSuperAdmin: boolean
+}
+
+// PATCH /users/:id — UpdateUserBodySchema. Username, email, jenis akun tidak bisa diubah.
+export interface UpdateUserBody {
+  fullName?: string
+  nip?: string | null
+  phoneNumber?: string | null
+  isSuperAdmin?: boolean
+}
+
+// POST /users/:id/roles — AssignRoleBodySchema. Idempoten: pasangan yang sama hanya memperbarui expiresAt.
+export interface AssignRoleBody {
+  applicationId: string
+  roleId: string
+  expiresAt?: string
+}
+
 export interface RoleListItem {
   id: string
+  applicationId: string
   applicationName: string
   name: string
   description: string | null

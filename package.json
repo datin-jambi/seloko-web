@@ -9,6 +9,7 @@
     "lint": "oxlint",
     "audit:ui": "node scripts/audit-ai-slop.mjs",
     "check:agents": "node scripts/check-agents-docs.mjs",
+    "check:forms": "node --experimental-strip-types --no-warnings scripts/check-user-form.ts",
     "preview": "vite preview"
   },
   "dependencies": {
