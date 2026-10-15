@@ -207,7 +207,7 @@ export function RoleFormDialog({
           <Button variant="outline" disabled={save.isPending} onClick={onClose}>
             Batal
           </Button>
-          <Button type="submit" form="role-form" disabled={busy}>
+          <Button type="submit" form="role-form" variant={isEdit ? 'edit' : 'create'} disabled={busy}>
             {save.isPending && <Loader2 className="animate-spin" />}
             {save.isPending ? 'Menyimpan…' : isEdit ? 'Simpan perubahan' : 'Buat role'}
           </Button>

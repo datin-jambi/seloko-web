@@ -170,7 +170,7 @@ export function UserCreatePage() {
           <Button type="button" variant="outline" disabled={create.isPending} onClick={() => navigate(LIST)}>
             Batal
           </Button>
-          <Button type="submit" disabled={create.isPending}>
+          <Button type="submit" variant="create" disabled={create.isPending}>
             {create.isPending && <Loader2 className="animate-spin" />}
             {create.isPending ? 'Menyimpan…' : 'Buat akun'}
           </Button>

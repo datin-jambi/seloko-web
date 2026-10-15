@@ -50,7 +50,7 @@ export function UserRolesCard({ user }: { user: UserDetail }) {
           </p>
         </div>
         {canAssign && user.isActive && (
-          <Button size="sm" variant="outline" onClick={() => setAssignOpen(true)}>
+          <Button size="sm" variant="create" onClick={() => setAssignOpen(true)}>
             <Plus />
             Tugaskan role
           </Button>
@@ -252,7 +252,7 @@ function AssignRoleDialog({ user, onClose, onDone }: { user: UserDetail; onClose
           <Button variant="outline" disabled={assign.isPending} onClick={onClose}>
             Batal
           </Button>
-          <Button type="submit" form="assign-role" disabled={!appId || !roleId || assign.isPending}>
+          <Button type="submit" form="assign-role" variant="create" disabled={!appId || !roleId || assign.isPending}>
             {assign.isPending && <Loader2 className="animate-spin" />}
             Tugaskan
           </Button>

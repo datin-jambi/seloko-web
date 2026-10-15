@@ -21,6 +21,35 @@
     --accent-foreground: 220 55% 13%;
     --destructive: 0 72% 45%;
     --destructive-foreground: 0 0% 100%;
+    /* Warna aksi (lihat PRD 02 §7): success = tombol buat/tambah, warning = tombol edit/ubah.
+       Keduanya gelap/pekat agar aman dipakai dengan teks kontras tinggi. */
+    --success: 152 64% 30%;
+    --success-foreground: 0 0% 100%;
+    --warning: 43 97% 54%;
+    --warning-foreground: 222 45% 11%;
+    /* Merah khusus tombol. Dipisah dari `--destructive` karena tombol butuh latar lebih gelap
+       agar teks putih lolos kontras AA, sedangkan badge/teks destruktif perlu tetap terang. */
+    --destructive-button: 0 72% 45%;
+    --destructive-button-foreground: 0 0% 100%;
+    /* Tombol mengambang + menonjol. "Menonjol" datang dari CAHAYA di permukaan, bukan dari
+       bayangan tebal. Dua bagian:
+       - `--surface-button`: gradien cahaya netral (putih → transparan → sedikit gelap) yang
+         ditumpuk di atas warna dasar, jadi SATU token ini bekerja untuk semua warna varian.
+       - `--elevate-button`: garis kilau 1px di tepi atas + shading tepi bawah + bayangan
+         kontak & bayangan lebar (kesan melayang).
+       PENGECUALIAN gradien: hanya untuk permukaan tombol, netral (bukan warna aksen), dan
+       tidak untuk card/halaman. Lihat PRD 02 §7b.
+       Kilau sengaja dibuat LEMBUT dan memudar ke arah tengah; bagian terang tidak boleh
+       menutupi garis teks, karena kontras teks putih di tombol hijau/merah bisa turun di
+       bawah AA. Tingkat ini titik yang disetujui — jangan dinaikkan tanpa cek kontras. */
+    --surface-button: linear-gradient(to bottom, hsl(0 0% 100% / 0.26) 0%, hsl(0 0% 100% / 0.06) 26%, hsl(0 0% 100% / 0.02) 55%, hsl(220 45% 12% / 0.13) 100%);
+    --surface-button-hover: linear-gradient(to bottom, hsl(0 0% 100% / 0.32) 0%, hsl(0 0% 100% / 0.08) 26%, hsl(0 0% 100% / 0.03) 55%, hsl(220 45% 12% / 0.15) 100%);
+    --elevate-button: inset 0 1px 0 0 hsl(0 0% 100% / 0.5), inset 0 -3px 5px -3px hsl(220 45% 12% / 0.35),
+      0 2px 3px -1px hsl(220 45% 15% / 0.45), 0 8px 16px -6px hsl(220 45% 18% / 0.4),
+      0 14px 28px -12px hsl(220 45% 18% / 0.3);
+    --elevate-button-hover: inset 0 1px 0 0 hsl(0 0% 100% / 0.58), inset 0 -3px 5px -3px hsl(220 45% 12% / 0.38),
+      0 3px 4px -1px hsl(220 45% 15% / 0.48), 0 12px 22px -6px hsl(220 45% 18% / 0.46),
+      0 20px 36px -14px hsl(220 45% 18% / 0.34);
     --border: 217 24% 89%;
     --table-head: 215 32% 88%;
     --input: 217 20% 82%;
@@ -52,6 +81,22 @@
     --accent-foreground: 216 33% 96%;
     --destructive: 0 65% 55%;
     --destructive-foreground: 0 0% 100%;
+    --success: 152 55% 46%;
+    --success-foreground: 150 90% 8%;
+    --warning: 45 100% 60%;
+    --warning-foreground: 222 45% 10%;
+    --destructive-button: 0 65% 48%;
+    --destructive-button-foreground: 0 0% 100%;
+    /* Latar gelap: kilau putih diturunkan (kalau terlalu terang tampak berembun), bayangan
+       dipertegas karena navy di atas navy nyaris tak terlihat. */
+    --surface-button: linear-gradient(to bottom, hsl(0 0% 100% / 0.18) 0%, hsl(0 0% 100% / 0.04) 26%, hsl(0 0% 100% / 0.01) 55%, hsl(220 60% 2% / 0.32) 100%);
+    --surface-button-hover: linear-gradient(to bottom, hsl(0 0% 100% / 0.24) 0%, hsl(0 0% 100% / 0.06) 26%, hsl(0 0% 100% / 0.02) 55%, hsl(220 60% 2% / 0.36) 100%);
+    --elevate-button: inset 0 1px 0 0 hsl(0 0% 100% / 0.32), inset 0 -3px 5px -3px hsl(220 60% 2% / 0.55),
+      0 2px 3px -1px hsl(220 60% 2% / 0.75), 0 8px 16px -6px hsl(220 60% 2% / 0.6),
+      0 14px 28px -12px hsl(220 60% 2% / 0.5);
+    --elevate-button-hover: inset 0 1px 0 0 hsl(0 0% 100% / 0.4), inset 0 -3px 5px -3px hsl(220 60% 2% / 0.58),
+      0 3px 4px -1px hsl(220 60% 2% / 0.8), 0 12px 22px -6px hsl(220 60% 2% / 0.66),
+      0 20px 36px -14px hsl(220 60% 2% / 0.55);
     --border: 220 30% 20%;
     --table-head: 220 36% 23%;
     --input: 220 28% 26%;
@@ -83,6 +128,12 @@
   --color-accent-foreground: hsl(var(--accent-foreground));
   --color-destructive: hsl(var(--destructive));
   --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-success: hsl(var(--success));
+  --color-success-foreground: hsl(var(--success-foreground));
+  --color-warning: hsl(var(--warning));
+  --color-warning-foreground: hsl(var(--warning-foreground));
+  --color-destructive-button: hsl(var(--destructive-button));
+  --color-destructive-button-foreground: hsl(var(--destructive-button-foreground));
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));

@@ -61,7 +61,7 @@ export function UserDetailPage() {
         actions={
           <>
             {canEdit && (
-              <Button asChild>
+              <Button variant="edit" asChild>
                 <Link to={USER_EDIT(u.id)}>
                   <Pencil />
                   Ubah
@@ -69,13 +69,13 @@ export function UserDetailPage() {
               </Button>
             )}
             {act.canToggle(u) && (
-              <Button variant="outline" onClick={() => act.askToggle(u)}>
+              <Button variant={u.isActive ? 'outline' : 'success'} onClick={() => act.askToggle(u)}>
                 {u.isActive ? <UserX /> : <UserCheck />}
                 {u.isActive ? 'Nonaktifkan' : 'Aktifkan'}
               </Button>
             )}
             {act.canDelete(u) && (
-              <Button variant="outline" onClick={() => act.askDelete(u)} className="text-destructive hover:text-destructive">
+              <Button variant="destructive" onClick={() => act.askDelete(u)}>
                 <Trash2 />
                 Hapus
               </Button>

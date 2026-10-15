@@ -22,7 +22,7 @@ Komposisi "hero + 3 kartu fitur sejajar" **tidak pernah** benar di aplikasi ini.
 
 ## 2. Sepuluh Tanda AI-Slop (Dilarang)
 
-1. Gradien (`bg-gradient-*`, `bg-linear-*`) dan warna indigo/violet/ungu.
+1. Gradien (`bg-gradient-*`, `bg-linear-*`) dan warna indigo/violet/ungu. **Pengecualian:** gradien cahaya netral pada permukaan tombol (§7b PRD 02) — dipasang lewat token `--surface-button`, wajib berhenti sebelum garis teks.
 2. Blur: `backdrop-blur-*`, `blur-2xl/3xl`, blob bercahaya.
 3. Glow berwarna: `shadow-primary/20`, `shadow-blue-500/*`.
 4. Ikon dalam kotak berwarna di atas/di samping setiap judul kartu (ikon "topper"), apalagi tiap kartu beda warna.
@@ -38,6 +38,7 @@ Komposisi "hero + 3 kartu fitur sejajar" **tidak pernah** benar di aplikasi ini.
 - **Hierarki = ukuran & bobot teks.** Judul `text-xl font-semibold`, isi `text-sm`, meta `text-xs text-muted-foreground`.
 - **Pengelompokan = garis & jarak.** `border-b`, `divide-y`, `gap-*`. Card hanya bila konteks benar-benar terpisah.
 - **Satu aksen.** `primary` (royal blue dari logo). Warna lain hanya untuk status (sukses/peringatan/gagal).
+- **Warna tombol = makna aksi** (PRD 02 §7b): `create` biru, `edit` kuning, `success` hijau (Aktifkan), `destructive` merah, sisanya `outline`/`ghost`. Ini pengecualian yang disengaja dari "satu aksen" — jangan diubah balik ke biru semua. Tombol berisi memakai token `--elevate-button` (bayangan tipis, bukan glow).
 - **Ikon fungsional saja**: di menu, di tombol aksi yang ambigu tanpa ikon. Ukuran `h-4 w-4`, warna `currentColor`.
 - **Copy pendek & lugas**, bahasa kerja ASN: "Tambah Pengguna", "Simpan", "Hapus". Bukan "Kelola ekosistem secara mulus".
 - **Data nyata.** Tidak ada data dari API → `EmptyState`. Jangan isi contoh hardcoded di halaman produksi.

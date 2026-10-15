@@ -461,7 +461,7 @@ function ApplicationFormInner({
         >
           Batal
         </Button>
-        <Button type="submit" disabled={mutation.isPending}>
+        <Button type="submit" variant={isEdit ? 'edit' : 'create'} disabled={mutation.isPending}>
           {mutation.isPending && <Loader2 className="animate-spin" />}
           {isEdit ? 'Simpan Perubahan' : 'Tambah Aplikasi'}
         </Button>

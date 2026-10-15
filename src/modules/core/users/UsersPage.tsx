@@ -63,7 +63,7 @@ export function UsersPage() {
         description="Akun pegawai internal dan warga yang terdaftar."
         actions={
           canCreate && (
-            <Button asChild>
+            <Button variant="create" asChild>
               <Link to={USER_CREATE}>
                 <Plus />
                 Tambah pengguna

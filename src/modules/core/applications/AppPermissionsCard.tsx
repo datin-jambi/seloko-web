@@ -79,7 +79,7 @@ export function AppPermissionsCard({ app }: { app: ApplicationDetail }) {
             />
           </div>
           {canCreate && app.isActive && (
-            <Button size="sm" variant="outline" onClick={() => setForm({ open: true, permission: null })}>
+            <Button size="sm" variant="create" onClick={() => setForm({ open: true, permission: null })}>
               <Plus />
               Tambah permission
             </Button>

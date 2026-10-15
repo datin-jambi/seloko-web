@@ -125,7 +125,7 @@ export function PermissionFormDialog({
           <Button variant="outline" disabled={save.isPending} onClick={onClose}>
             Batal
           </Button>
-          <Button type="submit" form="permission-form" disabled={save.isPending}>
+          <Button type="submit" form="permission-form" variant={isEdit ? 'edit' : 'create'} disabled={save.isPending}>
             {save.isPending && <Loader2 className="animate-spin" />}
             {save.isPending ? 'Menyimpan…' : isEdit ? 'Simpan perubahan' : 'Buat permission'}
           </Button>

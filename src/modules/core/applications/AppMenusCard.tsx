@@ -110,7 +110,7 @@ export function AppMenusCard({ app }: { app: ApplicationDetail }) {
           </p>
         </div>
         {canUpdate && app.isActive && (
-          <Button size="sm" variant="outline" onClick={() => setForm({ open: true, node: null, parentId: null })}>
+          <Button size="sm" variant="create" onClick={() => setForm({ open: true, node: null, parentId: null })}>
             <Plus />
             Tambah menu
           </Button>

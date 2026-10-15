@@ -33,7 +33,7 @@ Satu warna aksen saja: **royal blue**. Cyan hanya untuk penanda item aktif di si
 Status (Badge): `success` emerald, `warning` amber, `info` = primary, `destructive` merah, `neutral` abu (nonaktif/draf). Latar lembut + teks tegas, varian dark punya warna teks sendiri (-300) agar kontras.
 Di dark mode gunakan tingkat 400. Jangan pakai `-500` untuk teks di atas putih (kontras kurang).
 
-**Dilarang:** `indigo-*`, `violet-*`, `purple-*`, `fuchsia-*`, gradien apa pun, warna ikon berbeda-beda per kartu.
+**Dilarang:** `indigo-*`, `violet-*`, `purple-*`, `fuchsia-*`, gradien apa pun — **kecuali** gradien cahaya netral pada permukaan tombol (§7b), warna ikon berbeda-beda per kartu.
 
 ## 3. Tipografi
 
@@ -54,14 +54,14 @@ Di dark mode gunakan tingkat 400. Jangan pakai `-500` untuk teks di atas putih (
 ## 4. Bentuk & Kedalaman
 
 - Radius dasar `6px` (`rounded-md`). Popover/dialog `rounded-lg`. Dilarang `rounded-2xl`/`rounded-3xl` untuk panel.
-- Elevasi: **border, bukan bayangan**. Card tanpa shadow. Shadow hanya untuk lapisan mengambang (dropdown, dialog, toast).
+- Elevasi: **border, bukan bayangan**. Card tanpa shadow. Bayangan hanya untuk (a) lapisan mengambang (dropdown, dialog, toast) dan (b) tombol, lewat token `--elevate-button` + `--surface-button` (§7b), tanpa glow berwarna. Cakupan sempit ini yang membedakan dari AI-slop: gradien/bayangan tidak boleh muncul di card, panel, atau latar halaman.
 - Dilarang `backdrop-blur`, glow berwarna (`shadow-primary/*`), blob blur.
 
 ## 5. Gerak
 
 - Hanya transisi status: hover warna (150ms), lebar sidebar (200ms), buka/tutup popover.
 - Selalu `motion-reduce:transition-none` pada transisi ukuran/posisi.
-- Tombol: `active:translate-y-px` cukup; tanpa scale/bounce.
+- Tombol: bayangan lebih tegas saat hover, lalu `active:translate-y-px` + bayangan hilang (kesan tertekan). Tanpa scale/bounce.
 
 ## 6. Layout Shell
 
@@ -92,7 +92,7 @@ Di dark mode gunakan tingkat 400. Jangan pakai `-500` untuk teks di atas putih (
 
 | Komponen | Aturan |
 |---|---|
-| Button | `default` (primary), `outline`, `secondary`, `ghost`, `destructive`, `link`. Tinggi `h-9`, `sm` `h-8`. Tanpa shadow. |
+| Button | Varian menyatakan **makna**, bukan sekadar warna — lihat tabel di §7b. Tinggi `h-9`, `sm` `h-8`. Tombol berisi memakai bayangan tipis agar terlihat timbul; `outline`/`secondary`/`ghost`/`link` tetap rata. |
 | Card | `rounded-lg border bg-card`, tanpa shadow, tanpa hover-lift. Gunakan hanya bila memang mengelompokkan konten berbeda — jangan bungkus satu tabel dengan card lalu card lagi. |
 | Badge | `<span>` tinggi tetap 22px, `rounded-md`, `text-xs font-medium`, border tipis. Badge **status** pakai `dot` (titik warna di depan label) agar terbaca tanpa bergantung warna saja — `ActiveBadge` sudah memakainya. Badge untuk status/sifat penting: Aktif/Nonaktif (`ActiveBadge`), jenis akun (`AccountTypeBadge`: Internal = `info` + ikon gedung, Eksternal = `warning` + ikon globe — bukan abu-abu agar tak terbaca "nonaktif"), Superadmin (`default` solid + ikon perisai), status berita. Badge non-status pakai ikon, bukan titik. Varian di §2. |
 | Form | `FormField` (`src/components/shared/FormField.tsx`): label di atas, `*` merah untuk wajib, "opsional" abu untuk tidak wajib, petunjuk/error di bawah (`id-msg`, dihubungkan `aria-describedby`). Grid dua kolom `sm:grid-cols-2 items-start`, satu kolom di mobile. Dikelompokkan per `fieldset` dengan judul kecil; kartu `max-w-2xl`; tombol Batal/Simpan kanan bawah. Tombol simpan `disabled` + "Menyimpan…" selama request. |
@@ -123,7 +123,52 @@ Di dark mode gunakan tingkat 400. Jangan pakai `-500` untuk teks di atas putih (
 - Import langsung `import { toast } from 'sonner'`; jangan buat wrapper/helper toast sendiri.
 - Request di luar `apiClient` (axios polos/`fetch`) tidak menggerakkan top loader — selalu lewat `apiClient`.
 
+## 7b. Ketentuan Tombol (Makna → Warna)
+
+Warna tombol menyatakan **jenis aksi**, bukan selera. Pilih varian sesuai tabel; jangan
+menentukan warna langsung lewat `className` (mis. `bg-amber-*`) karena akan menyimpang
+dari ketentuan ini.
+
+| Aksi | Varian | Warna | Contoh pemakaian |
+|---|---|---|---|
+| Membuat / menambah | `create` | biru (`primary`) | "Tambah Aplikasi", "Tambah role", "Buat akun", "Buat permission" |
+| Mengubah | `edit` | kuning (`warning`) | "Edit", "Ubah", "Simpan perubahan" |
+| Menghidupkan kembali | `success` | hijau (`success`) | "Aktifkan" |
+| Merusak / menghapus | `destructive` | merah | "Hapus", konfirmasi hapus & nonaktifkan |
+| Bukan aksi utama | `outline` / `secondary` / `ghost` / `link` | — | "Batal", aksi ikon per baris, tautan |
+
+- Halaman **tidak** memakai varian `default`/`elevated` untuk aksi baru; keduanya peninggalan
+  `shadcn` dan tetap ada hanya agar tidak memecah kode lama.
+- Tombol **submit** di dialog mengikuti aksi yang dilakukannya: `create` saat menambah,
+  `edit` saat mengubah. Contoh: `variant={isEdit ? 'edit' : 'create'}`.
+- Tombol **Batal** selalu `outline`; bukan berwarna, karena ia bukan aksi utama.
+- Warna diambil dari token (`--success`, `--warning`, `--destructive`, `--primary`), bukan
+  kelas warna mentah Tailwind, agar ikut tema terang/gelap.
+- Kontras teks terhadap latar wajib ≥ 4.5:1 di kedua tema (diuji: kuning 6.48, hijau 5.12,
+  merah 5.83 pada mode terang).
+- Teks tombol kuning memakai `--warning-foreground` gelap — **jangan** putih di atas kuning.
+
+**Efek mengambang + menonjol.** Dua token, keduanya di `src/index.css`:
+
+| Token | Isi | Fungsi |
+|---|---|---|
+| `--surface-button` / `--surface-button-hover` | gradien cahaya **netral** (putih → transparan → sedikit gelap) | kilau permukaan — inilah yang membuat tombol terasa menonjol ke arah mata |
+| `--elevate-button` / `--elevate-button-hover` | kilau tepi atas 1px + shading tepi bawah + bayangan kontak + bayangan lebar | kesan melayang |
+
+- Gradien permukaan dipasang di atas warna varian (`bg-[image:var(--surface-button)]`), jadi
+  **satu** token bekerja untuk semua warna. Jangan menulis gradien per varian.
+- **Kilaunya wajib berhenti di ~50% tinggi** (nilainya nol tepat di garis teks). Kalau kilau
+  menutupi teks, kontras teks putih pada tombol hijau/merah jatuh di bawah AA.
+- Saat hover kilau sedikit naik; saat ditekan bayangan hilang dan tombol turun 1px.
+- Ini **pengecualian gradien satu-satunya** di proyek: hanya permukaan tombol, netral, dan
+  tidak boleh menutupi teks. `outline`/`secondary` boleh ikut memakai kilau yang sama.
+- Kuning `edit` cerah (`--warning` mode terang 43 97% 54%) wajib berteks gelap
+  (`--warning-foreground`): kontras 10.4:1 (terang) / 12.1:1 (gelap).
+- Merah tombol memakai `--destructive-button` terpisah dari `--destructive`, karena latar
+  tombol harus cukup gelap agar teks putih lolos AA sementara badge destruktif perlu terang.
+
 ## 8. Checklist Sebelum Selesai
+
 
 - `npm run audit:ui` lolos (lihat `.agents/skills/human-ui-crafting/SKILL.md`).
 - Cek light **dan** dark mode, sidebar terbuka **dan** ciut.

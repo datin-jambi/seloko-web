@@ -175,7 +175,7 @@ function EditForm({ user }: { user: UserDetail }) {
         <Button type="button" variant="outline" disabled={save.isPending} onClick={() => navigate(USER_DETAIL(user.id))}>
           Batal
         </Button>
-        <Button type="submit" disabled={save.isPending || !dirty}>
+        <Button type="submit" variant="edit" disabled={save.isPending || !dirty}>
           {save.isPending && <Loader2 className="animate-spin" />}
           {save.isPending ? 'Menyimpan…' : 'Simpan perubahan'}
         </Button>

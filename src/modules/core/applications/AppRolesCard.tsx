@@ -71,7 +71,7 @@ export function AppRolesCard({ app }: { app: ApplicationDetail }) {
           </p>
         </div>
         {canCreate && app.isActive && (
-          <Button size="sm" variant="outline" onClick={() => setForm({ open: true, role: null })}>
+          <Button size="sm" variant="create" onClick={() => setForm({ open: true, role: null })}>
             <Plus />
             Tambah role
           </Button>

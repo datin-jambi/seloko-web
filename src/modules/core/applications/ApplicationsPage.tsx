@@ -118,7 +118,7 @@ export function ApplicationsPage() {
         description="Aplikasi ekosistem yang terhubung ke gateway terpusat Seloko BPKPD."
         actions={
           canCreate && (
-            <Button onClick={handleCreate} className="gap-2">
+            <Button variant="create" onClick={handleCreate} className="gap-2">
               <Plus className="h-4 w-4" />
               Tambah Aplikasi
             </Button>

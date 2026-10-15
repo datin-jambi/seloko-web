@@ -142,14 +142,14 @@ export function ApplicationDetailPage() {
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {canUpdate && (
-              <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="gap-1.5">
+              <Button variant="edit" size="sm" onClick={() => setEditOpen(true)} className="gap-1.5">
                 <Edit2 className="h-3.5 w-3.5" />
                 Edit
               </Button>
             )}
             {act.canToggle(app) && (
               <Button
-                variant="outline"
+                variant={app.isActive ? 'outline' : 'success'}
                 size="sm"
                 onClick={() => act.askToggle(app)}
                 className="gap-1.5"
@@ -160,10 +160,10 @@ export function ApplicationDetailPage() {
             )}
             {act.canDelete(app) && (
               <Button
-                variant="outline"
+                variant="destructive"
                 size="sm"
                 onClick={() => act.askDelete(app)}
-                className="gap-1.5 text-destructive hover:text-destructive"
+                className="gap-1.5"
               >
                 <Trash2 className="h-3.5 w-3.5" />
                 Hapus
