@@ -73,12 +73,58 @@ export interface RoleListItem {
 
 export interface PermissionListItem {
   id: string
+  applicationId: string
   applicationCode: string
   code: string
   name: string
   module: string
+  createdAt: string
   roleCount: number
   menuCount: number
+}
+
+// GET /permissions/:id — PermissionDetailShape
+export interface PermissionDetail extends PermissionListItem {
+  roles: { id: string; name: string }[]
+  menus: { id: string; label: string }[]
+}
+
+// POST/PATCH /permissions — kode & aplikasi terkunci setelah dibuat.
+export interface CreatePermissionBody {
+  applicationId: string
+  code: string
+  name: string
+  module: string
+}
+
+export interface UpdatePermissionBody {
+  name?: string
+  module?: string
+}
+
+// GET /roles/:id — RoleDetailShape: SELURUH permission aplikasi + tanda `granted`.
+export interface RoleDetail extends RoleListItem {
+  createdAt: string
+  updatedAt: string
+  permissionsByModule: {
+    module: string
+    permissions: { id: string; code: string; name: string; granted: boolean }[]
+  }[]
+}
+
+// POST/PATCH /roles — `applicationId` & `audience` terkunci setelah dibuat.
+export interface CreateRoleBody {
+  applicationId: string
+  name: string
+  audience: Audience
+  description?: string
+  permissionIds?: string[]
+  isActive?: boolean
+}
+
+export interface UpdateRoleBody {
+  name?: string
+  description?: string | null
 }
 
 export interface ApplicationSettings {

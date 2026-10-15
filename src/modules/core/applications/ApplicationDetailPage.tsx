@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
   ArrowLeft,
@@ -18,13 +18,19 @@ import { ActiveBadge } from '@/components/shared/ActiveBadge'
 import { ErrorState } from '@/components/shared/ErrorState'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { applicationService } from '@/services/application.service'
 import { apiErrorMessage, formatDate, formatDateTime } from '@/lib/utils'
 import { useAuthStore } from '@/stores/auth-store'
 import { useApplicationActions } from './use-application-actions'
 import { ApplicationFormDialog } from './ApplicationFormDialog'
+import { AppRolesCard } from './AppRolesCard'
+import { AppPermissionsCard } from './AppPermissionsCard'
+import { AppUsersCard } from './AppUsersCard'
+import { appUsersKey, fetchAppUsers } from './app-users'
+import { APPLICATIONS_LIST } from './application-paths'
 
-const LIST = '/seloko/sistem/aplikasi'
+const LIST = APPLICATIONS_LIST
 
 function Row({
   label,
@@ -49,6 +55,18 @@ export function ApplicationDetailPage() {
   const { id = '' } = useParams()
   const navigate = useNavigate()
   const [editOpen, setEditOpen] = useState(false)
+  // Tab disimpan di URL agar tautan/segarkan tetap membuka tab yang sama.
+  const [searchParams, setSearchParams] = useSearchParams()
+  const tab = searchParams.get('tab') ?? 'roles'
+  const setTab = (value: string) =>
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        next.set('tab', value)
+        return next
+      },
+      { replace: true },
+    )
 
   const can = useAuthStore((s) => s.hasPermission)
   const isSuperAdmin = useAuthStore((s) => s.user?.isSuperAdmin)
@@ -62,6 +80,14 @@ export function ApplicationDetailPage() {
   } = useQuery({
     queryKey: ['/applications', id],
     queryFn: () => applicationService.get(id),
+  })
+
+  // Diambil di sini, bukan di dalam AppUsersCard: angkanya dipakai tab dan kartunya.
+  // Satu queryKey → satu permintaan, dan angkanya ikut ter-refresh setelah penugasan berubah.
+  const users = useQuery({
+    queryKey: appUsersKey(id),
+    queryFn: () => fetchAppUsers(id),
+    enabled: !!id,
   })
 
   const act = useApplicationActions(() => navigate(LIST))
@@ -97,7 +123,7 @@ export function ApplicationDetailPage() {
     )
   }
 
-  const { counts, roles = [], permissionsByModule = [], settings } = app
+  const { counts, settings } = app
   const isSeloko = app.code === 'seloko'
 
   return (
@@ -180,7 +206,8 @@ export function ApplicationDetailPage() {
         </div>
       </div>
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
+      {/* grid-cols-1 wajib: tanpa itu kolom tunggal berukuran max-content dan melebarkan halaman di mobile. */}
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
         {/* Kolom Kiri: Metadata & Info Aplikasi */}
         <div className="space-y-6">
           <section className="rounded-lg border border-border bg-card">
@@ -255,86 +282,41 @@ export function ApplicationDetailPage() {
 
         {/* Kolom Kanan: Role & Permission Terdaftar */}
         <div className="space-y-6">
-          {/* Daftar Role */}
-          <section className="rounded-lg border border-border bg-card">
-            <div className="flex items-center justify-between border-b border-border px-4 py-3">
-              <h2 className="text-sm font-semibold">Daftar Role</h2>
-              <span className="text-xs text-muted-foreground tabular-nums">
-                {roles.length} role terdaftar
-              </span>
-            </div>
+          {/* Tabs */}
+          <Tabs defaultValue="roles" value={tab} onValueChange={setTab}>
+            {/* Tanpa override: pengaturan lebar/lipat ada di komponen TabsList. */}
+            <TabsList>
+              <TabsTrigger value="roles">
+                <Shield className="size-4" />
+                Role
+                <span className="ml-1 text-xs tabular-nums text-muted-foreground">{counts.roles}</span>
+              </TabsTrigger>
+              <TabsTrigger value="permissions">
+                <Key className="size-4" />
+                Permission
+                <span className="ml-1 text-xs tabular-nums text-muted-foreground">{counts.permissions}</span>
+              </TabsTrigger>
+              {/* Angka = jumlah pengguna sungguhan (superadmin + yang punya penugasan), bukan
+                  `counts.userAppRoles` yang hanya menghitung penugasan. */}
+              <TabsTrigger value="users">
+                <Users className="size-4" />
+                Pengguna
+                {users.data && (
+                  <span className="ml-1 text-xs tabular-nums text-muted-foreground">{users.data.rows.length}</span>
+                )}
+              </TabsTrigger>
+            </TabsList>
 
-            {roles.length === 0 ? (
-              <div className="p-6 text-center text-sm text-muted-foreground">
-                Belum ada role yang didaftarkan untuk aplikasi ini.
-              </div>
-            ) : (
-              <div className="divide-y divide-border">
-                {roles.map((r) => (
-                  <div key={r.id} className="flex items-center justify-between p-4">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-foreground">{r.name}</span>
-                        {r.isSystemRole && <Badge variant="outline">Sistem</Badge>}
-                        <ActiveBadge active={r.isActive} />
-                      </div>
-                      {r.description && (
-                        <p className="mt-1 text-xs text-muted-foreground">{r.description}</p>
-                      )}
-                    </div>
-                    <div className="text-right text-xs text-muted-foreground tabular-nums">
-                      {r.permissionCount} permission
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-
-          {/* Daftar Permission per Modul */}
-          <section className="rounded-lg border border-border bg-card">
-            <div className="flex items-center justify-between border-b border-border px-4 py-3">
-              <h2 className="text-sm font-semibold">Permission per Modul</h2>
-              <span className="text-xs text-muted-foreground tabular-nums">
-                {permissionsByModule.length} modul
-              </span>
-            </div>
-
-            {permissionsByModule.length === 0 ? (
-              <div className="p-6 text-center text-sm text-muted-foreground">
-                Belum ada permission yang didaftarkan untuk aplikasi ini.
-              </div>
-            ) : (
-              <div className="divide-y divide-border">
-                {permissionsByModule.map((group) => (
-                  <div key={group.module} className="p-4 space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-foreground">
-                        Modul: <span className="font-mono">{group.module}</span>
-                      </span>
-                      <span className="text-xs text-muted-foreground tabular-nums">
-                        {group.permissions.length} hak akses
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                      {group.permissions.map((p) => (
-                        <div
-                          key={p.id}
-                          className="flex items-center justify-between rounded border border-border/60 bg-muted/20 px-2.5 py-1.5 text-xs"
-                        >
-                          <span className="font-medium truncate">{p.name}</span>
-                          <span className="font-mono text-xs text-muted-foreground shrink-0 ml-2">
-                            {p.code}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
+            <TabsContent value="roles" className="mt-4">
+              <AppRolesCard app={app} />
+            </TabsContent>
+            <TabsContent value="permissions" className="mt-4">
+              <AppPermissionsCard app={app} />
+            </TabsContent>
+            <TabsContent value="users" className="mt-4">
+              <AppUsersCard app={app} data={users.data} />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
 

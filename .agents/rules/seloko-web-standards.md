@@ -47,7 +47,8 @@ src/
 │   ├── auth/        # Login page, auth guard
 │   ├── core/        # DashboardPage (semua app) + pages.tsx: role, permission, menu
 │   │   ├── applications/ # ApplicationsPage, ApplicationDetailPage, ApplicationFormDialog, use-application-actions
-│   │   └── users/   # UsersPage, UserDetailPage, UserCreatePage, UserEditPage, UserRolesCard, AppMark, AccountTypeBadge, use-user-actions, user-form
+│   │   ├── users/   # UsersPage, UserDetailPage, UserCreatePage, UserEditPage, UserRolesCard, AppMark, AppCount, AccountTypeBadge, use-user-actions, user-form
+│   │   └── applications/  # ApplicationsPage, ApplicationDetailPage (tab Role/Permission/Pengguna), AppRolesCard, AppPermissionsCard, AppUsersCard, RoleFormDialog, PermissionFormDialog, PermissionChecklist, access-form, application-paths
 │   └── bapenda/     # pages.tsx: berita, review, kategori, halaman, banner
 ├── services/        # API service layer (auth.service, menu.service, dll.)
 ├── stores/          # Zustand store (authStore, appStore, themeStore)
