@@ -252,7 +252,21 @@ export interface MenuCmsNode {
   items: MenuCmsNode[]
 }
 
-export interface MenuListItemFull extends Omit<MenuCmsNode, 'items'> {
+// GET /menus tanpa `tree` — MenuListItemShape. Bentuknya BERBEDA dari node pohon:
+// tidak ada `parentId`/`items`, tetapi ada `parent` (objek), `rolesCount`, `childrenCount`.
+// Menyangka ada `parentId` membuat semua item dianggap tingkat atas.
+export interface MenuListItemFull {
+  id: string
+  application: { id: string; code: string; name: string }
+  parent: { id: string; code: string; label: string } | null
+  code: string
+  label: string
+  icon: string | null
+  path: string | null
+  isExternal: boolean
+  sortOrder: number
+  isActive: boolean
+  permission: { id: string; code: string; name: string; module: string } | null
   rolesCount: number
   childrenCount: number
   createdAt: string

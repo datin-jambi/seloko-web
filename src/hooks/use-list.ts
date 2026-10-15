@@ -62,6 +62,8 @@ export function useList<T>(path: string, fixed: Record<string, string> = NONE) {
     setLimit: (limit: number) => update({ limit: String(limit) }),
     setSearch: (search: string) => update({ search }),
     setFilter: (key: string, value?: string) => update({ [key]: value }),
+    /** Beberapa param sekaligus — mis. ganti filter aplikasi sambil mengosongkan induk. */
+    setParams: update,
     reset: () => setSearchParams({}, { replace: true }),
     sort: { by: sortBy, order: sortOrder },
     toggleSort: (key: string) =>

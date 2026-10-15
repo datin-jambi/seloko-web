@@ -47,16 +47,24 @@ export function FilterSelect({
   value,
   options,
   onChange,
+  title,
+  disabled,
 }: {
   label: string
   value?: string
   options: [value: string, label: string][]
   onChange: (v?: string) => void
+  /** Alasan singkat pada trigger, mis. kenapa pilihannya masih sedikit. */
+  title?: string
+  /** Filter yang bergantung pada filter lain (mis. Induk butuh Aplikasi). */
+  disabled?: boolean
 }) {
   return (
-    <Select value={value ?? ALL} onValueChange={(v) => onChange(v === ALL ? undefined : v)}>
+    <Select value={value ?? ALL} onValueChange={(v) => onChange(v === ALL ? undefined : v)} disabled={disabled}>
       <SelectTrigger
         aria-label={label}
+        title={title}
+        disabled={disabled}
         // Filter aktif ditandai agar terlihat bahwa daftar sedang dipersempit.
         className={cn('w-auto min-w-36', value && 'border-primary/60 bg-primary/5')}
       >

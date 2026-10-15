@@ -48,6 +48,7 @@ src/
 │   ├── core/        # DashboardPage (semua app) + pages.tsx: role, permission, menu
 │   │   ├── applications/ # ApplicationsPage, ApplicationDetailPage, ApplicationFormDialog, use-application-actions
 │   │   ├── users/   # UsersPage, UserDetailPage, UserCreatePage, UserEditPage, UserRolesCard, AppMark, AppCount, AccountTypeBadge, use-user-actions, user-form
+│   │   └── menus/         # MenusPage (inventaris + filter aplikasi/induk/status)
 │   │   └── applications/  # ApplicationsPage, ApplicationDetailPage (tab Role/Permission/Menu/Pengguna), AppRolesCard, AppPermissionsCard, AppMenusCard, AppUsersCard, RoleFormDialog, PermissionFormDialog, MenuFormDialog, PermissionChecklist, access-form, menu-tree, app-users, application-paths
 │   └── bapenda/     # pages.tsx: berita, review, kategori, halaman, banner
 ├── services/        # API service layer (auth.service, menu.service, dll.)
