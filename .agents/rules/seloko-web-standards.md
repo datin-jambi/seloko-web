@@ -29,6 +29,7 @@ Dokumen ini adalah aturan resmi yang wajib dipatuhi saat menulis kode di `seloko
 * Pastikan semua komponen ramah aksesibilitas (Radix UI), mendukung keyboard navigation, dan mendukung Dark/Light Mode.
 * Warna & token mengikuti `.agents/prd/02-design-system.prd.md` (navy/royal blue dari logo Seloko, token CSS HSL di `src/index.css`). Jangan pakai kelas warna Tailwind mentah untuk aksen (`indigo-*`, `blue-*`) — pakai token (`primary`, `muted`, `sidebar`).
 * Sebelum menyatakan UI selesai: `npm run audit:ui`, `npm run lint`, `npm run build` harus lolos.
+* **Semua daftar (tabel all) mulai dengan 10 data per halaman** — `DEFAULT_LIMIT` di `src/hooks/use-list.ts`, selalu dikirim ke API. Jangan set limit awal per halaman. Detail: PRD 03 §4a.
 
 ---
 

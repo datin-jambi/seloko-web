@@ -9,6 +9,8 @@ export type SortOrder = 'asc' | 'desc'
 
 // Aman untuk semua endpoint (maks API 100; permissions & menus 200). PRD 03 §4a.
 export const PAGE_SIZES = [10, 20, 50, 100]
+// Limit awal semua daftar. Selalu dikirim, karena default API beda-beda (10/20/50). PRD 03 §4a.
+export const DEFAULT_LIMIT = '10'
 
 const NONE: Record<string, string> = {}
 
@@ -20,7 +22,7 @@ const NONE: Record<string, string> = {}
  */
 export function useList<T>(path: string, fixed: Record<string, string> = NONE) {
   const [searchParams, setSearchParams] = useSearchParams()
-  const params = { ...Object.fromEntries(searchParams), ...fixed }
+  const params: Record<string, string> = { limit: DEFAULT_LIMIT, ...Object.fromEntries(searchParams), ...fixed }
 
   const query = useQuery({
     queryKey: [path, params],
@@ -43,6 +45,8 @@ export function useList<T>(path: string, fixed: Record<string, string> = NONE) {
           else next.delete(k)
         }
         if (!('page' in patch) || patch.page === '1') next.delete('page')
+        // Limit default tidak ditulis ke URL, sama seperti page 1.
+        if (next.get('limit') === DEFAULT_LIMIT) next.delete('limit')
         return next
       },
       { replace: true },

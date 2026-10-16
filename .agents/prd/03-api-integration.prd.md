@@ -68,7 +68,7 @@ Sumber kebenaran parameter: `List*QuerySchema` di `../seloko-api/src/modules/**/
 | Param | Aturan API | Catatan frontend |
 |---|---|---|
 | `page` | int ≥1, default 1 | Tidak ditulis ke URL bila 1 |
-| `limit` | default 20 (permissions & menus: 50), maks 100 (permissions & menus: 200) | Dipilih user di footer tabel (`PAGE_SIZES` = 10/20/50/100, aman untuk semua endpoint). Tidak dikirim sampai user memilih → API memakai default-nya |
+| `limit` | default API beda-beda (10 / 20 / 50), maks 100 (permissions & menus: 200) | **Aturan: semua daftar mulai dengan 10 data** (`DEFAULT_LIMIT` di `use-list.ts`). Limit selalu dikirim ke API — jangan bergantung pada default API. User boleh ganti di footer (`PAGE_SIZES` = 10/20/50/100, aman untuk semua endpoint). Nilai 10 tidak ditulis ke URL |
 | `search` | string, di-trim | Dikirim saat Enter, bukan tiap ketik |
 | Filter boolean (`isActive`, `isPublished`, `isSuperAdmin`, `isSystemRole`, `showOnPublicMap`) | string `"true"` / `"false"` | Kosong = semua (param tidak dikirim) |
 | Filter enum (`status`, `accountType`, `audience`) | nilai enum persis | Label Indonesia di UI, nilai asli ke API |
@@ -85,7 +85,7 @@ Endpoint tanpa pagination: `GET /bapenda/news/categories` (mengembalikan seluruh
 * `queryKey: [path, params]` + `placeholderData: keepPreviousData` → tabel tidak berkedip saat ganti halaman.
 * Meta dinormalkan: `total ?? totalItems`.
 * `DataTable` menangani: skeleton (memuat), `ErrorState` + coba lagi (gagal), kosong ("Belum ada …" vs "Tidak ada hasil" + tombol **Hapus filter** bila ada search/filter), header urut (`aria-sort`), footer pagination.
-* Footer pagination (tampil bila `meta.total > 0`): `Tampilkan [limit]` · `1–20 dari 61` · `Halaman 1 / 4` · tombol sebelumnya/berikutnya. Endpoint tanpa `meta` (kategori berita) tidak menampilkan footer.
+* Footer pagination (tampil bila `meta.total > 0`): `Tampilkan [limit]` · `1–10 dari 61` · `Halaman 1 / 7` · tombol sebelumnya/berikutnya. Endpoint tanpa `meta` (kategori berita) tidak menampilkan footer.
 * Tombol **Reset** (outline, ikon `RotateCcw`) muncul otomatis di ujung toolbar saat ada search/filter aktif; mengosongkan seluruh query string. Filter `Select` yang aktif diberi border `primary` agar terlihat daftar sedang dipersempit.
 * Kolom aksi: prop `actions={(row) => <RowActions … />}`. Klik baris: prop `onRowClick` (klik pada tombol/menu/tautan di dalam baris tidak memicunya). Baris punya `group/row`: kolom utama (nama) dibuat `<Link>` ke detail dengan `group-hover/row:font-bold group-hover/row:underline` sebagai petunjuk baris bisa diklik dan akses keyboard.
 * Toolbar: `SearchBar` (beri `key={params.search}` agar sinkron saat URL berubah) + `FilterSelect` (shadcn `Select` dari `src/components/ui/select.tsx`, opsi `[nilai, label]`, item pertama "Semua" = param dihapus). Jangan pakai `<select>` native.
