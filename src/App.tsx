@@ -4,7 +4,11 @@ import { LoginPage } from '@/modules/auth/LoginPage'
 import { ProtectedRoute } from '@/components/shared/ProtectedRoute'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { DashboardPage } from '@/modules/core/DashboardPage'
-import { ApplicationDetailPage, ApplicationsPage, MenusPage, PermissionsPage, RolesPage } from '@/modules/core/pages'
+import { ApplicationDetailPage, ApplicationsPage, MenusPage } from '@/modules/core/pages'
+import { RolesPage } from '@/modules/core/access/RolesPage'
+import { RoleDetailPage } from '@/modules/core/access/RoleDetailPage'
+import { PermissionsPage } from '@/modules/core/access/PermissionsPage'
+import { PermissionDetailPage } from '@/modules/core/access/PermissionDetailPage'
 import { UsersPage } from '@/modules/core/users/UsersPage'
 import { UserDetailPage } from '@/modules/core/users/UserDetailPage'
 import { UserCreatePage } from '@/modules/core/users/UserCreatePage'
@@ -62,7 +66,9 @@ export function App() {
                 <Route path="/seloko/pengguna/:id" element={<UserDetailPage />} />
                 <Route path="/seloko/pengguna/:id/ubah" element={<UserEditPage />} />
                 <Route path="/seloko/akses/role" element={<RolesPage />} />
+                <Route path="/seloko/akses/role/:id" element={<RoleDetailPage />} />
                 <Route path="/seloko/akses/permission" element={<PermissionsPage />} />
+                <Route path="/seloko/akses/permission/:id" element={<PermissionDetailPage />} />
                 <Route path="/seloko/sistem/aplikasi" element={<ApplicationsPage />} />
                 <Route path="/seloko/sistem/aplikasi/:id" element={<ApplicationDetailPage />} />
                 <Route path="/seloko/sistem/menu" element={<MenusPage />} />

@@ -1,10 +1,16 @@
-import type { Audience } from '@/types/core'
+import type { Audience, CreateRoleBody } from '@/types/core'
 
-// Cermin CreateRoleBodySchema & CreatePermissionBodySchema
+// Cermin CreateRoleBodySchema & CreatePermissionBodySchema & CreateRoleBody
 // (../seloko-api/src/modules/core/roles/roles.schema.ts, permissions/permissions.schema.ts).
 // Server tetap memvalidasi; ini hanya agar operator tahu salahnya sebelum submit.
 
-export type RoleFormValues = { name: string; description: string; audience: Audience; isActive: boolean }
+export type RoleFormValues = {
+  /** Nama role — hanya relevan saat membuat; saat mengubah aplikasi & nama terkunci per aturan. */
+  name: string
+  description: string
+  audience: Audience
+  isActive: boolean
+}
 export type PermissionFormValues = { code: string; name: string; module: string }
 
 type Errors<T> = Partial<Record<keyof T, string>>
@@ -35,4 +41,32 @@ export function validatePermission(v: PermissionFormValues): Errors<PermissionFo
   if (module.length < 2) e.module = 'Modul minimal 2 karakter'
   else if (module.length > 50) e.module = 'Modul maksimal 50 karakter'
   return e
+}
+
+// Aplikasi sekarang dipilih di form (bukan dari konteks halaman). Menyusun body create
+// di sini membuat aturan "field opsional dikirim hanya bila terisi" testable tanpa DOM.
+export function buildCreatePermissionBody(applicationId: string, v: PermissionFormValues): {
+  applicationId: string
+  code: string
+  name: string
+  module: string
+} {
+  return { applicationId, code: v.code.trim(), name: v.name.trim(), module: v.module.trim() }
+}
+
+export function buildCreateRoleBody(
+  applicationId: string,
+  v: RoleFormValues,
+  permissionIds: string[],
+): CreateRoleBody {
+  const body: CreateRoleBody = {
+    applicationId,
+    name: v.name.trim(),
+    audience: v.audience,
+    permissionIds,
+    isActive: v.isActive,
+  }
+  const description = v.description.trim()
+  if (description) body.description = description
+  return body
 }

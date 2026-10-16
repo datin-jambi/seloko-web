@@ -97,7 +97,7 @@ export function Header() {
               <User className="text-muted-foreground" />
               Profil
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/akses')}>
+            <DropdownMenuItem onClick={() => navigate('/seloko/akses/role')}>
               <Shield className="text-muted-foreground" />
               Hak akses
             </DropdownMenuItem>

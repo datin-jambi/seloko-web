@@ -10,7 +10,7 @@ import { permissionService } from '@/services/permission.service'
 import { useAuthStore } from '@/stores/auth-store'
 import { apiErrorMessage } from '@/lib/utils'
 import type { ApplicationDetail, PermissionListItem } from '@/types/core'
-import { PermissionFormDialog } from './PermissionFormDialog'
+import { PermissionFormDialog } from '../access/PermissionFormDialog'
 
 /**
  * Kartu "Permission": daftar permission aplikasi dikelompokkan per modul,

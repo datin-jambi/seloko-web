@@ -1,19 +1,25 @@
 import { useState, type FormEvent } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { FormField } from '@/components/shared/FormField'
 import { permissionService } from '@/services/permission.service'
+import { userService } from '@/services/user.service'
 import { apiErrorMessage, apiFieldErrors } from '@/lib/utils'
 import type { PermissionListItem } from '@/types/core'
-import { validatePermission, type PermissionFormValues } from './access-form'
+import { buildCreatePermissionBody, validatePermission, type PermissionFormValues } from './access-form'
 
 /**
  * Tambah/ubah permission milik satu aplikasi. `code` dan `applicationId` terkunci
  * setelah dibuat (UpdatePermissionBodySchema): kode dipakai literal di route API.
+ *
+ * Dipakai dari dua tempat:
+ * - Tab Permission pada detail aplikasi → `applicationId` terisi (terkunci).
+ * - Halaman Permission (lintas aplikasi) → kosong; aplikasi dipilih di dialog.
  */
 export function PermissionFormDialog({
   applicationId,
@@ -21,7 +27,8 @@ export function PermissionFormDialog({
   onClose,
   onSaved,
 }: {
-  applicationId: string
+  /** Terisi = konteks aplikasi (terkunci). Kosong + tidak mengubah = aplikasi dipilih di sini. */
+  applicationId?: string
   /** Ada = mode ubah. */
   permission?: PermissionListItem | null
   onClose: () => void
@@ -29,6 +36,7 @@ export function PermissionFormDialog({
 }) {
   const qc = useQueryClient()
   const isEdit = !!permission
+  const [pickedAppId, setPickedAppId] = useState(applicationId ?? permission?.applicationId ?? '')
   const [v, setV] = useState<PermissionFormValues>({
     code: permission?.code ?? '',
     name: permission?.name ?? '',
@@ -36,20 +44,22 @@ export function PermissionFormDialog({
   })
   const [errors, setErrors] = useState<Partial<Record<keyof PermissionFormValues, string>>>({})
 
+  const apps = useQuery({
+    queryKey: ['/applications', 'active'],
+    queryFn: userService.activeApps,
+    enabled: !isEdit && !applicationId,
+    staleTime: 5 * 60_000,
+  })
+
   const save = useMutation({
     mutationFn: async () =>
       isEdit
         ? ((await permissionService.update(permission.id, { name: v.name.trim(), module: v.module.trim() })), null)
-        : permissionService.create({
-            applicationId,
-            code: v.code.trim(),
-            name: v.name.trim(),
-            module: v.module.trim(),
-          }),
+        : permissionService.create(buildCreatePermissionBody(pickedAppId, v)),
     onSuccess: () => {
       toast.success(isEdit ? `Permission ${v.name.trim()} diperbarui` : `Permission ${v.code.trim()} dibuat`)
       void qc.invalidateQueries({ queryKey: ['/permissions'] })
-      void qc.invalidateQueries({ queryKey: ['/applications', applicationId] })
+      void qc.invalidateQueries({ queryKey: ['/applications', pickedAppId] })
       onSaved()
       onClose()
     },
@@ -64,6 +74,7 @@ export function PermissionFormDialog({
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
+    if (!isEdit && !pickedAppId) return toast.error('Pilih aplikasi dulu')
     const found = validatePermission(v)
     setErrors(found)
     if (Object.keys(found).length > 0) return document.getElementById(Object.keys(found)[0])?.focus()
@@ -95,6 +106,24 @@ export function PermissionFormDialog({
         </DialogHeader>
 
         <form id="permission-form" noValidate onSubmit={submit} className="grid gap-4">
+          {/* Aplikasi: terpilih tetap saat membuat dari lintas aplikasi. */}
+          {!isEdit && !applicationId ? (
+            <FormField id="applicationId" label="Aplikasi" required hint="Kode permission unik per aplikasi">
+              <Select value={pickedAppId} onValueChange={setPickedAppId} disabled={save.isPending}>
+                <SelectTrigger id="applicationId" className="w-full">
+                  <SelectValue placeholder="Pilih aplikasi" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(apps.data ?? []).map((a) => (
+                    <SelectItem key={a.id} value={a.id}>
+                      {a.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormField>
+          ) : null}
+
           {isEdit ? (
             <div className="grid gap-1.5">
               <span className="text-sm font-medium">Kode</span>
@@ -125,7 +154,12 @@ export function PermissionFormDialog({
           <Button variant="outline" disabled={save.isPending} onClick={onClose}>
             Batal
           </Button>
-          <Button type="submit" form="permission-form" variant={isEdit ? 'edit' : 'create'} disabled={save.isPending}>
+          <Button
+            type="submit"
+            form="permission-form"
+            variant={isEdit ? 'edit' : 'create'}
+            disabled={save.isPending || (!isEdit && !pickedAppId)}
+          >
             {save.isPending && <Loader2 className="animate-spin" />}
             {save.isPending ? 'Menyimpan…' : isEdit ? 'Simpan perubahan' : 'Buat permission'}
           </Button>

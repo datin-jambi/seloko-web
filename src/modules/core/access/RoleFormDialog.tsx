@@ -9,15 +9,22 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { FormField } from '@/components/shared/FormField'
 import { roleService } from '@/services/role.service'
+import { applicationService } from '@/services/application.service'
+import { userService } from '@/services/user.service'
 import { apiErrorMessage, apiFieldErrors } from '@/lib/utils'
 import type { Audience, RoleListItem } from '@/types/core'
-import { validateRole, type RoleFormValues } from './access-form'
-import { PermissionChecklist } from './PermissionChecklist'
+import { buildCreateRoleBody, validateRole, type RoleFormValues } from './access-form'
+import { PermissionChecklist, type PermissionGroup } from './PermissionChecklist'
 
 /**
  * Tambah/ubah role milik satu aplikasi. `applicationId` dan `audience` terkunci
  * setelah dibuat (UpdateRoleBodySchema). Saat ubah, permission dimuat dari
  * `GET /roles/:id` yang sudah menandai `granted`.
+ *
+ * Dipakai dari dua tempat:
+ * - Tab Role pada detail aplikasi → `applicationId` + `appAudience` + `permissionGroups` terisi.
+ * - Halaman Role (lintas aplikasi) → ketiganya kosong; aplikasi dipilih di dalam dialog dan
+ *   audience/permission mengikuti aplikasi terpilih (dimuat dari `GET /applications/:id`).
  */
 export function RoleFormDialog({
   applicationId,
@@ -27,16 +34,19 @@ export function RoleFormDialog({
   onClose,
   onSaved,
 }: {
-  applicationId: string
-  appAudience: Audience
+  /** Terisi = konteks aplikasi (terkunci). Kosong + tidak mengubah = aplikasi dipilih di sini. */
+  applicationId?: string
+  appAudience?: Audience
   /** Ada = mode ubah. */
   role?: RoleListItem | null
-  permissionGroups: { module: string; permissions: { id: string; code: string; name: string }[] }[]
+  permissionGroups?: PermissionGroup[]
   onClose: () => void
   onSaved: () => void
 }) {
   const qc = useQueryClient()
   const isEdit = !!role
+  // Aplikasi terpilih. Saat membuat dari lintas aplikasi nilai awal kosong.
+  const [pickedAppId, setPickedAppId] = useState(applicationId ?? role?.applicationId ?? '')
   const [v, setV] = useState<RoleFormValues>({
     name: role?.name ?? '',
     description: role?.description ?? '',
@@ -48,6 +58,22 @@ export function RoleFormDialog({
   // Sekali operator mengubah centang, state lokal yang berlaku — bukan `granted` dari server.
   const [touched, setTouched] = useState(false)
 
+  // Detail aplikasi hanya perlu saat membuat dari lintas aplikasi: untuk tahu audiens
+  // (aplikasi internal hanya menerima role internal) dan daftar permission-nya.
+  const needsAppDetail = !isEdit && !applicationId && !!pickedAppId
+  const appDetail = useQuery({
+    queryKey: ['/applications', pickedAppId],
+    queryFn: () => applicationService.get(pickedAppId),
+    enabled: needsAppDetail,
+  })
+
+  const apps = useQuery({
+    queryKey: ['/applications', 'active'],
+    queryFn: userService.activeApps,
+    enabled: !isEdit && !applicationId,
+    staleTime: 5 * 60_000,
+  })
+
   // Detail role membawa seluruh permission aplikasi + `granted`.
   const detail = useQuery({
     queryKey: ['/roles', role?.id],
@@ -57,7 +83,13 @@ export function RoleFormDialog({
     staleTime: Infinity,
   })
 
-  const groups = isEdit ? (detail.data?.permissionsByModule ?? []) : permissionGroups
+  const groups: PermissionGroup[] = isEdit
+    ? (detail.data?.permissionsByModule ?? [])
+    : (permissionGroups ?? appDetail.data?.permissionsByModule ?? [])
+  const audience: Audience | undefined = isEdit
+    ? role?.audience
+    : (appAudience ?? appDetail.data?.audience)
+
   const fromServer = isEdit && detail.data ? new Set(detail.data.permissionsByModule.flatMap((g) => g.permissions.filter((p) => p.granted).map((p) => p.id))) : selected
   const active = touched ? selected : fromServer
   const setActive = (id: string, checked: boolean) => {
@@ -66,6 +98,14 @@ export function RoleFormDialog({
     else next.delete(id)
     setTouched(true)
     setSelected(next)
+  }
+
+  // Ganti aplikasi = permission & audiens aplikasi lama tidak berlaku lagi.
+  const pickApp = (id: string) => {
+    setPickedAppId(id)
+    setSelected(new Set())
+    setTouched(false)
+    setV((p) => ({ ...p, audience: 'INTERNAL' }))
   }
 
   const save = useMutation({
@@ -79,19 +119,12 @@ export function RoleFormDialog({
         await roleService.setPermissions(role.id, permissionIds)
         return
       }
-      await roleService.create({
-        applicationId,
-        name: v.name.trim(),
-        audience: v.audience,
-        ...(v.description.trim() && { description: v.description.trim() }),
-        permissionIds,
-        isActive: v.isActive,
-      })
+      await roleService.create(buildCreateRoleBody(pickedAppId, v, permissionIds))
     },
     onSuccess: () => {
       toast.success(isEdit ? `Role ${v.name.trim()} diperbarui` : `Role ${v.name.trim()} dibuat`)
       void qc.invalidateQueries({ queryKey: ['/roles'] })
-      void qc.invalidateQueries({ queryKey: ['/applications', applicationId] })
+      void qc.invalidateQueries({ queryKey: ['/applications', pickedAppId] })
       onSaved()
       onClose()
     },
@@ -104,13 +137,14 @@ export function RoleFormDialog({
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
+    if (!isEdit && !pickedAppId) return toast.error('Pilih aplikasi dulu')
     const found = validateRole(v)
     setErrors(found)
     if (Object.keys(found).length > 0) return document.getElementById(Object.keys(found)[0])?.focus()
     save.mutate()
   }
 
-  const busy = save.isPending || (isEdit && detail.isPending)
+  const busy = save.isPending || (isEdit && detail.isPending) || (needsAppDetail && appDetail.isPending)
 
   return (
     <Dialog open onOpenChange={(o) => !save.isPending && !o && onClose()}>
@@ -126,12 +160,29 @@ export function RoleFormDialog({
 
         <form id="role-form" noValidate onSubmit={submit} className="grid gap-4">
           <div className="grid items-start gap-4 sm:grid-cols-2">
+            {/* Aplikasi: terpilih tetap saat membuat dari lintas aplikasi. */}
+            {!isEdit && !applicationId ? (
+              <FormField id="applicationId" label="Aplikasi" required hint="Menentukan permission yang bisa dicentang">
+                <Select value={pickedAppId} onValueChange={pickApp} disabled={busy}>
+                  <SelectTrigger id="applicationId" className="w-full">
+                    <SelectValue placeholder="Pilih aplikasi" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(apps.data ?? []).map((a) => (
+                      <SelectItem key={a.id} value={a.id}>
+                        {a.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormField>
+            ) : null}
+
             <FormField id="name" label="Nama role" required error={errors.name} hint="Huruf kecil, angka, atau tanda hubung">
               <Input
                 id="name"
                 value={v.name}
                 disabled={busy}
-                autoFocus
                 spellCheck={false}
                 aria-invalid={!!errors.name || undefined}
                 aria-describedby="name-msg"
@@ -147,7 +198,7 @@ export function RoleFormDialog({
                 <Select
                   value={v.audience}
                   onValueChange={(a) => setV((p) => ({ ...p, audience: a as Audience }))}
-                  disabled={busy || appAudience === 'INTERNAL'}
+                  disabled={busy || !audience || audience === 'INTERNAL'}
                 >
                   <SelectTrigger id="audience" className="w-full">
                     <SelectValue />
@@ -197,7 +248,9 @@ export function RoleFormDialog({
           <div className="grid gap-1.5">
             <span className="text-sm font-medium">
               Permission
-              {isEdit && detail.isPending && <Loader2 className="ml-2 inline size-3.5 animate-spin text-muted-foreground" />}
+              {(isEdit && detail.isPending) || (needsAppDetail && appDetail.isPending) ? (
+                <Loader2 className="ml-2 inline size-3.5 animate-spin text-muted-foreground" />
+              ) : null}
             </span>
             <PermissionChecklist groups={groups} selected={active} onToggle={setActive} disabled={busy} />
           </div>
@@ -207,7 +260,7 @@ export function RoleFormDialog({
           <Button variant="outline" disabled={save.isPending} onClick={onClose}>
             Batal
           </Button>
-          <Button type="submit" form="role-form" variant={isEdit ? 'edit' : 'create'} disabled={busy}>
+          <Button type="submit" form="role-form" variant={isEdit ? 'edit' : 'create'} disabled={busy || (!isEdit && !pickedAppId)}>
             {save.isPending && <Loader2 className="animate-spin" />}
             {save.isPending ? 'Menyimpan…' : isEdit ? 'Simpan perubahan' : 'Buat role'}
           </Button>

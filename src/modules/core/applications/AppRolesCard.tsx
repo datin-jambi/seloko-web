@@ -11,7 +11,7 @@ import { roleService } from '@/services/role.service'
 import { useAuthStore } from '@/stores/auth-store'
 import { apiErrorMessage } from '@/lib/utils'
 import type { ApplicationDetail, RoleListItem } from '@/types/core'
-import { RoleFormDialog } from './RoleFormDialog'
+import { RoleFormDialog } from '../access/RoleFormDialog'
 
 type Pending = { kind: 'toggle' | 'delete'; role: RoleListItem } | null
 
