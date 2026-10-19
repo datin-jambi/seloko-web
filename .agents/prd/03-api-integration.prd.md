@@ -1,7 +1,8 @@
 # PRD 03: Standar Komunikasi API & Axios Interceptors
 
 ## 1. Konfigurasi Client Axios (`src/lib/api-client.ts`)
-* `baseURL`: Mengambil nilai dari `import.meta.env.VITE_API_BASE_URL` (default: `http://localhost:3000/api`).
+* `baseURL`: Mengambil nilai dari `import.meta.env.VITE_API_BASE_URL` (default: `/api` — **relatif**, bukan `http://localhost:3000/api`).
+* **Dev wajib same-origin lewat proxy Vite** (`vite.config.ts` mem-proxy `/api` → `API_PROXY_TARGET`, default `http://localhost:3000`). Alasannya: refresh token disimpan sebagai cookie `HttpOnly` `SameSite=Strict` `Path=/api/auth`, dan cookie hanya ikut terkirim bila request dianggap same-origin. Memakai base URL absolut saat dev membuat `/auth/refresh` membalas **401 `No refresh token provided`** begitu frontend dibuka lewat `127.0.0.1`, IP LAN, atau host selain `localhost` — login bisa berhasil (token di memori) tetapi sesi hilang saat reload. Jangan kembalikan ke URL absolut untuk dev.
 * `withCredentials: true`: Wajib diset true agar browser mengirim dan menerima HttpOnly cookie `refreshToken`.
 * `timeout: 30000`.
 

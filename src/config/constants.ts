@@ -38,8 +38,13 @@ export const appCodeFromPath = (pathname: string) =>
 
 export const appHome = (code: string) => APP_CONFIGS[code]?.home ?? APP_CONFIGS[APP_CODES.SELOKO].home
 
-export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
+// Default RELATIF ('/api') agar dev server memakai proxy Vite — lihat
+// vite.config.ts. Memanggil API lintas origin membuat cookie refresh
+// (SameSite=Strict, Path=/api/auth) tidak ikut terkirim sehingga
+// /auth/refresh membalas 401 "No refresh token provided" saat frontend
+// dibuka lewat host selain localhost. Build produksi tetap memakai URL
+// absolut dari VITE_API_BASE_URL.
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
 
 export const DEFAULT_APP_CODE =
   import.meta.env.VITE_DEFAULT_APP_CODE || APP_CODES.SELOKO
