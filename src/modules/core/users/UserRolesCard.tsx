@@ -5,7 +5,15 @@ import { CalendarClock, Loader2, Plus, ShieldCheck, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { FormField } from '@/components/shared/FormField'
 import { userService } from '@/services/user.service'
@@ -171,7 +179,7 @@ function AssignRoleDialog({ user, onClose, onDone }: { user: UserDetail; onClose
 
   return (
     <Dialog open onOpenChange={(o) => !o && !assign.isPending && onClose()}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Tugaskan role</DialogTitle>
           <DialogDescription>
@@ -180,6 +188,7 @@ function AssignRoleDialog({ user, onClose, onDone }: { user: UserDetail; onClose
           </DialogDescription>
         </DialogHeader>
 
+        <DialogBody>
         <form
           id="assign-role"
           className="grid gap-4"
@@ -247,6 +256,7 @@ function AssignRoleDialog({ user, onClose, onDone }: { user: UserDetail; onClose
             />
           </FormField>
         </form>
+        </DialogBody>
 
         <DialogFooter>
           <Button variant="outline" disabled={assign.isPending} onClick={onClose}>

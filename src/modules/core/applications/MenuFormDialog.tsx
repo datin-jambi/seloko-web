@@ -2,7 +2,15 @@ import { useState, type FormEvent } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -147,7 +155,7 @@ export function MenuFormDialog({
 
   return (
     <Dialog open onOpenChange={(o) => !save.isPending && !o && onClose()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{isEdit ? `Ubah menu ${menu.label}` : 'Tambah menu'}</DialogTitle>
           <DialogDescription>
@@ -157,7 +165,8 @@ export function MenuFormDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form id="menu-form" noValidate onSubmit={submit} className="grid gap-4">
+        <DialogBody>
+          <form id="menu-form" noValidate onSubmit={submit} className="grid gap-4">
           <div className="grid items-start gap-4 sm:grid-cols-2">
             <FormField
               id="parentId"
@@ -321,6 +330,8 @@ export function MenuFormDialog({
             </p>
           )}
         </form>
+        </DialogBody>
+
 
         <DialogFooter>
           <Button variant="outline" disabled={save.isPending} onClick={onClose}>

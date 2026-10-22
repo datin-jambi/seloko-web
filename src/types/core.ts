@@ -305,3 +305,58 @@ export interface ReorderMenusBody {
   applicationId: string
   items: { id: string; sortOrder: number; parentId?: string | null }[]
 }
+
+// ─── Organisasi (OPD / Unit Kerja) ────────────────────────────────────────────
+// Cermin organizations.schema.ts. Application = batas menu dan permission;
+// Organization = batas DATA (hierarki lewat parentId: OPD → UPTD).
+export type OrganizationType = 'OPD' | 'UPTD' | 'BIRO' | 'LAINNYA'
+
+export interface OrganizationListItem {
+  id: string
+  code: string
+  name: string
+  shortName: string | null
+  type: OrganizationType
+  parentId: string | null
+  description: string | null
+  address: string | null
+  phone: string | null
+  email: string | null
+  website: string | null
+  logoUrl: string | null
+  logoFileId: string | null
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+  /**
+   * Jumlah sub-unit langsung. Hanya ada di respons DAFTAR
+   * (ListOrganizationsResponseSchema). Di endpoint detail, angka ini ada di
+   * `counts.children` bersama `userAppRoleScopes`.
+   */
+  counts?: { children: number }
+}
+
+// GET /organizations/:id — detail menambah induk dan hitungan.
+export interface OrganizationDetail extends OrganizationListItem {
+  parent: { id: string; code: string; name: string } | null
+  counts: { children: number; userAppRoleScopes: number }
+}
+// POST /organizations — `code` unik GLOBAL (entitas pemerintah yang sama di semua aplikasi).
+export interface CreateOrganizationBody {
+  code: string
+  name: string
+  shortName?: string | null
+  type?: OrganizationType
+  parentId?: string | null
+  description?: string | null
+  address?: string | null
+  phone?: string | null
+  email?: string | null
+  website?: string | null
+  logoUrl?: string | null
+  logoFileId?: string | null
+  isActive?: boolean
+}
+
+// PUT /organizations/:id — semua field POST kecuali `code`; minimal satu field.
+export type UpdateOrganizationBody = Partial<Omit<CreateOrganizationBody, 'code'>>

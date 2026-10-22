@@ -3,6 +3,7 @@ import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -32,11 +33,15 @@ export function ConfirmDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={(o) => !pending && onOpenChange(o)}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
+        <DialogBody>
+          {/* Deskripsi di body (bukan header) supaya teks panjang bisa digulir
+              sementara judul dan tombol tetap menempel. */}
+          <DialogDescription>{description}</DialogDescription>
+        </DialogBody>
         <DialogFooter>
           <Button variant="outline" disabled={pending} onClick={() => onOpenChange(false)}>
             Batal

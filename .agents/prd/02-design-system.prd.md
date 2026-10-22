@@ -106,6 +106,28 @@ Di dark mode gunakan tingkat 400. Jangan pakai `-500` untuk teks di atas putih (
 | Table | Header kontras: latar token `--table-head` (`bg-table-head`), teks `text-xs font-semibold text-foreground` (bukan uppercase — `audit:ui`), garis bawah `border-b-2 border-input`. Baris `text-sm`, `whitespace-nowrap`, garis `border-b`, hover `bg-muted/50`. |
 | Aksi baris | Kolom terakhir tanpa judul (label `sr-only` "Aksi"), `RowActions` = tombol ⋯ `ghost icon-sm` → DropdownMenu. Aksi destruktif di bawah garis pemisah, teks `text-destructive`. Aksi tanpa permission disembunyikan, bukan dinonaktifkan. |
 | Dialog/Sheet | `src/components/ui/dialog.tsx`. Overlay `bg-black/60` tanpa blur, panel `border bg-card shadow-lg`. Konfirmasi aksi berisiko lewat `ConfirmDialog` (tombol konfirmasi `destructive` untuk hapus/nonaktifkan, tetap terbuka sampai request selesai). |
+
+### 6a. Aturan Wajib Semua Modal (termasuk create/edit)
+
+Struktur **tiga lapis tetap**: judul di atas, aksi di bawah, **hanya isi yang boleh digulir**.
+
+```
+┌────────────────────────┐
+│ DialogHeader (sticky)  │  shrink-0
+├────────────────────────┤
+│ DialogBody  (scroll)   │  flex-1 min-h-0 overflow-y-auto
+├────────────────────────┤
+│ DialogFooter (sticky)  │  shrink-0
+└────────────────────────┘
+```
+
+* **Bungkus SEMUA konten** modal dengan `<DialogBody>`. Tanpa itu isinya jadi flex-item biasa tanpa scroll dan akan mendorong footer keluar dari panel.
+* `DialogContent` sudah `flex flex-col` + `max-h-[calc(100dvh-2rem)]` + `overflow-hidden`; **jangan** menambahkan `overflow-y-auto` atau `max-h-[90vh]` di `DialogContent` — itu membuat header & footer ikut tergulir (bug lama yang pernah terjadi di 4 dialog).
+* `min-h-0` pada `DialogBody` wajib: flex item menolak menyusut di bawah tinggi kontennya tanpa itu.
+* Header & footer memakai border pemisah (`border-input`) dan footer berlatar `bg-muted/40`, supaya batas area scroll terlihat di mode terang maupun gelap.
+* Lebar: `DialogContent` default `max-w-lg`. Sesuaikan per kebutuhan lewat `sm:max-w-*` — **jangan** memakai `max-w-*` tanpa prefix `sm:` karena akan mengalahkan `w-[calc(100%-2rem)]` di mobile. Acuan: form 2 kolom → `sm:max-w-2xl`, permission checklist panjang → `sm:max-w-3xl`, konfirmasi → `sm:max-w-md`.
+* Bila tombol aksi perlu berada di luar `<form>` (mis. markup lama), beri `form="<id-form>"` pada tombol submit agar tetap berfungsi. Utamakan tetap di dalam form — footer `shrink-0` sudah cukup menahan posisi.
+* `ConfirmDialog` menaruh deskripsi di `DialogBody` (bukan header) sehingga teks panjang bisa digulir tanpa memakan judul.
 | Toast | `sonner` via `src/components/ui/sonner.tsx` (`<Toaster />` sekali di `App.tsx`). Posisi **tengah atas**, ada tombol tutup, warna ikut token tema. |
 | Top loader | `src/components/shared/TopLoader.tsx` (dipasang sekali di `App.tsx`). Bar `primary` 2px di atas layar, otomatis aktif selama ada request `apiClient`. |
 

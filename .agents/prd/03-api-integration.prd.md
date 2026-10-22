@@ -54,6 +54,27 @@ Error (dari `setErrorHandler` `../seloko-api/src/app.ts`): `{ statusCode, code, 
 * Role: `PATCH /roles/:id` (nama/deskripsi) lalu `PUT /roles/:id/permissions` (menyetel **seluruh** permission, bukan menambah). `GET /roles/:id` mengembalikan seluruh permission aplikasi + `granted` — inilah sumber centang di dialog. `applicationId` & `audience` terkunci setelah dibuat; role sistem (`isSystemRole`) tidak bisa diganti nama atau dihapus.
 * Permission: `POST /permissions` (kode + nama + modul), `PATCH /permissions/:id` (hanya nama/modul), `DELETE`. `code` dan `applicationId` terkunci: kode dipakai literal di `requirePermission(...)`. Hapus permission mencabutnya dari sekian role dan membuka menu yang memakainya.
 * Tombol create/update/delete role & permission digate permission `role:create|update|delete` dan `permission:create|update|delete` (superadmin lolos semua) — sama seperti di tab detail aplikasi.
+
+### 4b. Organisasi (OPD / Unit Kerja)
+
+Rute `/seloko/organisasi` (+ `/:id`). Modul: `src/modules/core/organizations/`.
+
+* **Application vs Organization**: Application = batas menu & permission; Organization = batas **DATA**. Hierarki lewat `parentId` (OPD → UPTD).
+* Endpoint CMS: `GET /organizations` (`organization:list`), `GET /:id` (`organization:read`, membawa `parent` + `counts.children` + `counts.userAppRoleScopes`), `POST` (`organization:create`), `PUT /:id` (`organization:update`), `PATCH /:id/active` (`organization:update`), `DELETE /:id` (`organization:delete`).
+* Filter daftar: `page`, `limit`, `search` (kode/nama/nama pendek), `type` (`OPD|UPTD|BIRO|LAINNYA`), `isActive`, `parentId`, `rootsOnly=true`, `sortBy` (`code|name|createdAt`), `sortOrder`. **Satu-satunya modul core yang mendukung sortBy** — kolom bisa diberi `sortKey`.
+* `code` unik **global** dan **tidak bisa diubah** setelah dibuat (dipakai seeder & segmen URL publik `/lapak/opd/<code>`), jadi field kode terkunci saat edit.
+* `PATCH /:id/active` dengan `isActive:false` **menurun ke seluruh sub-unit**; mengaktifkan kembali hanya baris yang disebut.
+* `DELETE` → soft-delete; `409` bila masih punya sub-unit **aktif** atau masih dipakai penugasan role.
+* **Untuk pilihan OPD di form lain** (produk lapak, penugasan role) pakai `organizationService.activePublic()` → `GET /organizations/public`, BUKAN `/organizations`: yang kedua butuh `organization:list` milik seloko sehingga admin OPD kena `403`.
+* **Upload logo organisasi** memakai `POST /storage/upload` (`multipart/form-data`, field `file`, `?module=organizations&subFolder=logos`). Respons `{ fileId, url, name, size, filePath, thumbnailUrl }` — simpan **berpasangan** `logoUrl` + `logoFileId`; `logoFileId` wajib agar berkas lama bisa dihapus saat diganti.
+* Bentuk respons storage BEDA: `{ statusCode, code, message, data }`, bukan `{ success, message, data }`.
+* **Axios multipart WAJIB `headers: { 'Content-Type': undefined }`** — instance `apiClient` memasang `application/json` global; tanpa ini server membalas `400 Content-Type request harus berupa multipart/form-data`.
+* Batas berkas logo (klien, `src/config/image-rules.ts` → `LOGO_RULE`): ≤2 MB, ≥64×64 px, PNG/JPG/WEBP/SVG. Dimensi & ukuran diperiksa SEBELUM unggah; setelah unggah, `size` resmi dari respons yang ditampilkan.
+* Metadata logo tersimpan (`size`/`width`/`height`) TIDAK ada di payload organisasi — `ImageUpload` mengambilnya lewat `GET /storage/:fileId` saat pratinjau butuh angka.
+* Kolom **Bagian** di daftar memakai `counts.children` dari `GET /organizations` (ditambahkan ke `ListOrganizationsResponseSchema`); bila tidak ada, UI menampilkan `—` alih-alih menebak nol.
+* **Manajemen induk ada di halaman detail** (`OrganizationParentCard`): PUT `parentId` untuk pindah, `parentId: null` untuk melepas. Pilihan induk membuang diri sendiri **dan seluruh turunannya** (`descendantIds`) — server menolak siklus dengan `400`, jadi opsi yang pasti gagal tidak ditampilkan.
+* **Tabel "bagian dalam organisasi"** (`OrganizationChildrenCard`) memakai `GET /organizations?parentId=<id>` dengan state halaman LOKAL (bukan query string) agar tidak bertabrakan dengan param daftar induk saat Back. Tombol "Tambah sub-unit" membuka dialog dengan `defaultParentId` terisi; **tombol pensil per baris** membuka dialog yang sama dalam mode ubah (`organization={row}`), sehingga sub-unit bisa diedit tanpa meninggalkan halaman induk. `canCreate`/`canUpdate` diteruskan dari detail agar kolom Aksi hanya muncul bagi yang berhak.
+* Detail organisasi punya tiga aksi header (Nonaktifkan / Ubah / Hapus). `PageHeader` memakai `flex-wrap` — jangan dihapus, karena 3 tombol melebihi 360px dan membuat halaman melebar di mobile.
 * Daftar pengguna per aplikasi: `GET /users` **belum** punya filter `applicationId`. Sementara daftar disaring di browser (maks 10 halaman / 1.000 pengguna, ditandai di UI). Bila pengguna tumbuh, tambahkan filter `applicationId` di API.
 * Penugasan role (`POST /users/:id/roles`): role wajib seaudiens dengan jenis akun — dialog hanya memuat `GET /roles?applicationId&audience=<accountType>&isActive=true`. Upsert: pasangan sama hanya memperbarui `expiresAt`. `expiresAt` dikirim ISO akhir hari lokal.
 * 409 duplikat (mis. `Username "x" sudah digunakan`) → arahkan ke field-nya (`conflictField()`), bukan toast.

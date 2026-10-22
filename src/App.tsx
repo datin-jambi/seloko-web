@@ -10,6 +10,8 @@ import { RoleDetailPage } from '@/modules/core/access/RoleDetailPage'
 import { PermissionsPage } from '@/modules/core/access/PermissionsPage'
 import { PermissionDetailPage } from '@/modules/core/access/PermissionDetailPage'
 import { UsersPage } from '@/modules/core/users/UsersPage'
+import { OrganizationsPage } from '@/modules/core/organizations/OrganizationsPage'
+import { OrganizationDetailPage } from '@/modules/core/organizations/OrganizationDetailPage'
 import { UserDetailPage } from '@/modules/core/users/UserDetailPage'
 import { UserCreatePage } from '@/modules/core/users/UserCreatePage'
 import { UserEditPage } from '@/modules/core/users/UserEditPage'
@@ -71,6 +73,8 @@ export function App() {
                 <Route path="/seloko/akses/permission/:id" element={<PermissionDetailPage />} />
                 <Route path="/seloko/sistem/aplikasi" element={<ApplicationsPage />} />
                 <Route path="/seloko/sistem/aplikasi/:id" element={<ApplicationDetailPage />} />
+                <Route path="/seloko/organisasi" element={<OrganizationsPage />} />
+                <Route path="/seloko/organisasi/:id" element={<OrganizationDetailPage />} />
                 <Route path="/seloko/sistem/menu" element={<MenusPage />} />
                 <Route path="/seloko/sistem/audit" element={pending('Log Audit', 'belum ada GET log audit')} />
 

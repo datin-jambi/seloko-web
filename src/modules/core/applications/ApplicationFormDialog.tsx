@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -230,229 +231,234 @@ function ApplicationFormInner({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 py-2">
-      {!isEdit ? (
+    <form id="application-form" onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+      {/* Satu-satunya area yang scroll. Tombol aksi dipindah ke luar form lewat
+          atribut `form` agar tetap menempel di bawah. */}
+      <DialogBody className="space-y-4">
+        {!isEdit ? (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor={codeId}>
+                Kode Aplikasi <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id={codeId}
+                value={form.code}
+                onChange={(e) => setForm({ ...form, code: e.target.value.toLowerCase() })}
+                placeholder="mis. lapak-jambi-web"
+                aria-invalid={Boolean(fieldErrors.code)}
+                disabled={mutation.isPending}
+              />
+              {fieldErrors.code ? (
+                <p className="text-xs text-destructive">{fieldErrors.code}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">Huruf kecil, angka, atau tanda hubung (-).</p>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor={audienceId}>
+                Audiens <span className="text-destructive">*</span>
+              </Label>
+              <Select
+                value={form.audience}
+                onValueChange={(val) => setForm({ ...form, audience: val as Audience })}
+                disabled={mutation.isPending}
+              >
+                <SelectTrigger id={audienceId}>
+                  <SelectValue placeholder="Pilih audiens" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="INTERNAL">Internal (Pegawai BPKPD)</SelectItem>
+                  <SelectItem value="PUBLIC">Publik (Warga / Eksternal)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">Tipe target pengguna aplikasi.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-md border border-border bg-muted/30 p-3">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">
+                Kode: <strong className="font-mono text-foreground">{form.code}</strong>
+              </span>
+              <span className="text-muted-foreground">
+                Audiens: <strong className="text-foreground">{form.audience === 'INTERNAL' ? 'Internal' : 'Publik'}</strong>
+              </span>
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-1.5">
+          <Label htmlFor={nameId}>
+            Nama Aplikasi <span className="text-destructive">*</span>
+          </Label>
+          <Input
+            id={nameId}
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            placeholder="mis. Lapak Jambi Web"
+            aria-invalid={Boolean(fieldErrors.name)}
+            disabled={mutation.isPending}
+          />
+          {fieldErrors.name && <p className="text-xs text-destructive">{fieldErrors.name}</p>}
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor={taglineId}>Tagline / Slogan Ringkas</Label>
+          <Input
+            id={taglineId}
+            value={form.tagline}
+            onChange={(e) => setForm({ ...form, tagline: e.target.value })}
+            placeholder="mis. Verifikasi merchant UMKM dan katalog produk"
+            disabled={mutation.isPending}
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor={descId}>Deskripsi Aplikasi</Label>
+          <Textarea
+            id={descId}
+            rows={2}
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            placeholder="Deskripsi singkat fungsi aplikasi di lingkungan BPKPD Jambi..."
+            disabled={mutation.isPending}
+          />
+        </div>
+
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <Label htmlFor={codeId}>
-              Kode Aplikasi <span className="text-destructive">*</span>
-            </Label>
+            <Label htmlFor={baseUrlId}>Base URL</Label>
             <Input
-              id={codeId}
-              value={form.code}
-              onChange={(e) => setForm({ ...form, code: e.target.value.toLowerCase() })}
-              placeholder="mis. lapak-jambi-web"
-              aria-invalid={Boolean(fieldErrors.code)}
+              id={baseUrlId}
+              type="url"
+              value={form.baseUrl}
+              onChange={(e) => setForm({ ...form, baseUrl: e.target.value })}
+              placeholder="https://lapak.jambiprov.go.id"
+              aria-invalid={Boolean(fieldErrors.baseUrl)}
               disabled={mutation.isPending}
             />
-            {fieldErrors.code ? (
-              <p className="text-xs text-destructive">{fieldErrors.code}</p>
+            {fieldErrors.baseUrl ? (
+              <p className="text-xs text-destructive">{fieldErrors.baseUrl}</p>
             ) : (
-              <p className="text-xs text-muted-foreground">Huruf kecil, angka, atau tanda hubung (-).</p>
+              <p className="text-xs text-muted-foreground">Alamat akses web aplikasi ini.</p>
             )}
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor={audienceId}>
-              Audiens <span className="text-destructive">*</span>
-            </Label>
-            <Select
-              value={form.audience}
-              onValueChange={(val) => setForm({ ...form, audience: val as Audience })}
-              disabled={mutation.isPending}
-            >
-              <SelectTrigger id={audienceId}>
-                <SelectValue placeholder="Pilih audiens" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="INTERNAL">Internal (Pegawai BPKPD)</SelectItem>
-                <SelectItem value="PUBLIC">Publik (Warga / Eksternal)</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">Tipe target pengguna aplikasi.</p>
-          </div>
-        </div>
-      ) : (
-        <div className="rounded-md border border-border bg-muted/30 p-3">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">
-              Kode: <strong className="font-mono text-foreground">{form.code}</strong>
-            </span>
-            <span className="text-muted-foreground">
-              Audiens: <strong className="text-foreground">{form.audience === 'INTERNAL' ? 'Internal' : 'Publik'}</strong>
-            </span>
-          </div>
-        </div>
-      )}
-
-      <div className="space-y-1.5">
-        <Label htmlFor={nameId}>
-          Nama Aplikasi <span className="text-destructive">*</span>
-        </Label>
-        <Input
-          id={nameId}
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          placeholder="mis. Lapak Jambi Web"
-          aria-invalid={Boolean(fieldErrors.name)}
-          disabled={mutation.isPending}
-        />
-        {fieldErrors.name && <p className="text-xs text-destructive">{fieldErrors.name}</p>}
-      </div>
-
-      <div className="space-y-1.5">
-        <Label htmlFor={taglineId}>Tagline / Slogan Ringkas</Label>
-        <Input
-          id={taglineId}
-          value={form.tagline}
-          onChange={(e) => setForm({ ...form, tagline: e.target.value })}
-          placeholder="mis. Verifikasi merchant UMKM dan katalog produk"
-          disabled={mutation.isPending}
-        />
-      </div>
-
-      <div className="space-y-1.5">
-        <Label htmlFor={descId}>Deskripsi Aplikasi</Label>
-        <Textarea
-          id={descId}
-          rows={2}
-          value={form.description}
-          onChange={(e) => setForm({ ...form, description: e.target.value })}
-          placeholder="Deskripsi singkat fungsi aplikasi di lingkungan BPKPD Jambi..."
-          disabled={mutation.isPending}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="space-y-1.5">
-          <Label htmlFor={baseUrlId}>Base URL</Label>
-          <Input
-            id={baseUrlId}
-            type="url"
-            value={form.baseUrl}
-            onChange={(e) => setForm({ ...form, baseUrl: e.target.value })}
-            placeholder="https://lapak.jambiprov.go.id"
-            aria-invalid={Boolean(fieldErrors.baseUrl)}
-            disabled={mutation.isPending}
-          />
-          {fieldErrors.baseUrl ? (
-            <p className="text-xs text-destructive">{fieldErrors.baseUrl}</p>
-          ) : (
-            <p className="text-xs text-muted-foreground">Alamat akses web aplikasi ini.</p>
-          )}
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor={iconId}>Nama Ikon (Lucide)</Label>
-          <Input
-            id={iconId}
-            value={form.icon}
-            onChange={(e) => setForm({ ...form, icon: e.target.value.toLowerCase() })}
-            placeholder="mis. store, shield, wallet"
-            disabled={mutation.isPending}
-          />
-          <p className="text-xs text-muted-foreground">Ikon yang tampil di launcher / switcher.</p>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between rounded-md border border-border p-3">
-        <div>
-          <div className="text-sm font-medium">Status Aplikasi Aktif</div>
-          <div className="text-xs text-muted-foreground">
-            Jika dinonaktifkan, aplikasi tidak dapat diakses dan disembunyikan dari launcher.
-          </div>
-        </div>
-        <input
-          type="checkbox"
-          id="isActiveToggle"
-          checked={form.isActive}
-          onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
-          className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
-          disabled={mutation.isPending}
-        />
-      </div>
-
-      <div>
-        <button
-          type="button"
-          onClick={() => setShowAdvanced(!showAdvanced)}
-          className="text-xs font-medium text-primary hover:underline focus-visible:outline-none"
-        >
-          {showAdvanced ? '− Sembunyikan pengaturan branding & kontak' : '+ Pengaturan branding & kontak (opsional)'}
-        </button>
-      </div>
-
-      {showAdvanced && (
-        <div className="space-y-3 rounded-md border border-border/80 bg-muted/20 p-3">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div className="space-y-1">
-              <Label htmlFor={shortNameId} className="text-xs">Nama Singkat / Brand</Label>
-              <Input
-                id={shortNameId}
-                value={form.shortName}
-                onChange={(e) => setForm({ ...form, shortName: e.target.value })}
-                placeholder="mis. Lapak"
-                className="h-8 text-xs"
-                disabled={mutation.isPending}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor={primaryColorId} className="text-xs">Warna Primer (#HEX)</Label>
-              <Input
-                id={primaryColorId}
-                value={form.primaryColor}
-                onChange={(e) => setForm({ ...form, primaryColor: e.target.value })}
-                placeholder="#0F766E"
-                className="h-8 text-xs font-mono"
-                aria-invalid={Boolean(fieldErrors.primaryColor)}
-                disabled={mutation.isPending}
-              />
-              {fieldErrors.primaryColor && (
-                <p className="text-xs text-destructive">{fieldErrors.primaryColor}</p>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div className="space-y-1">
-              <Label htmlFor={emailId} className="text-xs">Email Helpdesk / Kontak</Label>
-              <Input
-                id={emailId}
-                type="email"
-                value={form.contactEmail}
-                onChange={(e) => setForm({ ...form, contactEmail: e.target.value })}
-                placeholder="bapenda@jambiprov.go.id"
-                className="h-8 text-xs"
-                disabled={mutation.isPending}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor={phoneId} className="text-xs">No. Telepon / WA</Label>
-              <Input
-                id={phoneId}
-                value={form.contactPhone}
-                onChange={(e) => setForm({ ...form, contactPhone: e.target.value })}
-                placeholder="0741-XXXXXX"
-                className="h-8 text-xs"
-                disabled={mutation.isPending}
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between pt-1">
-            <span className="text-xs text-muted-foreground">Mode Maintenance (Pemeliharaan)</span>
-            <input
-              type="checkbox"
-              checked={form.maintenanceMode}
-              onChange={(e) => setForm({ ...form, maintenanceMode: e.target.checked })}
-              className="h-3.5 w-3.5 rounded border-input text-primary"
+            <Label htmlFor={iconId}>Nama Ikon (Lucide)</Label>
+            <Input
+              id={iconId}
+              value={form.icon}
+              onChange={(e) => setForm({ ...form, icon: e.target.value.toLowerCase() })}
+              placeholder="mis. store, shield, wallet"
               disabled={mutation.isPending}
             />
+            <p className="text-xs text-muted-foreground">Ikon yang tampil di launcher / switcher.</p>
           </div>
         </div>
-      )}
 
-      <DialogFooter className="pt-2">
+        <div className="flex items-center justify-between rounded-md border border-border p-3">
+          <div>
+            <div className="text-sm font-medium">Status Aplikasi Aktif</div>
+            <div className="text-xs text-muted-foreground">
+              Jika dinonaktifkan, aplikasi tidak dapat diakses dan disembunyikan dari launcher.
+            </div>
+          </div>
+          <input
+            type="checkbox"
+            id="isActiveToggle"
+            checked={form.isActive}
+            onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
+            className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
+            disabled={mutation.isPending}
+          />
+        </div>
+
+        <div>
+          <button
+            type="button"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className="text-xs font-medium text-primary hover:underline focus-visible:outline-none"
+          >
+            {showAdvanced ? '− Sembunyikan pengaturan branding & kontak' : '+ Pengaturan branding & kontak (opsional)'}
+          </button>
+        </div>
+
+        {showAdvanced && (
+          <div className="space-y-3 rounded-md border border-border/80 bg-muted/20 p-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="space-y-1">
+                <Label htmlFor={shortNameId} className="text-xs">Nama Singkat / Brand</Label>
+                <Input
+                  id={shortNameId}
+                  value={form.shortName}
+                  onChange={(e) => setForm({ ...form, shortName: e.target.value })}
+                  placeholder="mis. Lapak"
+                  className="h-8 text-xs"
+                  disabled={mutation.isPending}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor={primaryColorId} className="text-xs">Warna Primer (#HEX)</Label>
+                <Input
+                  id={primaryColorId}
+                  value={form.primaryColor}
+                  onChange={(e) => setForm({ ...form, primaryColor: e.target.value })}
+                  placeholder="#0F766E"
+                  className="h-8 text-xs font-mono"
+                  aria-invalid={Boolean(fieldErrors.primaryColor)}
+                  disabled={mutation.isPending}
+                />
+                {fieldErrors.primaryColor && (
+                  <p className="text-xs text-destructive">{fieldErrors.primaryColor}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="space-y-1">
+                <Label htmlFor={emailId} className="text-xs">Email Helpdesk / Kontak</Label>
+                <Input
+                  id={emailId}
+                  type="email"
+                  value={form.contactEmail}
+                  onChange={(e) => setForm({ ...form, contactEmail: e.target.value })}
+                  placeholder="bapenda@jambiprov.go.id"
+                  className="h-8 text-xs"
+                  disabled={mutation.isPending}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor={phoneId} className="text-xs">No. Telepon / WA</Label>
+                <Input
+                  id={phoneId}
+                  value={form.contactPhone}
+                  onChange={(e) => setForm({ ...form, contactPhone: e.target.value })}
+                  placeholder="0741-XXXXXX"
+                  className="h-8 text-xs"
+                  disabled={mutation.isPending}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-1">
+              <span className="text-xs text-muted-foreground">Mode Maintenance (Pemeliharaan)</span>
+              <input
+                type="checkbox"
+                checked={form.maintenanceMode}
+                onChange={(e) => setForm({ ...form, maintenanceMode: e.target.checked })}
+                className="h-3.5 w-3.5 rounded border-input text-primary"
+                disabled={mutation.isPending}
+              />
+            </div>
+          </div>
+        )}
+
+      </DialogBody>
+
+      <DialogFooter>
         <Button
           type="button"
           variant="outline"
@@ -461,7 +467,7 @@ function ApplicationFormInner({
         >
           Batal
         </Button>
-        <Button type="submit" variant={isEdit ? 'edit' : 'create'} disabled={mutation.isPending}>
+        <Button type="submit" form="application-form" variant={isEdit ? 'edit' : 'create'} disabled={mutation.isPending}>
           {mutation.isPending && <Loader2 className="animate-spin" />}
           {isEdit ? 'Simpan Perubahan' : 'Tambah Aplikasi'}
         </Button>
@@ -480,7 +486,7 @@ export function ApplicationFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{isEdit ? 'Edit Aplikasi' : 'Tambah Aplikasi Baru'}</DialogTitle>
           <DialogDescription>
@@ -498,6 +504,7 @@ export function ApplicationFormDialog({
             onSuccess={onSuccess}
           />
         )}
+
       </DialogContent>
     </Dialog>
   )

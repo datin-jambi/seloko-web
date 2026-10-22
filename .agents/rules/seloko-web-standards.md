@@ -50,9 +50,10 @@ src/
 │   │   ├── access/  # RolesPage, RoleDetailPage, PermissionsPage, PermissionDetailPage, RoleFormDialog, PermissionFormDialog, PermissionChecklist, use-access-actions, access-form, paths
 │   │   ├── applications/ # ApplicationsPage, ApplicationDetailPage (tab Role/Permission/Menu/Pengguna), AppRolesCard, AppPermissionsCard, AppMenusCard, AppUsersCard, MenuFormDialog, menu-tree, app-users, application-paths
 │   │   ├── users/   # UsersPage, UserDetailPage, UserCreatePage, UserEditPage, UserRolesCard, AppMark, AppCount, AccountTypeBadge, use-user-actions, user-form
+│   │   ├── organizations/ # OrganizationsPage, OrganizationDetailPage, OrganizationFormDialog, OrganizationChildrenCard, OrganizationParentCard, organization-form, organization-paths
 │   │   └── menus/   # MenusPage (inventaris + filter aplikasi/induk/status)
 │   └── bapenda/     # pages.tsx: berita, review, kategori, halaman, banner
-├── services/        # API service layer (auth.service, menu.service, dll.)
+├── services/        # API service layer (auth.service, menu.service, storage.service, dll.)
 ├── stores/          # Zustand store (authStore, appStore, themeStore)
 ├── types/           # DTO: index.ts (umum), core.ts, bapenda.ts
 ├── App.tsx          # Router & Providers setup

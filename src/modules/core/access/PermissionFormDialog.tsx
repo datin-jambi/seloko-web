@@ -2,7 +2,15 @@ import { useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -95,7 +103,7 @@ export function PermissionFormDialog({
 
   return (
     <Dialog open onOpenChange={(o) => !save.isPending && !o && onClose()}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{isEdit ? 'Ubah permission' : 'Tambah permission'}</DialogTitle>
           <DialogDescription>
@@ -105,7 +113,8 @@ export function PermissionFormDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form id="permission-form" noValidate onSubmit={submit} className="grid gap-4">
+        <DialogBody>
+          <form id="permission-form" noValidate onSubmit={submit} className="grid gap-4">
           {/* Aplikasi: terpilih tetap saat membuat dari lintas aplikasi. */}
           {!isEdit && !applicationId ? (
             <FormField id="applicationId" label="Aplikasi" required hint="Kode permission unik per aplikasi">
@@ -149,6 +158,8 @@ export function PermissionFormDialog({
             <Input {...field('module')} placeholder="mis. Pengguna" />
           </FormField>
         </form>
+        </DialogBody>
+
 
         <DialogFooter>
           <Button variant="outline" disabled={save.isPending} onClick={onClose}>

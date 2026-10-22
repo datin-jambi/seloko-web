@@ -2,7 +2,15 @@ import { useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -148,7 +156,7 @@ export function RoleFormDialog({
 
   return (
     <Dialog open onOpenChange={(o) => !save.isPending && !o && onClose()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>{isEdit ? `Ubah role ${role?.name}` : 'Tambah role'}</DialogTitle>
           <DialogDescription>
@@ -158,7 +166,8 @@ export function RoleFormDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form id="role-form" noValidate onSubmit={submit} className="grid gap-4">
+        <DialogBody>
+          <form id="role-form" noValidate onSubmit={submit} className="grid gap-4">
           <div className="grid items-start gap-4 sm:grid-cols-2">
             {/* Aplikasi: terpilih tetap saat membuat dari lintas aplikasi. */}
             {!isEdit && !applicationId ? (
@@ -255,6 +264,8 @@ export function RoleFormDialog({
             <PermissionChecklist groups={groups} selected={active} onToggle={setActive} disabled={busy} />
           </div>
         </form>
+        </DialogBody>
+
 
         <DialogFooter>
           <Button variant="outline" disabled={save.isPending} onClick={onClose}>
