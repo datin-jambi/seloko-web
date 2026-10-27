@@ -10,6 +10,7 @@ import { ActiveBadge } from '@/components/shared/ActiveBadge'
 import { useAuthStore } from '@/stores/auth-store'
 import { useList } from '@/hooks/use-list'
 import { menuAdminService } from '@/services/menu-admin.service'
+import { menuKeys } from '@/lib/query-keys'
 import { userService } from '@/services/user.service'
 import { APPLICATION_DETAIL } from '../applications/application-paths'
 import { buildTree, parentOptions } from '../applications/menu-tree'
@@ -47,7 +48,7 @@ export function MenusPage() {
   // hierarkinya tidak bisa direkonstruksi (semua item akan tampak tingkat atas).
   // Hanya diambil saat aplikasi dipilih; tanpa itu filter induk lintas aplikasi jadi kabur.
   const appMenus = useQuery({
-    queryKey: ['/menus', 'tree', applicationId],
+    queryKey: menuKeys.byApp(applicationId),
     queryFn: () => menuAdminService.tree(applicationId!),
     enabled: !!applicationId,
     staleTime: 5 * 60_000,

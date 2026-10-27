@@ -9,6 +9,9 @@
     "lint": "oxlint",
     "audit:ui": "node scripts/audit-ai-slop.mjs",
     "check:agents": "node scripts/check-agents-docs.mjs",
+    "gen:icons": "node scripts/gen-lucide-names.mjs",
+    "check:responsive": "node scripts/responsive-check.mjs",
+    "check:invalidation": "node scripts/query-invalidation-check.mjs",
     "check:forms": "node --experimental-strip-types --no-warnings scripts/check-user-form.ts && node --experimental-strip-types --no-warnings scripts/check-access-form.ts && node --experimental-strip-types --no-warnings scripts/check-organization-form.ts && node --experimental-strip-types --no-warnings scripts/check-menu-tree.ts",
     "preview": "vite preview"
   },

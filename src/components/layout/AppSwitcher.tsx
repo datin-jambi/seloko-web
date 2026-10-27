@@ -14,6 +14,7 @@ import { Check, ChevronsUpDown, Loader2 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { appHome } from '@/config/constants'
 import { cn } from '@/lib/utils'
+import { applicationKeys, menuKeys } from '@/lib/query-keys'
 
 /**
  * Pemilih environment super app.
@@ -39,7 +40,8 @@ export function AppSwitcher() {
     setActiveAppCode(app.code)
     // Menu bergantung pada appCode → buang cache agar sidebar tidak sempat
     // menampilkan menu environment sebelumnya.
-    void queryClient.invalidateQueries({ queryKey: ['menus'] })
+    void queryClient.invalidateQueries({ queryKey: menuKeys.all })
+    void queryClient.invalidateQueries({ queryKey: applicationKeys.mine })
     navigate(appHome(app.code))
   }
 

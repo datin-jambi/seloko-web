@@ -83,11 +83,46 @@ SELOKO web adalah **super app**: satu login, satu aplikasi React, untuk mengelol
 `GET /applications/me` mengirim `logoUrl`, `logoDarkUrl`, `faviconUrl`, dan `icon` (nama ikon Lucide, mis. `building-2`).
 
 * **Rantai fallback wajib** (`src/components/shared/AppLogo.tsx`): `logoDarkUrl` (tema gelap) → `logoUrl` → `icon` dari DB → `LayoutGrid` netral. Gambar resmi selalu menang; ikon dipakai bila logo belum diunggah.
-* **URL mati harus turun ke ikon, bukan kotak kosong.** `logoUrl` hanya string di DB, jadi CDN pindah/berkas dihapus tidak terdeteksi API. `AppLogo` mencatat kegagalan muat per-`src` di state lalu merender ulang rantai fallback. Jangan sekadar mengembalikan `null` di `onError` tanpa eskalasi — hasilnya area kosong.
+* **URL mati harus turun ke ikon, bukan kotak kosong.** `logoUrl` hanya string di DB, jadi CDN pindah/berkas dihapus tidak terdeteksi API. `AppLogo` mencatat kegagalan muat per-`src` di state lalu merender ulang rantai fallback. Jangan sekadar mengembalikan `null` di `onError` tanpa eskalasi — hasilnya area kosong. Pola yang sama dipakai `MediaRow` di halaman detail (`Aset Visual`), yang menampilkan pesan "Berkas tidak dapat dimuat" alih-alih ikon gambar rusak.
 * **JANGAN menebak ikon dari `code`.** Peta per-kode (perilaku lama `AppMark`) tidak mengenal aplikasi baru dan mencampur kode INTERNAL dengan PUBLIC. Penanda ringkas di tabel (`AppMark`) juga memakai `icon` dari DB.
 * Varian terang/gelap dirender bersamaan lalu dipilih CSS (`dark:hidden` / `hidden dark:block`), bukan `document.documentElement` — supaya reaktif terhadap `ThemeToggle`.
 * Identitas di kepala Sidebar memakai aplikasi **aktif** (logo + nama dari API), bukan hardcode "SELOKO": satu super app, sidebar berganti isi.
 * Ikon yang dipakai seeder (`applications.json` & `menus.json`, mis. `globe`, `store`, `layout-dashboard`, `building-2`) wajib terdaftar di `MENU_ICONS` (`src/config/menu-icons.ts`); nama tak dikenal tampil sebagai lingkaran kosong.
+
+### 4g. Media Aplikasi (logo, favicon, OG) & Pemilih Ikon
+
+**Data media sudah ada di API — jangan biarkan tak tampil.** `ApplicationShape` (`applications.schema.ts`) mengirim `logoUrl`/`logoFileId`, `logoDarkUrl`/`logoDarkFileId`, `faviconUrl`/`faviconFileId`, `ogImageUrl`/`ogImageFileId`, dan `settings.branding.faviconUrl`. `Create`/`Update` menerima semuanya.
+
+* **URL dan `fileId` selalu BERPASANGAN.** `logoFileId` wajib ikut dikirim bersama `logoUrl`: tanpa itu berkas lama tidak bisa dihapus dari ImageKit saat logo diganti, sehingga kuota menumpuk. `ImageUpload` sudah melakukan hapus-berkas-lama saat mengganti/mengosongkan, tetapi hanya bila `fileId` diberikan.
+* **Halaman detail menampilkan `Aset Visual`** sebagai **daftar baris ringkas** (`AssetCard.tsx`, thumbnail `size-10`) di kolom kiri bawah Deskripsi. Klik baris membuka modal pratinjau besar berisi URL & `fileId`; metadata itu tidak ditampilkan di halaman agar tidak penuh. Gambar kosong/gagal dimuat diganti `public/Assets/images/asset-placeholder.svg`.
+* **Susunan halaman detail**: ringkasan angka → kolom kiri (Informasi Aplikasi, Deskripsi, Aset Visual) + kolom kanan (Tab Role/Permission/Menu/Pengguna). Tab tetap di kolom kanan; aset visual jangan dibuatkan kisi kartu besar karena memperpanjang halaman.
+* **Folders unggah**: `module=applications` dengan `subFolder` = `logos`, `logos-dark`, `favicons`, `og-images`.
+* **Batas berkas BERBEDA per aset — jangan pakai satu aturan untuk semuanya.** Sumber kebenaran = `validateImageKitMedia()` di `seloko-api/src/modules/core/applications/applications.service.ts`; nilainya dicerminkan di `src/config/image-rules.ts`:
+
+  | Aset | Aturan klien | Batas server |
+  |---|---|---|
+  | Logo utama / logo gelap | `APP_LOGO_RULE` — 2 MB, ≥64×64 | `logo` / `logo tema gelap`, 2 MB, 64 |
+  | Favicon | `APP_FAVICON_RULE` — **1 MB**, ≥16×16 | `favicon`, **1 MB**, 16 |
+  | Open Graph | `APP_OG_IMAGE_RULE` — 3 MB, ≥200×200 | `Open Graph image`, 3 MB, 200 |
+
+  Server memeriksa ulang berkas via ImageKit **saat simpan**, jadi aturan klien yang lebih longgar baru ketahuan setelah unggahan selesai: `400 BAD_REQUEST "Ukuran berkas favicon terlalu besar (1.52 MB). Maksimal yang diizinkan adalah 1 MB."` Berkas sudah terlanjur masuk ImageKit dan menjadi yatim. `ImageUpload` menolak berdasarkan `rule.maxBytes` **sebelum** request, jadi pastikan `rule` tiap `ImageUpload` cocok dengan asetnya — favicon memakai `APP_FAVICON_RULE`, bukan `LOGO_RULE`.
+* `LOGO_RULE` tetap dipakai untuk logo **organisasi** (modul lain); jangan mencampurnya dengan aturan media aplikasi.
+* **`settings` diganti utuh, bukan ditambal.** Kirim seluruh objek `settings` setiap update; field yang tidak dikirim akan hilang dari DB.
+
+**Pemilih ikon (`src/components/shared/IconPicker.tsx`) — jangan input teks.**
+
+* **Tiga berkas, sengaja dipisah** agar bundle awal tetap ramping:
+  * `IconPicker.tsx` — pemicu (pratinjau + nama + tombol kosongkan) + `<dialog>`; **tidak** mengimpor katalog.
+  * `IconGrid.tsx` — isi panel: pencarian + kisi; di-`lazy()` dari `IconPicker`.
+  * `lucide-catalog.ts` — nama → komponen (1.881 ikon); dimuat hanya bersama `IconGrid`.
+  Hasil build: **3 chunk**, bundle utama ~775 kB (sama seperti sebelum fitur), katalog 167 kB gzip diunduh sekali saat panel pertama kali dibuka. **Jangan impor katalog dari `IconPicker`/komponen yang dirender saat aplikasi mulai.**
+* **Nama ikon diambil dari daftar statis `lucide-names.ts`, bukan diturunkan dari kunci `icons`.** Konversi PascalCase→kebab tidak bisa dibalik: `AArrowDown` → `a-arrow-down` (bukan `aarrow-down`), `ArrowDown01` → `arrow-down-01`, `Axis3d` → `axis-3d`. Regex naif membuat ~100 nama salah dan nilainya **ditolak saat disimpan ke DB**.
+* `lucide-names.ts` **dihasilkan** oleh `npm run gen:icons` (`scripts/gen-lucide-names.mjs`) dari `dist/esm/dynamicIconImports.mjs`; jalankan ulang setelah upgrade `lucide-react`. Jangan diedit tangan.
+* **Jangan pakai `iconNames`/`DynamicIcon` dari `lucide-react/dist/esm/DynamicIcon.mjs`** untuk mengambil daftar nama: modul itu menarik `dynamicIconImports` sehingga Vite memecah bundle menjadi **1.800+ chunk** dan bundle utama membengkak ~150 kB.
+* Panel = `<dialog>` native (`showModal()`) agar fokus terkunci, Escape menutup, dan klik backdrop menutup tanpa popover kustom. Kisi dirender bertahap (`PAGE` = 120); merender 1.900 `<button>` sekaligus membuat panel tersendat.
+* Pencarian mencocokkan nama kebab-case — itulah nilai yang disimpan di DB, jadi operator sekaligus belajar nama tersimpannya.
+* Jangan `setState` di dalam `useEffect` untuk reset kueri: lakukan di handler pembuka (`setOpen`). Linter `react(set-state-in-effect)` menandainya sebagai render berantai.
+* Pratinjau ikon di tombol pemicu memakai `menuIcon()` (`MENU_ICONS`, ±30 ikon umum) agar tidak menarik katalog. Ikon di luar peta tampil sebagai lingkaran netral sampai panel dibuka.
 
 ### 4e. Organisasi (OPD / Unit Kerja)
 

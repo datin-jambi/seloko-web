@@ -22,6 +22,9 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { applicationService } from '@/services/application.service'
 import { apiErrorMessage, formatDate, formatDateTime } from '@/lib/utils'
+import { MenuIcon } from '@/components/shared/MenuIcon'
+import { applicationKeys } from '@/lib/query-keys'
+import { AssetGrid } from './AssetCard'
 import { useAuthStore } from '@/stores/auth-store'
 import { useApplicationActions } from './use-application-actions'
 import { ApplicationFormDialog } from './ApplicationFormDialog'
@@ -80,7 +83,7 @@ export function ApplicationDetailPage() {
     error,
     refetch,
   } = useQuery({
-    queryKey: ['/applications', id],
+    queryKey: applicationKeys.detail(id),
     queryFn: () => applicationService.get(id),
   })
 
@@ -209,7 +212,7 @@ export function ApplicationDetailPage() {
       </div>
 
       {/* grid-cols-1 wajib: tanpa itu kolom tunggal berukuran max-content dan melebarkan halaman di mobile. */}
-      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)]">
         {/* Kolom Kiri: Metadata & Info Aplikasi */}
         <div className="space-y-6">
           <section className="rounded-lg border border-border bg-card">
@@ -241,8 +244,13 @@ export function ApplicationDetailPage() {
                   </a>
                 ) : null}
               </Row>
-              <Row label="Ikon Launcher" mono>
-                {app.icon || 'layout-grid'}
+              <Row label="Ikon Launcher">
+                <span className="inline-flex items-center gap-2">
+                  <span className="flex size-6 items-center justify-center rounded border border-border bg-muted/40 text-primary">
+                    <MenuIcon name={app.icon} className="size-3.5" />
+                  </span>
+                  <span className="font-mono text-xs tabular-nums">{app.icon || 'layout-grid'}</span>
+                </span>
               </Row>
               <Row label="Didaftarkan">{formatDate(app.createdAt)}</Row>
               <Row label="Terakhir Diperbarui">{formatDateTime(app.updatedAt)}</Row>
@@ -280,11 +288,25 @@ export function ApplicationDetailPage() {
               </div>
             )}
           </section>
+
+          {/* Aset Visual — ringkas di kolom kiri. Versi besar (4 kartu lebar)
+              memakan ruang berlebih; di sini cukup strip pratinjau kecil, dan
+              detail penuh (URL/fileId) ada di modal saat kartu diklik. */}
+          <section className="rounded-lg border border-border bg-card">
+            <h2 className="border-b border-border px-4 py-3 text-sm font-semibold">Aset Visual</h2>
+            <AssetGrid
+              items={[
+                { label: 'Logo Utama', url: app.logoUrl, fileId: app.logoFileId, hint: 'App Switcher & sidebar' },
+                { label: 'Logo Gelap', url: app.logoDarkUrl, fileId: app.logoDarkFileId, hint: 'Mode gelap', tint: 'dark' },
+                { label: 'Favicon', url: app.faviconUrl, fileId: app.faviconFileId, hint: 'Ikon tab browser' },
+                { label: 'Open Graph', url: app.ogImageUrl, fileId: app.ogImageFileId, hint: 'Pratinjau tautan' },
+              ]}
+            />
+          </section>
         </div>
 
-        {/* Kolom Kanan: Role & Permission Terdaftar */}
-        <div className="space-y-6">
-          {/* Tabs */}
+        {/* Kolom Kanan: Role / Permission / Menu / Pengguna. */}
+        <div className="min-w-0">
           <Tabs defaultValue="roles" value={tab} onValueChange={setTab}>
             {/* Tanpa override: pengaturan lebar/lipat ada di komponen TabsList. */}
             <TabsList>

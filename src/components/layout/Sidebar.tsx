@@ -8,6 +8,7 @@ import { MenuIcon } from '@/components/shared/MenuIcon'
 import { AppLogo } from '@/components/shared/AppLogo'
 import { ChevronDown, ExternalLink, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { menuKeys } from '@/lib/query-keys'
 import { APP_INSTITUTION } from '@/config/constants'
 import type { MenuItemTree } from '@/types'
 // Cadangan bila /menus/me gagal. SENGAJA KOSONG: menu setiap aplikasi berasal
@@ -169,7 +170,7 @@ export function Sidebar() {
   }, [mobileNavOpen, setMobileNavOpen])
 
   const { data: menus, isLoading, isError } = useQuery({
-    queryKey: ['menus', activeAppCode],
+    queryKey: menuKeys.sidebar(activeAppCode),
     // appCode diambil dari queryKey, bukan dari store di dalam queryFn: kalau
     // store dibaca langsung, respons untuk app lama bisa masuk ke cache key app
     // baru saat pengguna berganti environment dengan cepat.

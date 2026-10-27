@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Gambar tidak tersedia">
+  <rect width="640" height="400" fill="#f1f5f9"/>
+  <g fill="none" stroke="#94a3b8" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="208" y="140" width="224" height="160" rx="16"/>
+    <circle cx="268" cy="188" r="16"/>
+    <path d="M224 276l60-60 48 48 32-32 52 52"/>
+  </g>
+  <text x="320" y="348" text-anchor="middle" font-family="system-ui, sans-serif" font-size="20" fill="#64748b">
+    Gambar tidak tersedia
+  </text>
+</svg>

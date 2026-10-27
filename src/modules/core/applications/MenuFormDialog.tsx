@@ -19,6 +19,7 @@ import { MENU_ICON_NAMES } from '@/config/menu-icons'
 import { MenuIcon } from '@/components/shared/MenuIcon'
 import { menuAdminService } from '@/services/menu-admin.service'
 import { apiErrorMessage, apiFieldErrors } from '@/lib/utils'
+import { menuKeys } from '@/lib/query-keys'
 import type { ApplicationDetail, MenuCmsNode } from '@/types/core'
 import { parentOptions, validateMenu, type MenuFormErrors, type MenuFormValues, type Tree } from './menu-tree'
 
@@ -119,7 +120,7 @@ export function MenuFormDialog({
     },
     onSuccess: () => {
       toast.success(isEdit ? `Menu ${v.label.trim()} diperbarui` : `Menu ${v.label.trim()} dibuat`)
-      void qc.invalidateQueries({ queryKey: ['/menus'] })
+      void qc.invalidateQueries({ queryKey: menuKeys.all })
       onSaved()
       onClose()
     },

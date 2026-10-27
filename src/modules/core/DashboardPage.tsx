@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/auth-store'
 import { useActiveApp } from '@/hooks/use-apps'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { menuKeys } from '@/lib/query-keys'
 import type { MenuItemTree } from '@/types'
 
 /**
@@ -18,7 +19,7 @@ export function DashboardPage() {
   const user = useAuthStore((s) => s.user)
   const { pathname } = useLocation()
   const menusQuery = useQuery({
-    queryKey: ['menus', activeAppCode],
+    queryKey: menuKeys.sidebar(activeAppCode),
     queryFn: () => menuService.getMyMenus(activeAppCode),
     enabled: !!activeAppCode,
   })

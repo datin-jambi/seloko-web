@@ -161,6 +161,9 @@ export interface ApplicationListItem {
   icon?: string | null
   audience: Audience
   logoUrl?: string | null
+  logoDarkUrl?: string | null
+  faviconUrl?: string | null
+  ogImageUrl?: string | null
   isActive: boolean
   counts: { permissions: number; roles: number; menuItems: number; userAppRoles: number }
 }
@@ -185,9 +188,14 @@ export interface ApplicationDetail extends ApplicationListItem {
   baseUrl: string | null
   icon: string | null
   logoUrl: string | null
+  /** ID berkas ImageKit — wajib disimpan BERPASANGAN dengan URL agar berkas lama bisa dihapus. */
+  logoFileId: string | null
   logoDarkUrl: string | null
+  logoDarkFileId: string | null
   faviconUrl: string | null
+  faviconFileId: string | null
   ogImageUrl: string | null
+  ogImageFileId: string | null
   settings: ApplicationSettings
   createdAt: string
   updatedAt: string
@@ -204,6 +212,13 @@ export interface CreateApplicationDTO {
   baseUrl?: string | null
   icon?: string | null
   logoUrl?: string | null
+  logoFileId?: string | null
+  logoDarkUrl?: string | null
+  logoDarkFileId?: string | null
+  faviconUrl?: string | null
+  faviconFileId?: string | null
+  ogImageUrl?: string | null
+  ogImageFileId?: string | null
   isActive?: boolean
   settings?: ApplicationSettings
 }
@@ -215,6 +230,13 @@ export interface UpdateApplicationDTO {
   baseUrl?: string | null
   icon?: string | null
   logoUrl?: string | null
+  logoFileId?: string | null
+  logoDarkUrl?: string | null
+  logoDarkFileId?: string | null
+  faviconUrl?: string | null
+  faviconFileId?: string | null
+  ogImageUrl?: string | null
+  ogImageFileId?: string | null
   isActive?: boolean
   settings?: ApplicationSettings
 }

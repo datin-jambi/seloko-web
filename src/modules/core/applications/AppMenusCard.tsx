@@ -26,6 +26,7 @@ import { roleService } from '@/services/role.service'
 import { menuAdminService } from '@/services/menu-admin.service'
 import { useAuthStore } from '@/stores/auth-store'
 import { apiErrorMessage, cn } from '@/lib/utils'
+import { applicationKeys, menuKeys } from '@/lib/query-keys'
 import { MenuIcon } from '@/components/shared/MenuIcon'
 import type { ApplicationDetail, MenuCmsNode } from '@/types/core'
 import { MenuFormDialog } from './MenuFormDialog'
@@ -65,7 +66,7 @@ export function AppMenusCard({ app }: { app: ApplicationDetail }) {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
 
   const menus = useQuery({
-    queryKey: ['/menus', 'by-app', app.id],
+    queryKey: menuKeys.byApp(app.id),
     queryFn: () => menuAdminService.tree(app.id),
   })
 
@@ -78,8 +79,12 @@ export function AppMenusCard({ app }: { app: ApplicationDetail }) {
 
   const tree = useMemo(() => buildTree((menus.data ?? []) as MenuCmsNode[]), [menus.data])
 
-  const refresh = () => {
-    void qc.invalidateQueries({ queryKey: ['/menus'] })
+  const done = () => {
+    void qc.invalidateQueries({ queryKey: menuKeys.all })
+    // Angka "Menu 13" di tab & kartu ringkasan berasal dari detail aplikasi
+    // (`counts.menuItems`), jadi detail ikut disegarkan — kalau tidak, jumlahnya
+    // tetap lama sampai halaman di-refresh manual.
+    void qc.invalidateQueries({ queryKey: applicationKeys.detail(app.id) })
     setPending(null)
   }
 
@@ -87,7 +92,7 @@ export function AppMenusCard({ app }: { app: ApplicationDetail }) {
   const reorder = useMutation({
     mutationFn: (next: Tree<MenuCmsNode>[]) =>
       menuAdminService.reorder({ applicationId: app.id, items: flattenForReorder(next) }),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ['/menus'] }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: menuKeys.all }),
     onError: (e) => toast.error('Gagal menyimpan urutan', { description: apiErrorMessage(e) }),
   })
 
@@ -95,7 +100,7 @@ export function AppMenusCard({ app }: { app: ApplicationDetail }) {
     mutationFn: (node: MenuCmsNode) => menuAdminService.setActive(node.id, !node.isActive),
     onSuccess: (_, node) => {
       toast.success(node.isActive ? `Menu ${node.label} dinonaktifkan` : `Menu ${node.label} diaktifkan`)
-      refresh()
+      done()
     },
     onError: (e) => toast.error('Gagal mengubah status menu', { description: apiErrorMessage(e) }),
   })
@@ -104,7 +109,7 @@ export function AppMenusCard({ app }: { app: ApplicationDetail }) {
     mutationFn: (node: MenuCmsNode) => menuAdminService.remove(node.id),
     onSuccess: (_, node) => {
       toast.success(`Menu ${node.label} dihapus`)
-      refresh()
+      done()
     },
     onError: (e) => toast.error('Gagal menghapus menu', { description: apiErrorMessage(e) }),
   })
@@ -190,7 +195,7 @@ export function AppMenusCard({ app }: { app: ApplicationDetail }) {
           menu={form.node}
           defaultParentId={form.parentId}
           onClose={() => setForm({ open: false, node: null, parentId: null })}
-          onSaved={() => void qc.invalidateQueries({ queryKey: ['/menus'] })}
+          onSaved={() => void qc.invalidateQueries({ queryKey: menuKeys.all })}
         />
       )}
 

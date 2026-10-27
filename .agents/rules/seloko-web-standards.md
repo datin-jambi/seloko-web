@@ -43,7 +43,7 @@ src/
 ├── components/      # Komponen UI
 │   ├── ui/          # Komponen dasar shadcn (Button, Dialog, Card, Input, dll.)
 │   ├── layout/      # Sidebar, Header, AppSwitcher, DashboardLayout
-│   └── shared/      # Pakai ulang: PageHeader, DataTable, RowActions, ConfirmDialog, FormField, SearchBar, PendingApiPage, TopLoader, AppLogo, IconAction
+│   └── shared/      # Pakai ulang: PageHeader, DataTable, RowActions, ConfirmDialog, FormField, SearchBar, PendingApiPage, TopLoader, AppLogo, IconAction, IconPicker, ImageUpload
 ├── config/          # APP_CODES, APP_WORKSPACE (app ↔ segmen URL), menu-icons, env
 ├── hooks/           # Custom React hooks (use-list: fetch list — page/search/filter/sort di URL)
 ├── lib/             # Helper murni (utils, axios instance, formatters)
@@ -65,6 +65,27 @@ src/
 └── main.tsx         # React bootstrap
 scripts/             # Pemeriksa otomatis (audit:ui, check:agents)
 ```
+
+---
+
+## 4b. Cache Data (React Query) — Kunci Terpusat
+
+**Semua `queryKey` WAJIB berasal dari `src/lib/query-keys.ts`.** Jangan menulis literal `['/menus']`, `['/applications']`, dst. di komponen.
+
+Alasannya konkret: invalidasi React Query memakai **pencocokan prefix**, sehingga dua penulisan yang tampak sama tetapi beda string tidak pernah cocok:
+
+| Query (dibaca) | Invalidasi (ditulis) | Hasil |
+|---|---|---|
+| `['menus', activeAppCode]` | `['/menus']` | ❌ tidak cocok — sidebar & dashboard basi |
+| `['applications', 'me']` | `['/applications']` | ❌ tidak cocok — App Switcher basi |
+
+Gejalanya: data berubah di server, tetapi UI tetap menampilkan nilai lama sampai halaman di-refresh manual. Bug ini **lolos** dari `tsc`/lint karena key hanya array string biasa.
+
+Aturan:
+1. Baca/tulis lewat helper (`menuKeys.all`, `applicationKeys.detail(id)`, dst.).
+2. Invalidasi memakai `*.all` (prefix) agar semua varian ikut tersegarkan.
+3. Mutasi yang mengubah **angka ringkasan** (mis. jumlah menu) juga harus meng-invalidate detail entitas induknya, karena `counts.*` berasal dari `GET /applications/:id`.
+4. Verifikasi dengan `npm run check:invalidation` (menguji perilaku nyata di browser, bukan kompilasi).
 
 ---
 
