@@ -6,8 +6,8 @@ import {
   ArrowUp,
   ChevronDown,
   ChevronRight,
-  CornerDownRight,
   ExternalLink,
+  FolderTree,
   ListTree,
   Pencil,
   Plus,
@@ -21,7 +21,7 @@ import { ActiveBadge } from '@/components/shared/ActiveBadge'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { RowActions } from '@/components/shared/RowActions'
 import { ErrorState } from '@/components/shared/ErrorState'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { IconAction } from '@/components/shared/IconAction'
 import { roleService } from '@/services/role.service'
 import { menuAdminService } from '@/services/menu-admin.service'
 import { useAuthStore } from '@/stores/auth-store'
@@ -34,10 +34,27 @@ import { buildTree, flattenForReorder, moveWithinSiblings, type Tree } from './m
 type Pending = { kind: 'toggle' | 'delete'; node: MenuCmsNode } | null
 type Form = { open: boolean; node: MenuCmsNode | null; parentId: string | null }
 
+/** Aksi yang dibutuhkan baris menu — diteruskan utuh, bukan satu per satu. */
+interface MenuActions {
+  canUpdate: boolean
+  busy: boolean
+  collapsed: Set<string>
+  onToggleCollapse: (id: string) => void
+  onMove: (node: MenuCmsNode, direction: -1 | 1) => void
+  onAddChild: (node: MenuCmsNode) => void
+  onEdit: (node: MenuCmsNode) => void
+  onToggleActive: (node: MenuCmsNode) => void
+  onDelete: (node: MenuCmsNode) => void
+}
+
 /**
  * Kartu "Menu": pohon navigasi sidebar satu aplikasi, lengkap dengan tambah/ubah/
  * urutkan/hapus. Permission mengikuti menus.routes.ts: application:read (lihat) &
  * application:update (ubah) — bukan menu:*.
+ *
+ * Tampilan pohon: tiap menu tingkat atas adalah kartu tersendiri (latar `muted`,
+ * judul tebal, ikon dalam kotak); anak-anaknya menggantung di bawah dengan garis
+ * penghubung. Batas grup jadi terbaca sekilas tanpa menghitung indentasi.
  */
 export function AppMenusCard({ app }: { app: ApplicationDetail }) {
   const qc = useQueryClient()
@@ -92,13 +109,29 @@ export function AppMenusCard({ app }: { app: ApplicationDetail }) {
     onError: (e) => toast.error('Gagal menghapus menu', { description: apiErrorMessage(e) }),
   })
 
-  const move = (node: MenuCmsNode, direction: -1 | 1) => {
-    if (reorder.isPending) return
-    reorder.mutate(moveWithinSiblings(tree, node.id, direction))
-  }
-
   const busy = toggle.isPending || remove.isPending || reorder.isPending
   const count = menus.data?.length ?? 0
+
+  const actions: MenuActions = {
+    canUpdate,
+    busy,
+    collapsed,
+    onToggleCollapse: (id) =>
+      setCollapsed((prev) => {
+        const next = new Set(prev)
+        if (next.has(id)) next.delete(id)
+        else next.add(id)
+        return next
+      }),
+    onMove: (node, direction) => {
+      if (reorder.isPending) return
+      reorder.mutate(moveWithinSiblings(tree, node.id, direction))
+    },
+    onAddChild: (node) => setForm({ open: true, node: null, parentId: node.id }),
+    onEdit: (node) => setForm({ open: true, node, parentId: null }),
+    onToggleActive: (node) => setPending({ kind: 'toggle', node }),
+    onDelete: (node) => setPending({ kind: 'delete', node }),
+  }
 
   return (
     <section className="rounded-lg border border-border bg-card">
@@ -136,30 +169,14 @@ export function AppMenusCard({ app }: { app: ApplicationDetail }) {
           </p>
         </div>
       ) : (
-        <ul className="divide-y divide-border">
+        <ul className="space-y-3 p-3">
           {tree.map((node, index) => (
-            <MenuRow
+            <MenuGroup
               key={node.id}
               node={node}
-              depth={0}
+              actions={actions}
               isFirst={index === 0}
               isLast={index === tree.length - 1}
-              canUpdate={canUpdate}
-              busy={busy}
-              collapsed={collapsed}
-              onToggleCollapse={(id) =>
-                setCollapsed((prev) => {
-                  const next = new Set(prev)
-                  if (next.has(id)) next.delete(id)
-                  else next.add(id)
-                  return next
-                })
-              }
-              onMove={move}
-              onAddChild={(parent) => setForm({ open: true, node: null, parentId: parent.id })}
-              onEdit={(n) => setForm({ open: true, node: n, parentId: null })}
-              onToggleActive={(n) => setPending({ kind: 'toggle', node: n })}
-              onDelete={(n) => setPending({ kind: 'delete', node: n })}
             />
           ))}
         </ul>
@@ -194,7 +211,9 @@ export function AppMenusCard({ app }: { app: ApplicationDetail }) {
             }
           : pending
             ? {
-                title: pending.node.isActive ? `Nonaktifkan menu ${pending.node.label}?` : `Aktifkan menu ${pending.node.label}?`,
+                title: pending.node.isActive
+                  ? `Nonaktifkan menu ${pending.node.label}?`
+                  : `Aktifkan menu ${pending.node.label}?`,
                 description: pending.node.isActive
                   ? 'Menu beserta sub-menunya disembunyikan dari sidebar, tetapi datanya tetap tersimpan.'
                   : 'Menu tampil kembali di sidebar bagi pengguna yang berhak.',
@@ -208,69 +227,136 @@ export function AppMenusCard({ app }: { app: ApplicationDetail }) {
   )
 }
 
-function MenuRow({
-  node,
-  depth,
-  isFirst,
-  isLast,
-  canUpdate,
-  busy,
-  collapsed,
-  onToggleCollapse,
-  onMove,
-  onAddChild,
-  onEdit,
-  onToggleActive,
-  onDelete,
-}: {
-  node: Tree<MenuCmsNode>
-  depth: number
-  isFirst: boolean
-  isLast: boolean
-  canUpdate: boolean
-  busy: boolean
-  collapsed: Set<string>
-  onToggleCollapse: (id: string) => void
-  onMove: (node: MenuCmsNode, direction: -1 | 1) => void
-  onAddChild: (node: MenuCmsNode) => void
-  onEdit: (node: MenuCmsNode) => void
-  onToggleActive: (node: MenuCmsNode) => void
-  onDelete: (node: MenuCmsNode) => void
-}) {
+/**
+ * Satu grup menu tingkat atas: kepala kartu + blok anak.
+ *
+ * Induk dan anak sengaja BEDA BENTUK, bukan hanya beda indentasi:
+ * - Induk: latar `muted`, judul tebal, ikon dalam kotak, diakhiri garis pemisah.
+ * - Anak: latar kartu, ikon polos, garis penghubung siku di kiri.
+ */
+function MenuGroup({ node, actions, isFirst, isLast }: { node: Tree<MenuCmsNode>; actions: MenuActions; isFirst: boolean; isLast: boolean }) {
+  const { collapsed } = actions
   const hasChildren = node.items.length > 0
   const isCollapsed = collapsed.has(node.id)
 
   return (
-    <li>
-      <div
-        className={cn('group/row flex flex-wrap items-center gap-2 px-3 py-2.5', 'transition-colors hover:bg-muted/40')}
-        style={{ paddingLeft: `${12 + depth * 20}px` }}
-      >
-        {/* Penanda hierarki: ruang kosong selebar tombol agar label sejajar. */}
-        <span className="flex size-6 shrink-0 items-center justify-center">
-          {depth > 0 && <CornerDownRight className="size-3.5 text-muted-foreground/60" />}
-        </span>
+    <li className="overflow-hidden rounded-lg border border-border bg-card">
+      <div className="bg-muted/50">
+        <MenuRow node={node} depth={0} actions={actions} isFirst={isFirst} isLast={isLast} />
+      </div>
 
-        {hasChildren ? (
+      {hasChildren && !isCollapsed && (
+        // Garis vertikal ditarik dari TENGAH kotak ikon induk. Posisinya:
+        // px-3 (12) + chevron size-6 (24) + gap-x-2 (8) + size-8/2 (16) = 60px
+        // = 3.75rem. Angka ini harus ikut berubah bila padding/ukuran ikon induk
+        // diubah, kalau tidak garisnya melayang di sebelah kiri ikon.
+        <ul className="ml-[3.75rem] border-l-2 border-border">
+          {node.items.map((child, index) => (
+            <MenuRow
+              key={child.id}
+              node={child}
+              depth={1}
+              actions={actions}
+              isFirst={index === 0}
+              isLast={index === node.items.length - 1}
+            />
+          ))}
+        </ul>
+      )}
+
+      {/* Kaki grup: kontrol buka/tutup saja. "Tambah sub-menu" sengaja TIDAK
+          diduplikasi di sini — ia sudah ada di deretan aksi baris (ikon +) yang
+          posisinya konsisten di semua tingkat, sehingga kolom aksi tetap lurus. */}
+      {hasChildren && (
+        <div className="border-t border-border bg-muted/30 text-xs">
           <button
             type="button"
-            aria-label={isCollapsed ? `Buka sub-menu ${node.label}` : `Tutup sub-menu ${node.label}`}
+            onClick={() => actions.onToggleCollapse(node.id)}
             aria-expanded={!isCollapsed}
-            onClick={() => onToggleCollapse(node.id)}
-            className="flex size-6 shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+            className="flex w-full items-center justify-center gap-1.5 py-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/40"
           >
-            {isCollapsed ? <ChevronRight className="size-4" /> : <ChevronDown className="size-4" />}
+            <ChevronDown className={cn('size-3.5 transition-transform', isCollapsed && '-rotate-90')} />
+            {isCollapsed ? `Tampilkan ${node.items.length} sub-menu` : 'Sembunyikan sub-menu'}
+            <span className="sr-only"> untuk {node.label}</span>
           </button>
-        ) : (
-          <span className="size-6 shrink-0" />
-        )}
+        </div>
+      )}
+    </li>
+  )
+}
 
-        <MenuIcon name={node.icon} className="size-4 shrink-0 text-muted-foreground" />
+/** Titik pemisah metadata. `aria-hidden` — makna kalimat tidak bergantung padanya. */
+function MetaDot() {
+  return <span aria-hidden className="size-1 shrink-0 rounded-full bg-muted-foreground/40" />
+}
+
+/** Baris menu. `depth` 0 = induk, ≥1 = anak/cucu. */
+function MenuRow({
+  node,
+  depth,
+  actions,
+  isFirst,
+  isLast,
+}: {
+  node: Tree<MenuCmsNode>
+  depth: number
+  actions: MenuActions
+  isFirst: boolean
+  isLast: boolean
+}) {
+  const { canUpdate, busy, collapsed, onToggleCollapse } = actions
+  const hasChildren = node.items.length > 0
+  const isCollapsed = collapsed.has(node.id)
+  const top = depth === 0
+
+  return (
+    <li>
+      <div
+        className={cn(
+          'group/row relative flex flex-wrap items-center gap-x-2 gap-y-1.5 px-3 transition-colors',
+          top ? 'py-2.5' : 'py-2 pl-3 hover:bg-muted/40',
+        )}
+      >
+        {/* Siku horizontal dari garis vertikal (border-l pada <ul>) menuju label.
+            `-left-0.5` mengimbangi `border-l-2` agar pangkal siku menempel garis. */}
+        {!top && <span aria-hidden className="absolute -left-0.5 top-1/2 h-px w-3 bg-border" />}
+
+        {/* Chevron buka/tutup — hanya pada induk yang punya anak. */}
+        {top ? (
+          hasChildren ? (
+            <button
+              type="button"
+              aria-label={isCollapsed ? `Buka sub-menu ${node.label}` : `Tutup sub-menu ${node.label}`}
+              aria-expanded={!isCollapsed}
+              onClick={() => onToggleCollapse(node.id)}
+              className="flex size-6 shrink-0 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-card hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+            >
+              {isCollapsed ? <ChevronRight className="size-4" /> : <ChevronDown className="size-4" />}
+            </button>
+          ) : (
+            <span className="size-6 shrink-0" />
+          )
+        ) : null}
+
+        {/* Ikon: induk dalam kotak, anak polos. */}
+        {top ? (
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-md border border-border bg-card text-primary">
+            <MenuIcon name={node.icon} className="size-4" />
+          </span>
+        ) : (
+          <MenuIcon name={node.icon} className="size-4 shrink-0 text-muted-foreground" />
+        )}
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-medium">{node.label}</span>
+            <span className={cn('truncate', top ? 'text-sm font-semibold' : 'text-sm')}>{node.label}</span>
             <ActiveBadge active={node.isActive} />
+            {hasChildren && (
+              <Badge variant="neutral" className="hidden sm:inline-flex">
+                <FolderTree aria-hidden />
+                {node.items.length} sub-menu
+              </Badge>
+            )}
             {node.isExternal && (
               <Badge variant="neutral">
                 <ExternalLink aria-hidden />
@@ -278,81 +364,66 @@ function MenuRow({
               </Badge>
             )}
           </div>
-          <p className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+          {/* Metadata dipisah titik kecil yang sama bentuknya, bukan karakter "·"
+              di dalam teks: konsisten jaraknya dan tidak ikut terpilih saat copy. */}
+          <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
             <span className="font-mono">{node.code}</span>
-            {node.path ? <span className="truncate font-mono">{node.path}</span> : <span>tanpa path (wadah)</span>}
-            {node.permission && <span>· {node.permission.code}</span>}
-            {node.roles.length > 0 && <span>· {node.roles.length} role</span>}
+            {node.path ? (
+              <span className="max-w-[22rem] truncate font-mono" title={node.path}>
+                {node.path}
+              </span>
+            ) : (
+              <span className="italic text-muted-foreground/70">wadah — tanpa path</span>
+            )}
+            {(node.permission || node.roles.length > 0) && <MetaDot />}
+            {node.permission && <span className="font-mono">{node.permission.code}</span>}
+            {node.permission && node.roles.length > 0 && <MetaDot />}
+            {node.roles.length > 0 && <span className="tabular-nums">{node.roles.length} role</span>}
           </p>
         </div>
 
         {canUpdate && (
           <>
-            {/* Desktop: tombol tampil semua. Mobile: dilipat ke satu menu ⋯ supaya tidak berdesakan. */}
+            {/* Desktop: tombol ikon berwarna + tooltip. Mobile: dilipat ke ⋯ agar
+                enam tombol ikon tidak berdesakan untuk jari. */}
             <div className="hidden shrink-0 items-center gap-0.5 sm:flex">
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label={`Naikkan urutan ${node.label}`}
+              <IconAction
+                icon={ArrowUp}
+                label={`Naikkan ${node.label}`}
                 disabled={busy || isFirst}
-                onClick={() => onMove(node, -1)}
-              >
-                <ChevronRight className="size-4 -rotate-90" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label={`Turunkan urutan ${node.label}`}
+                onClick={() => actions.onMove(node, -1)}
+              />
+              <IconAction
+                icon={ArrowDown}
+                label={`Turunkan ${node.label}`}
                 disabled={busy || isLast}
-                onClick={() => onMove(node, 1)}
-              >
-                <ChevronRight className="size-4 rotate-90" />
-              </Button>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={`Tambah sub-menu di ${node.label}`}
-                    onClick={() => onAddChild(node)}
-                  >
-                    <Plus />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Tambah sub-menu</TooltipContent>
-              </Tooltip>
-              <Button variant="ghost" size="icon-sm" aria-label={`Ubah menu ${node.label}`} onClick={() => onEdit(node)}>
-                <Pencil />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label={node.isActive ? `Nonaktifkan menu ${node.label}` : `Aktifkan menu ${node.label}`}
-                onClick={() => onToggleActive(node)}
-              >
-                {node.isActive ? <PowerOff /> : <Power />}
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label={`Hapus menu ${node.label}`}
-                className="text-destructive hover:text-destructive"
-                onClick={() => onDelete(node)}
-              >
-                <Trash2 />
-              </Button>
+                onClick={() => actions.onMove(node, 1)}
+              />
+              {top && <IconAction icon={Plus} label={`Tambah sub-menu di ${node.label}`} tone="primary" onClick={() => actions.onAddChild(node)} />}
+              <IconAction icon={Pencil} label={`Ubah ${node.label}`} tone="warning" onClick={() => actions.onEdit(node)} />
+              <IconAction
+                icon={node.isActive ? PowerOff : Power}
+                label={node.isActive ? `Nonaktifkan ${node.label}` : `Aktifkan ${node.label}`}
+                tone={node.isActive ? 'neutral' : 'success'}
+                onClick={() => actions.onToggleActive(node)}
+              />
+              <IconAction icon={Trash2} label={`Hapus ${node.label}`} tone="destructive" onClick={() => actions.onDelete(node)} />
             </div>
 
             <div className="shrink-0 sm:hidden">
               <RowActions
                 label={`menu ${node.label}`}
                 actions={[
-                  { label: 'Naikkan', icon: ArrowUp, onSelect: () => onMove(node, -1), show: !isFirst && !busy },
-                  { label: 'Turunkan', icon: ArrowDown, onSelect: () => onMove(node, 1), show: !isLast && !busy },
-                  { label: 'Tambah sub-menu', icon: Plus, onSelect: () => onAddChild(node) },
-                  { label: 'Ubah', icon: Pencil, onSelect: () => onEdit(node) },
-                  { label: node.isActive ? 'Nonaktifkan' : 'Aktifkan', icon: node.isActive ? PowerOff : Power, onSelect: () => onToggleActive(node) },
-                  { label: 'Hapus', icon: Trash2, destructive: true, onSelect: () => onDelete(node) },
+                  { label: 'Naikkan', icon: ArrowUp, onSelect: () => actions.onMove(node, -1), show: !isFirst && !busy },
+                  { label: 'Turunkan', icon: ArrowDown, onSelect: () => actions.onMove(node, 1), show: !isLast && !busy },
+                  { label: 'Tambah sub-menu', icon: Plus, onSelect: () => actions.onAddChild(node) },
+                  { label: 'Ubah', icon: Pencil, onSelect: () => actions.onEdit(node) },
+                  {
+                    label: node.isActive ? 'Nonaktifkan' : 'Aktifkan',
+                    icon: node.isActive ? PowerOff : Power,
+                    onSelect: () => actions.onToggleActive(node),
+                  },
+                  { label: 'Hapus', icon: Trash2, destructive: true, onSelect: () => actions.onDelete(node) },
                 ]}
               />
             </div>
@@ -360,24 +431,17 @@ function MenuRow({
         )}
       </div>
 
-      {hasChildren && !isCollapsed && (
-        <ul className="divide-y divide-border/60">
+      {/* Cucu: ditarik ke kanan dengan rel tambahan. */}
+      {hasChildren && !isCollapsed && !top && (
+        <ul className="ml-6 border-l border-border">
           {node.items.map((child, index) => (
             <MenuRow
               key={child.id}
               node={child}
               depth={depth + 1}
+              actions={actions}
               isFirst={index === 0}
               isLast={index === node.items.length - 1}
-              canUpdate={canUpdate}
-              busy={busy}
-              collapsed={collapsed}
-              onToggleCollapse={onToggleCollapse}
-              onMove={onMove}
-              onAddChild={onAddChild}
-              onEdit={onEdit}
-              onToggleActive={onToggleActive}
-              onDelete={onDelete}
             />
           ))}
         </ul>
