@@ -28,8 +28,10 @@ SELOKO WEB adalah dashboard terpusat yang melayani pengelolaan multi-aplikasi BP
 * Palet warna, tipografi, dan layout shell (sidebar ciut/perluas): lihat `02-design-system.prd.md`.
 
 ### E. Routing per Aplikasi
-* Path halaman = path menu di DB (`../seloko-api/prisma/seeds/core/menus.json`), berprefix aplikasi: `/seloko/…`, `/bapenda/…`, `/lapak/…`. Semua rute ada di `src/App.tsx`.
-* Dasbor tiap aplikasi = `APP_CONFIGS[code].home` (`src/config/constants.ts`); `/` diarahkan ke dasbor Seloko. Isi dasbor = pintasan dari menu milik user, bukan metrik karangan.
-* **URL adalah sumber kebenaran konteks app**: `DashboardLayout` membaca prefix URL (`appCodeFromPath`) dan menyetel `activeAppCode`, jadi tautan langsung ke `/bapenda/berita` membuka sidebar Bapenda. App Switcher berpindah ke `home` aplikasi tujuan.
+* Path halaman = path menu di DB (`../seloko-api/prisma/seeds/core/menus.json`), berprefix workspace: `/seloko/…`, `/bapenda/…`, `/lapak-jambi/…` (+ alias `/lapak/…`). Semua rute ada di `src/App.tsx`.
+* **Segmen URL workspace ≠ `code` aplikasi.** Pemetaan ada di `APP_WORKSPACE` (`WORKSPACES`, `appWorkspace()`, `appCodeFromPath()` di `src/config/constants.ts`) — mis. aplikasi `lapak-jambi-web` hidup di segmen `lapak`. Jangan menurunkan segmen dari `code`.
+* Dasbor tiap workspace = `/<workspace>/dashboard` (`workspaceHome()`); `/` diarahkan ke dasbor Seloko. Isi dasbor = pintasan dari menu milik user (grup + menu datar), bukan metrik karangan.
+* **URL adalah sumber kebenaran konteks app**: `DashboardLayout` membaca prefix URL (`appCodeFromPath`) dan menyetel `activeAppCode` setiap kali path berubah (aman karena App Switcher memindahkan halaman). Tautan langsung ke `/bapenda/kontent/berita` membuka sidebar Bapenda. Prefix yang tidak diizinkan akun → `ForbiddenPage`.
 * Item sidebar aktif = path menu terpanjang yang menjadi prefix URL (`findActivePath`), grup induknya otomatis terbuka.
-* Menu yang endpoint API-nya belum ada tetap punya rute, dirender `PendingApiPage` (status saat ini: penugasan role, log audit, galeri, seluruh modul lapak, form tambah pengguna).
+* Menu yang endpoint API-nya belum ada tetap punya rute, dirender `PendingApiPage` (status saat ini: penugasan role, log audit, galeri, sebagian besar modul lapak).
+* **Profil akun** ada di `/seloko/profile` (`src/modules/core/profile/ProfilePage.tsx`): data dari `useAuthStore` + daftar akses dari `GET /applications/me` (cache yang sama dengan switcher). Tidak ada endpoint profil baru.

@@ -7,10 +7,13 @@ Dokumen ini adalah aturan resmi yang wajib dipatuhi saat menulis kode di `seloko
 ## 1. Konsep Multi-Tenancy & App Switcher
 * **Header `X-App-Code` selalu `seloko`** (gateway). Backend mewajibkan header ini sama dengan `appCode` token; mengikuti aplikasi aktif menyebabkan 401/403.
 * **Konteks aplikasi aktif** (`bapenda-profile`, dsb.) dikirim lewat **query param** (`?appCode=`) atau path API domain (`/api/bapenda/*`), bukan header.
+* **Sumber daftar environment: `GET /applications/me`** (bukan `/applications`). Hanya `audience === 'INTERNAL'` yang boleh tampil, dan hanya aplikasi yang punya halaman (ada di `APP_WORKSPACE`) yang ditawarkan — kalau tidak, sidebar kosong & halaman 404.
+* **`code` aplikasi ≠ segmen URL.** `bapenda-profile` → `/bapenda/…`, `lapak-jambi-web` → `/lapak-jambi/…`. Pakai `appWorkspace()`/`appCodeFromPath()`, jangan menurunkan segmen dari `code`.
+* **Logo aplikasi** memakai rantai fallback `logoDarkUrl` → `logoUrl` → `icon` (dari DB) → ikon netral, lewat `AppLogo`. Jangan menebak ikon dari `code`.
 * **State Sinkronisasi**: Saat user mengganti aplikasi di App Switcher:
   1. Update active app di Zustand `useAppStore`.
-  2. Query menu dinamis (`/api/menus/me?appCode=…`) di-refetch untuk me-render pohon sidebar baru.
-  3. Halaman diarahkan ke default dashboard aplikasi tersebut.
+  2. Invalidate query `['menus']` agar sidebar tidak memakai menu environment sebelumnya.
+  3. Arahkan halaman ke `appHome(code)` — path berprefix workspace lama akan 404.
 
 ---
 
@@ -40,13 +43,14 @@ src/
 ├── components/      # Komponen UI
 │   ├── ui/          # Komponen dasar shadcn (Button, Dialog, Card, Input, dll.)
 │   ├── layout/      # Sidebar, Header, AppSwitcher, DashboardLayout
-│   └── shared/      # Pakai ulang: PageHeader, DataTable, RowActions, ConfirmDialog, FormField, SearchBar, PendingApiPage, TopLoader
-├── config/          # Konfigurasi aplikasi & konstanta (APP_CODES, env)
+│   └── shared/      # Pakai ulang: PageHeader, DataTable, RowActions, ConfirmDialog, FormField, SearchBar, PendingApiPage, TopLoader, AppLogo
+├── config/          # APP_CODES, APP_WORKSPACE (app ↔ segmen URL), menu-icons, env
 ├── hooks/           # Custom React hooks (use-list: fetch list — page/search/filter/sort di URL)
 ├── lib/             # Helper murni (utils, axios instance, formatters)
 ├── modules/         # Fitur per domain
 │   ├── auth/        # Login page, auth guard
 │   ├── core/        # DashboardPage (semua app) + pages.tsx (barrel re-export)
+│   │   ├── profile/ # ProfilePage (/seloko/profile: identitas + akses aplikasi)
 │   │   ├── access/  # RolesPage, RoleDetailPage, PermissionsPage, PermissionDetailPage, RoleFormDialog, PermissionFormDialog, PermissionChecklist, use-access-actions, access-form, paths
 │   │   ├── applications/ # ApplicationsPage, ApplicationDetailPage (tab Role/Permission/Menu/Pengguna), AppRolesCard, AppPermissionsCard, AppMenusCard, AppUsersCard, MenuFormDialog, menu-tree, app-users, application-paths
 │   │   ├── users/   # UsersPage, UserDetailPage, UserCreatePage, UserEditPage, UserRolesCard, AppMark, AppCount, AccountTypeBadge, use-user-actions, user-form

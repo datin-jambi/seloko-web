@@ -28,9 +28,14 @@ function getInitials(name?: string) {
 }
 
 export function Header() {
-  const { user, clearAuth } = useAuthStore()
+  const { user, permissions, clearAuth } = useAuthStore()
   const { mobileNavOpen, setMobileNavOpen } = useAppStore()
   const navigate = useNavigate()
+
+  // Dibaca langsung dari `user`/`permissions` agar selector tidak mengembalikan
+  // referensi fungsi (yang tidak pernah berubah → komponen tak re-render saat
+  // permission diperbarui).
+  const can = (code: string) => !!user?.isSuperAdmin || permissions.includes(code)
 
   const handleLogout = async () => {
     try {
@@ -93,14 +98,16 @@ export function Header() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate('/profile')}>
+            <DropdownMenuItem onClick={() => navigate('/seloko/profile')}>
               <User className="text-muted-foreground" />
               Profil
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/seloko/akses/role')}>
-              <Shield className="text-muted-foreground" />
-              Hak akses
-            </DropdownMenuItem>
+            {can('role:list') && (
+              <DropdownMenuItem onClick={() => navigate('/seloko/akses/role')}>
+                <Shield className="text-muted-foreground" />
+                Hak akses
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={handleLogout}

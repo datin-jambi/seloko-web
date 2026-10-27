@@ -4,6 +4,7 @@ import { LoginPage } from '@/modules/auth/LoginPage'
 import { ProtectedRoute } from '@/components/shared/ProtectedRoute'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { DashboardPage } from '@/modules/core/DashboardPage'
+import { ProfilePage } from '@/modules/core/profile/ProfilePage'
 import { ApplicationDetailPage, ApplicationsPage, MenusPage } from '@/modules/core/pages'
 import { RolesPage } from '@/modules/core/access/RolesPage'
 import { RoleDetailPage } from '@/modules/core/access/RoleDetailPage'
@@ -28,7 +29,7 @@ import { NotFoundPage } from '@/components/shared/NotFoundPage'
 import { TopLoader } from '@/components/shared/TopLoader'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { APP_CONFIGS } from '@/config/constants'
+import { DEFAULT_HOME, WORKSPACES } from '@/config/constants'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,8 +41,51 @@ const queryClient = new QueryClient({
   },
 })
 
-// Path = path menu di ../seloko-api/prisma/seeds/core/menus.json. Lihat PRD 01 §E.
+/**
+ * Path rute HARUS sama dengan `path` menu di DB
+ * (`../seloko-api/prisma/seeds/core/menus.json`), karena sidebar merender
+ * `item.path` apa adanya. Beda satu segmen = menu bisa diklik tapi 404.
+ *
+ * Perhatikan: aplikasi `lapak-jambi-web` menaruh menunya di `/lapak-jambi/…`,
+ * sementara segmen workspace-nya `lapak` (lihat `APP_WORKSPACE`). Karena itu
+ * kedua prefix didaftarkan: `/lapak-jambi/…` untuk menu DB dan `/lapak/…`
+ * sebagai alias tautan lama.
+ */
 const pending = (title: string, note: string) => <PendingApiPage title={title} note={note} />
+
+/** Halaman Lapak yang endpoint/UI-nya belum ada — didaftarkan di dua prefix. */
+const LAPAK_PENDING: [string, string][] = [
+  ['opd', 'belum ada endpoint API'],
+  ['objek-retribusi', 'belum ada endpoint API'],
+  ['kategori', 'modul lapak belum ada'],
+  ['pengaturan-skrd', 'modul skrd belum ada'],
+  ['reservasi', 'modul reservasi belum ada'],
+  ['produk', 'modul lapak belum ada'],
+  ['produk/persetujuan', 'modul lapak belum ada'],
+  ['pesanan', 'modul lapak belum ada'],
+  ['pembayaran', 'modul lapak belum ada'],
+  ['tiket', 'modul lapak belum ada'],
+  ['artikel', 'modul artikel belum ada'],
+  ['galeri', 'modul galeri belum ada'],
+  ['banner', 'modul banner belum ada'],
+]
+
+const LAPAK_PREFIXES = ['/lapak-jambi', '/lapak']
+
+// Daftar <Route> untuk Lapak. Harus berupa ARRAY yang di-spread di dalam
+// <Routes>, bukan komponen: <Routes> hanya menerima <Route> atau Fragment.
+// Kedua prefix butuh /dashboard masing-masing — menu DB menus.json menunjuk
+// /lapak-jambi/dashboard, sedangkan App Switcher memakai /lapak/dashboard.
+const lapakRoutes = LAPAK_PREFIXES.map((base) => (
+  <Route key={`${base}/dashboard`} path={`${base}/dashboard`} element={<DashboardPage />} />
+)).concat(
+  LAPAK_PENDING.flatMap(([slug, note]) => {
+    const title = slug.replaceAll('/', ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+    return LAPAK_PREFIXES.map((base) => (
+      <Route key={`${base}/${slug}`} path={`${base}/${slug}`} element={pending(title, note)} />
+    ))
+  }),
+)
 
 export function App() {
   return (
@@ -50,56 +94,67 @@ export function App() {
         <TopLoader />
         <Toaster />
         <TooltipProvider delayDuration={200}>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
 
-            <Route element={<ProtectedRoute />}>
-              <Route element={<DashboardLayout />}>
-                <Route path="/" element={<Navigate to={APP_CONFIGS.seloko.home} replace />} />
-                {Object.values(APP_CONFIGS).map((c) => (
-                  <Route key={c.home} path={c.home} element={<DashboardPage />} />
-                ))}
+              <Route element={<ProtectedRoute />}>
+                <Route element={<DashboardLayout />}>
+                  <Route path="/" element={<Navigate to={DEFAULT_HOME} replace />} />
 
-                {/* Seloko */}
-                <Route path="/seloko/pengguna" element={<UsersPage />} />
-                <Route path="/seloko/pengguna/tambah" element={<UserCreatePage />} />
-                <Route path="/seloko/pengguna/penugasan" element={pending('Penugasan Role', 'belum ada GET daftar penugasan lintas pengguna')} />
-                <Route path="/seloko/pengguna/:id" element={<UserDetailPage />} />
-                <Route path="/seloko/pengguna/:id/ubah" element={<UserEditPage />} />
-                <Route path="/seloko/akses/role" element={<RolesPage />} />
-                <Route path="/seloko/akses/role/:id" element={<RoleDetailPage />} />
-                <Route path="/seloko/akses/permission" element={<PermissionsPage />} />
-                <Route path="/seloko/akses/permission/:id" element={<PermissionDetailPage />} />
-                <Route path="/seloko/sistem/aplikasi" element={<ApplicationsPage />} />
-                <Route path="/seloko/sistem/aplikasi/:id" element={<ApplicationDetailPage />} />
-                <Route path="/seloko/organisasi" element={<OrganizationsPage />} />
-                <Route path="/seloko/organisasi/:id" element={<OrganizationDetailPage />} />
-                <Route path="/seloko/sistem/menu" element={<MenusPage />} />
-                <Route path="/seloko/sistem/audit" element={pending('Log Audit', 'belum ada GET log audit')} />
+                  {/*
+                    Beranda tiap workspace. Daftarnya = WORKSPACES, sumber yang
+                    sama dengan `appWorkspace()`/`appCodeFromPath()`. Semua rute
+                    lain di bawah WAJIB berprefix salah satu segmen ini, karena
+                    segmen itulah yang menentukan sidebar mana yang dinyalakan.
+                  */}
+                  {WORKSPACES.map((ws) => (
+                    <Route key={ws} path={`/${ws}/dashboard`} element={<DashboardPage />} />
+                  ))}
 
-                {/* Portal Bapenda */}
-                <Route path="/bapenda/berita" element={<NewsPage />} />
-                <Route path="/bapenda/berita/review" element={<NewsReviewPage />} />
-                <Route path="/bapenda/berita/kategori" element={<NewsCategoriesPage />} />
-                <Route path="/bapenda/halaman" element={<PagesPage />} />
-                <Route path="/bapenda/banner" element={<BannersPage />} />
-                <Route path="/bapenda/galeri" element={pending('Galeri', 'modul galeri belum ada')} />
+                  {/* ── Seloko (CORE) ─────────────────────────────────────── */}
+                  <Route path="/seloko/profile" element={<ProfilePage />} />
+                  <Route path="/seloko/pengguna" element={<UsersPage />} />
+                  <Route path="/seloko/pengguna/tambah" element={<UserCreatePage />} />
+                  <Route
+                    path="/seloko/pengguna/penugasan"
+                    element={pending('Penugasan Role', 'belum ada GET daftar penugasan lintas pengguna')}
+                  />
+                  <Route path="/seloko/pengguna/:id" element={<UserDetailPage />} />
+                  <Route path="/seloko/pengguna/:id/ubah" element={<UserEditPage />} />
+                  <Route path="/seloko/akses/role" element={<RolesPage />} />
+                  <Route path="/seloko/akses/role/:id" element={<RoleDetailPage />} />
+                  <Route path="/seloko/akses/permission" element={<PermissionsPage />} />
+                  <Route path="/seloko/akses/permission/:id" element={<PermissionDetailPage />} />
+                  <Route path="/seloko/sistem/aplikasi" element={<ApplicationsPage />} />
+                  <Route path="/seloko/sistem/aplikasi/:id" element={<ApplicationDetailPage />} />
+                  <Route path="/seloko/sistem/menu" element={<MenusPage />} />
+                  <Route path="/seloko/sistem/audit" element={pending('Log Audit', 'belum ada GET log audit')} />
+                  <Route path="/seloko/organisasi" element={<OrganizationsPage />} />
+                  <Route path="/seloko/organisasi/:id" element={<OrganizationDetailPage />} />
 
-                {/* Lapak Jambi — modul lapak belum ada di API */}
-                <Route path="/lapak/merchant" element={pending('Merchant', 'modul lapak belum ada')} />
-                <Route path="/lapak/merchant/verifikasi" element={pending('Verifikasi Merchant', 'modul lapak belum ada')} />
-                <Route path="/lapak/produk" element={pending('Produk', 'modul lapak belum ada')} />
-                <Route path="/lapak/produk/verifikasi" element={pending('Verifikasi Produk', 'modul lapak belum ada')} />
-                <Route path="/lapak/kategori" element={pending('Kategori', 'modul lapak belum ada')} />
-                <Route path="/lapak/pesanan" element={pending('Pesanan', 'modul lapak belum ada')} />
-                <Route path="/lapak/pesanan/ekspor" element={pending('Ekspor Laporan', 'modul lapak belum ada')} />
+                  {/* ── Bapenda CMS (aplikasi `bapenda-profile`) ──────────── */}
+                  {/* Path = menu DB: /bapenda/kontent/berita, bukan /bapenda/berita. */}
+                  <Route path="/bapenda/kontent/berita" element={<NewsPage />} />
+                  <Route path="/bapenda/kontent/berita/review" element={<NewsReviewPage />} />
+                  <Route path="/bapenda/content/gallery" element={pending('Gallery', 'modul galeri belum ada')} />
+                  <Route path="/bapenda/berita/kategori" element={<NewsCategoriesPage />} />
+                  <Route path="/bapenda/halaman" element={<PagesPage />} />
+                  <Route path="/bapenda/banner" element={<BannersPage />} />
+                  {/* Alias lama — dipertahankan agar tautan yang sudah dibagikan tetap hidup. */}
+                  <Route path="/bapenda/berita" element={<NewsPage />} />
+                  <Route path="/bapenda/berita/review" element={<NewsReviewPage />} />
 
-                <Route path="*" element={<NotFoundPage />} />
+                  {/* ── Lapak Jambi CMS (aplikasi `lapak-jambi-web`) ──────── */}
+                  {lapakRoutes}
+                  <Route path="/lapak-jambi/berita" element={<NewsPage />} />
+                  <Route path="/lapak/berita" element={<NewsPage />} />
+
+                  <Route path="*" element={<NotFoundPage />} />
+                </Route>
               </Route>
-            </Route>
-          </Routes>
-        </BrowserRouter>
+            </Routes>
+          </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>
     </ErrorBoundary>

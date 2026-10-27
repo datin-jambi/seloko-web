@@ -1,4 +1,4 @@
-import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,33 +8,39 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useAppStore } from '@/stores/app-store'
-import { APP_CONFIGS, appHome } from '@/config/constants'
-import { Shield, Building2, Store, ChevronsUpDown, Check, LayoutGrid } from 'lucide-react'
+import { useActiveApp, type MyApplication } from '@/hooks/use-apps'
+import { AppLogo } from '@/components/shared/AppLogo'
+import { Check, ChevronsUpDown, Loader2 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
+import { appHome } from '@/config/constants'
 import { cn } from '@/lib/utils'
 
-const APP_ICONS: Record<string, React.ElementType> = {
-  shield: Shield,
-  'building-2': Building2,
-  store: Store,
-  'layout-grid': LayoutGrid,
-}
-
+/**
+ * Pemilih environment super app.
+ *
+ * Daftar DIISI `GET /applications/me` yang sudah tersaring role & permission
+ * akun, lalu disaring lagi oleh `useActiveApp()`:
+ *   - hanya `audience === 'INTERNAL'` (CMS) — situs publik bukan alat kerja;
+ *   - hanya aplikasi yang punya halaman di frontend ini (`hasCmsRoute`).
+ *
+ * Berpindah environment mengganti daftar menu sidebar (`/menus/me?appCode=`)
+ * DAN berpindah ke beranda workspace tujuan. Navigasi wajib: path halaman lama
+ * berprefix workspace lain, sehingga membiarkannya terbuka menghasilkan 404
+ * (mis. tetap di `/bapenda/kontent/berita` setelah pindah ke Lapak).
+ */
 export function AppSwitcher() {
-  const { activeAppCode, setActiveAppCode } = useAppStore()
+  const { activeAppCode, allowed, current, home, isLoading, isError, refetch } = useActiveApp()
+  const setActiveAppCode = useAppStore((s) => s.setActiveAppCode)
   const queryClient = useQueryClient()
   const navigate = useNavigate()
 
-  const current = APP_CONFIGS[activeAppCode]
-  const CurrentIcon = APP_ICONS[current?.icon] || LayoutGrid
-
-  const handleSelectApp = (code: string) => {
-    if (code === activeAppCode) return
-    setActiveAppCode(code)
-    queryClient.invalidateQueries({ queryKey: ['menus'] })
-    queryClient.invalidateQueries({ queryKey: ['me'] })
-    navigate(appHome(code))
+  const select = (app: MyApplication) => {
+    if (app.code === activeAppCode) return
+    setActiveAppCode(app.code)
+    // Menu bergantung pada appCode → buang cache agar sidebar tidak sempat
+    // menampilkan menu environment sebelumnya.
+    void queryClient.invalidateQueries({ queryKey: ['menus'] })
+    navigate(appHome(app.code))
   }
 
   return (
@@ -44,36 +50,83 @@ export function AppSwitcher() {
           type="button"
           className="flex h-9 min-w-0 max-w-[280px] items-center gap-2 rounded-md px-2 text-sm outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/40 data-[state=open]:bg-accent"
         >
-          <CurrentIcon className="h-4 w-4 shrink-0 text-primary" />
+          {current ? (
+            <AppLogo app={current} size="md" />
+          ) : (
+            <Loader2 className={cn('size-4 shrink-0 text-muted-foreground', isLoading && 'animate-spin')} />
+          )}
           <span className="truncate font-semibold text-foreground">
-            {current?.name ?? activeAppCode}
+            {current?.name ?? (isLoading ? 'Memuat…' : 'Pilih environment')}
           </span>
           <ChevronsUpDown className="h-4 w-4 shrink-0 text-muted-foreground" />
         </button>
       </DropdownMenuTrigger>
+
       <DropdownMenuContent align="start" className="w-80">
-        <DropdownMenuLabel>Pindah aplikasi</DropdownMenuLabel>
+        <DropdownMenuLabel>Environment</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {Object.entries(APP_CONFIGS).map(([code, config]) => {
-          const Icon = APP_ICONS[config.icon] || LayoutGrid
-          const isSelected = activeAppCode === code
-          return (
-            <DropdownMenuItem
-              key={code}
-              onClick={() => handleSelectApp(code)}
-              className="items-start gap-3 py-2"
+
+        {isLoading && (
+          <div className="flex items-center gap-2 px-2 py-3 text-sm text-muted-foreground">
+            <Loader2 className="size-4 animate-spin" />
+            Memuat…
+          </div>
+        )}
+
+        {!isLoading && isError && (
+          <div className="space-y-2 px-2 py-3 text-sm text-muted-foreground">
+            <p>Gagal memuat daftar environment.</p>
+            <button
+              type="button"
+              onClick={() => void refetch()}
+              className="font-medium text-primary underline underline-offset-2"
             >
-              <Icon className={cn('mt-0.5', isSelected ? 'text-primary' : 'text-muted-foreground')} />
+              Coba lagi
+            </button>
+          </div>
+        )}
+
+        {!isLoading && !isError && allowed.length === 0 && (
+          <div className="px-2 py-3 text-sm text-muted-foreground">
+            Akun ini belum punya akses ke environment mana pun.
+          </div>
+        )}
+
+        {allowed.map((app) => {
+          const selected = app.code === activeAppCode
+          return (
+            <DropdownMenuItem key={app.id} onClick={() => select(app)} className="items-start gap-3 py-2">
+              <AppLogo
+                key={`${app.logoUrl ?? ''}|${app.logoDarkUrl ?? ''}|${app.icon ?? ''}`}
+                app={app}
+                size="lg"
+                className="mt-0.5"
+              />
               <div className="min-w-0 flex-1">
-                <div className="font-medium text-foreground">{config.name}</div>
-                <div className="text-xs leading-snug text-muted-foreground">
-                  {config.description}
-                </div>
+                <div className="truncate font-medium text-foreground">{app.name}</div>
+                {(app.tagline ?? app.description) && (
+                  <div className="line-clamp-2 text-xs leading-snug text-muted-foreground">
+                    {app.tagline ?? app.description}
+                  </div>
+                )}
+                {/* Role yang dipegang di platform ini — inilah yang menentukan
+                    menu apa saja yang muncul di sidebar. */}
+                {app.roles.length > 0 && (
+                  <div className="mt-0.5 truncate text-xs text-muted-foreground">Sebagai: {app.roles.join(', ')}</div>
+                )}
               </div>
-              {isSelected && <Check className="mt-0.5 text-primary" />}
+              {selected && <Check className="mt-1 shrink-0 text-primary" />}
             </DropdownMenuItem>
           )
         })}
+
+        {/* Beranda workspace aktif berguna sebagai jalan pulang dari halaman dalam. */}
+        {home && activeAppCode && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => navigate(home)}>Buka beranda</DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )

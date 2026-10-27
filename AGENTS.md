@@ -16,7 +16,8 @@ Aplikasi ini adalah dashboard frontend internal yang dibangun menggunakan **Reac
 ### B. Aturan Wajib (Rules):
 1. **Multi-Tenancy via `X-App-Code` & App Switcher:** Buka [`.agents/rules/seloko-web-standards.md`](file:///.agents/rules/seloko-web-standards.md)
    - Header `X-App-Code` selalu `seloko` (gateway); konteks aplikasi aktif dikirim lewat query param `appCode` atau path domain.
-   - App Switcher di header secara otomatis mengubah active app code, me-reload menu dinamis (`/api/menus/me`), dan me-reset filter konteks.
+   - App Switcher di header membaca `GET /api/applications/me`, **hanya menampilkan `audience = INTERNAL`** yang punya halaman di repo ini, lalu mengubah active app code, me-reload menu dinamis (`/api/menus/me?appCode=…`), dan berpindah ke beranda workspace tujuan.
+   - Logo aplikasi memakai `logoDarkUrl` → `logoUrl` → `icon` (DB) → ikon netral (`AppLogo`). `code` aplikasi ≠ segmen URL (`lapak-jambi-web` → `/lapak-jambi/…`).
 2. **Kredensial & Autentikasi (JWT + HttpOnly Cookie):**
    - Access token disimpan di in-memory auth state / memory storage.
    - Refresh token disimpan via `HttpOnly Cookie` dari backend (`withCredentials: true` wajib aktif).
@@ -47,9 +48,10 @@ Setiap perubahan struktur, aturan, token desain, alur API, atau keputusan baru d
 ---
 
 ## 🗺️ Roadmap Fitur SELOKO WEB
-1. ⏳ **Inisialisasi Fondasi & App Switcher Architecture** (Vite + TS + Tailwind + Shadcn/UI + Axios Interceptor + Zustand Store).
-2. ⏳ **Halaman Autentikasi Modern** (Login internal ASN/Pegawai, Error handling, Auto refresh session).
-3. ⏳ **Main Dashboard Layout & Dynamic Sidebar** (App Switcher di Header, Hierarchical Tree Menu via `/api/menus/me`, User Profile Dropdown, Dark/Light Mode).
-4. ⏳ **Modul Core Seloko** (Manajemen Pengguna & NIP, Hak Akses Role & Permission, Manajemen Aplikasi, Manajemen Menu).
-5. ⏳ **Modul Domain Bapenda CMS** (UPTD Samsat & Geo-Location Map, Banner Drag-and-Drop Reorder, News / Artikel CMS dengan alur review status).
-6. ⏳ **Integrasi Storage ImageKit** (Komponen Upload File Multipart, Preview Gambar, ImageKit CDN optimization).
+1. ✅ **Inisialisasi Fondasi & App Switcher Architecture** (Vite + TS + Tailwind + Shadcn/UI + Axios Interceptor + Zustand Store).
+2. ✅ **Halaman Autentikasi Modern** (Login internal ASN/Pegawai, Error handling, Auto refresh session).
+3. ✅ **Main Dashboard Layout & Dynamic Sidebar** (App Switcher di Header, Hierarchical Tree Menu via `/api/menus/me`, User Profile Dropdown, Dark/Light Mode).
+4. ✅ **Modul Core Seloko** (Manajemen Pengguna & NIP, Hak Akses Role & Permission, Manajemen Aplikasi, Manajemen Menu).
+5. 🚧 **Modul Domain Bapenda CMS** (Baru daftar berita/kategori/halaman/banner; form editor, alur review, UPTD Samsat & peta belum).
+6. 🚧 **Modul Domain Lapak Jambi CMS** (Baru kerangka rute; endpoint & UI modul belum ada).
+7. 🚧 **Integrasi Storage ImageKit** (Upload multipart + preview logo sudah ada untuk organisasi; komponen belum dipakai luas).

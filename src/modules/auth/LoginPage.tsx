@@ -41,9 +41,11 @@ export function LoginPage() {
       // store, jadi konteks lama di localStorage harus diganti dulu.
       setActiveAppCode(APP_CODES.SELOKO)
       const data = await authService.login({ identity, password })
-      const profile = await authService.getMe()
-      setAuth(data.accessToken, profile)
-      toast.success(`Selamat datang, ${profile.fullName}`)
+      // Respons login SUDAH membawa profil lengkap (`user`). Memanggil `getMe()`
+      // di sini hanya menghasilkan request tanpa token (401 → refresh → retry),
+      // yaitu satu rotasi refresh token tambahan di setiap login.
+      setAuth(data.accessToken, data.user)
+      toast.success(`Selamat datang, ${data.user.fullName}`)
       navigate(appHome(APP_CODES.SELOKO))
     } catch (err: unknown) {
       const axiosErr = err as AxiosError<{ message?: string }>

@@ -3,14 +3,17 @@ import { Link, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { menuService } from '@/services/menu.service'
 import { useAppStore } from '@/stores/app-store'
+import { useActiveApp } from '@/hooks/use-apps'
 import { MenuIcon } from '@/components/shared/MenuIcon'
+import { AppLogo } from '@/components/shared/AppLogo'
 import { ChevronDown, ExternalLink, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { APP_INSTITUTION } from '@/config/constants'
 import type { MenuItemTree } from '@/types'
-// Dipakai hanya bila /api/menus/me gagal. Daftar kosong = user memang tanpa akses.
-const FALLBACK_MENUS: MenuItemTree[] = [
-  { id: 'fb-dashboard', code: 'dashboard', label: 'Dasbor', icon: 'layout-dashboard', path: '/seloko/dashboard', isExternal: false, sortOrder: 0, items: [] },
-]
+// Cadangan bila /menus/me gagal. SENGAJA KOSONG: menu setiap aplikasi berasal
+// dari DB (tiap aplikasi punya sidebar sendiri). Fallback berisi menu SELOKO
+// akan menampilkan menu yang salah saat aplikasi lain sedang aktif.
+const FALLBACK_MENUS: MenuItemTree[] = []
 
 // Layar < md: sidebar jadi drawer (tersembunyi, dibuka dari tombol menu di Header).
 const narrowQuery = '(max-width: 767px)'
@@ -142,7 +145,11 @@ function SidebarNavItem({ item, activePath, collapsed, onExpand }: NavItemProps)
 
 export function Sidebar() {
   const location = useLocation()
-  const { activeAppCode, sidebarCollapsed, toggleSidebar, mobileNavOpen, setMobileNavOpen } = useAppStore()
+  const { sidebarCollapsed, toggleSidebar, mobileNavOpen, setMobileNavOpen } = useAppStore()
+  // Environment terkoreksi: hanya yang boleh diakses akun ini. Sidebar WAJIB
+  // memakai ini, bukan nilai mentah store, agar tidak meminta menu platform
+  // yang tidak diizinkan (hasilnya kosong / 403).
+  const { activeAppCode, current } = useActiveApp()
   const isNarrow = useIsNarrow()
   // Drawer mobile selalu lebar penuh (label terlihat).
   const collapsed = sidebarCollapsed && !isNarrow
@@ -163,7 +170,13 @@ export function Sidebar() {
 
   const { data: menus, isLoading, isError } = useQuery({
     queryKey: ['menus', activeAppCode],
-    queryFn: menuService.getMyMenus,
+    // appCode diambil dari queryKey, bukan dari store di dalam queryFn: kalau
+    // store dibaca langsung, respons untuk app lama bisa masuk ke cache key app
+    // baru saat pengguna berganti environment dengan cepat.
+    queryFn: () => menuService.getMyMenus(activeAppCode),
+    // Jangan minta menu sebelum environment diketahui — null akan dikirim
+    // sebagai appCode kosong dan server membalas 400.
+    enabled: !!activeAppCode,
     retry: 1,
   })
 
@@ -194,15 +207,22 @@ export function Sidebar() {
           collapsed ? 'justify-center' : 'px-4',
         )}
       >
-        <img
-          src="/Assets/images/LOGO%20SELOKO%20S.png"
-          alt="Seloko"
-          className="h-8 w-8 shrink-0 object-contain"
-        />
+        {/* Identitas = environment AKTIF, bukan selalu Seloko: satu super app,
+            sidebar berganti isi saat App Switcher dipakai. Logo berasal dari
+            /applications/me (fallback ikon DB → kotak netral). */}
+        {current ? (
+          <AppLogo
+            key={`${current.logoUrl ?? ''}|${current.logoDarkUrl ?? ''}|${current.icon ?? ''}`}
+            app={current}
+            size="lg"
+          />
+        ) : (
+          <img src="/Assets/images/LOGO%20SELOKO%20S.png" alt="" className="h-8 w-8 shrink-0 object-contain" />
+        )}
         {!collapsed && (
           <div className="min-w-0 leading-tight">
-            <div className="text-sm font-bold tracking-wide text-white">SELOKO</div>
-            <div className="truncate text-xs text-sidebar-foreground">BPKPD Provinsi Jambi</div>
+            <div className="truncate text-sm font-bold tracking-wide text-white">{current?.name ?? 'SELOKO'}</div>
+            <div className="truncate text-xs text-sidebar-foreground">{APP_INSTITUTION}</div>
           </div>
         )}
       </div>

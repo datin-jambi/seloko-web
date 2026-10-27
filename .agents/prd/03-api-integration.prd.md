@@ -55,7 +55,41 @@ Error (dari `setErrorHandler` `../seloko-api/src/app.ts`): `{ statusCode, code, 
 * Permission: `POST /permissions` (kode + nama + modul), `PATCH /permissions/:id` (hanya nama/modul), `DELETE`. `code` dan `applicationId` terkunci: kode dipakai literal di `requirePermission(...)`. Hapus permission mencabutnya dari sekian role dan membuka menu yang memakainya.
 * Tombol create/update/delete role & permission digate permission `role:create|update|delete` dan `permission:create|update|delete` (superadmin lolos semua) — sama seperti di tab detail aplikasi.
 
-### 4b. Organisasi (OPD / Unit Kerja)
+### 4d. Super App: Environment INTERNAL & Sidebar per Platform
+
+SELOKO web adalah **super app**: satu login, satu aplikasi React, untuk mengelola **semua platform**. Berpindah environment **hanya mengganti daftar menu sidebar** — halaman yang sedang dibuka TIDAK berpindah.
+
+* **Hanya aplikasi ber-audience `INTERNAL` yang tampil.** Situs publik adalah produk untuk warga dan TIDAK masuk switcher. Filter ada di `useActiveApp()`: `apps.filter(a => a.audience === 'INTERNAL' && hasCmsRoute(a.code))`.
+* **Setiap platform punya pasangan aplikasi** — jangan tertukar. Nilai di bawah adalah `code` **nyata** di DB (`prisma/seeds/core/applications.json`):
+  | Platform | Aplikasi CMS (INTERNAL) | Situs publik (PUBLIC) |
+  |---|---|---|
+  | Core | `seloko` | — |
+  | Bapenda | `bapenda-profile` | `bapenda-portal` |
+  | Lapak | `lapak-jambi-web` | `lapak-jambi-app` |
+
+  Penamaan menyesatkan tetapi mengikat: **`bapenda-profile` adalah CMS**, padanan publiknya `bapenda-portal`; **`lapak-jambi-web` adalah CMS**, padanan publiknya `lapak-jambi-app`. Konstanta di `src/config/constants.ts` (`APP_CODES`) harus sama persis — salah satu huruf saja membuat aplikasi hilang dari switcher karena pencocokan `code` gagal.
+* **Code aplikasi ≠ segmen URL.** `lapak-jambi-web` dirender di `/lapak-jambi/…` (mengikuti menu DB) dan `/lapak/…` (alias); `bapenda-profile` di `/bapenda/…`. Pemetaan app → segmen ada di `APP_WORKSPACE`/`appWorkspace()`. Memakai `code` sebagai segmen membuat sidebar meminta `/menus/me?appCode=lapak` — aplikasi itu tidak ada, server 404, sidebar kosong.
+  Menu CMS **harus** menempel di aplikasi INTERNAL. Bila menempel di aplikasi PUBLIC, sidebar CMS jadi kosong (`/menus/me?appCode=<cms>` mengembalikan 0 item).
+* **Sumber daftar: `GET /applications/me`** (tanpa `requirePermission`, isinya milik pemanggil). Endpoint ini mengembalikan `audience` — dibutuhkan untuk memisahkan CMS dari situs publik. **JANGAN pakai `GET /applications`** (menuntut `application:list` → admin OPD 403).
+* **Korelasi akun → environment.** Daftar sudah tersaring server berdasarkan **role & permission** akun. Akun tanpa role di suatu platform tidak pernah melihat environment itu (Admin Seloko → 1; Editor Bapenda → Bapenda saja; superadmin → semua CMS).
+* **`activeAppCode` di store hanyalah preferensi.** Satu browser dipakai bergantian akun; `useActiveApp()` mengoreksi ke environment sah saat render (bukan `useEffect`) agar tidak berkedip.
+* **`DashboardLayout` membaca prefix URL setiap kali path berubah.** Aman karena App Switcher memang memindahkan halaman ke beranda workspace tujuan (`appHome(code)` → `/<workspace>/dashboard`). Berpindah environment tanpa memindahkan halaman mempertahankan path berprefix workspace lama → 404. Bila prefix URL menunjuk aplikasi yang tidak boleh dipakai akun, layout merender `ForbiddenPage`, bukan sidebar kosong.
+* **`FALLBACK_MENUS` sengaja kosong**; sidebar & dasbor memakai `activeAppCode` hasil `useActiveApp`, dengan `enabled: !!activeAppCode` pada query menu.
+* **`baseUrl` = alamat situs publik**, BUKAN tujuan CMS. Jangan dipakai memutuskan "punya halaman di sini".
+* Prefix path menu (`/bapenda/...`, `/lapak-jambi/...`, `/lapak/...`) harus punya `<Route>` di `App.tsx`; tanpa itu menu bisa diklik tapi 404. Daftar rute yang dihasilkan program ditulis sebagai array yang di-*spread* (mis. `lapakRoutes`), BUKAN komponen — `<Routes>` hanya menerima `<Route>`/Fragment.
+
+### 4f. Logo & Ikon Aplikasi (App Switcher)
+
+`GET /applications/me` mengirim `logoUrl`, `logoDarkUrl`, `faviconUrl`, dan `icon` (nama ikon Lucide, mis. `building-2`).
+
+* **Rantai fallback wajib** (`src/components/shared/AppLogo.tsx`): `logoDarkUrl` (tema gelap) → `logoUrl` → `icon` dari DB → `LayoutGrid` netral. Gambar resmi selalu menang; ikon dipakai bila logo belum diunggah.
+* **URL mati harus turun ke ikon, bukan kotak kosong.** `logoUrl` hanya string di DB, jadi CDN pindah/berkas dihapus tidak terdeteksi API. `AppLogo` mencatat kegagalan muat per-`src` di state lalu merender ulang rantai fallback. Jangan sekadar mengembalikan `null` di `onError` tanpa eskalasi — hasilnya area kosong.
+* **JANGAN menebak ikon dari `code`.** Peta per-kode (perilaku lama `AppMark`) tidak mengenal aplikasi baru dan mencampur kode INTERNAL dengan PUBLIC. Penanda ringkas di tabel (`AppMark`) juga memakai `icon` dari DB.
+* Varian terang/gelap dirender bersamaan lalu dipilih CSS (`dark:hidden` / `hidden dark:block`), bukan `document.documentElement` — supaya reaktif terhadap `ThemeToggle`.
+* Identitas di kepala Sidebar memakai aplikasi **aktif** (logo + nama dari API), bukan hardcode "SELOKO": satu super app, sidebar berganti isi.
+* Ikon yang dipakai seeder (`applications.json` & `menus.json`, mis. `globe`, `store`, `layout-dashboard`, `building-2`) wajib terdaftar di `MENU_ICONS` (`src/config/menu-icons.ts`); nama tak dikenal tampil sebagai lingkaran kosong.
+
+### 4e. Organisasi (OPD / Unit Kerja)
 
 Rute `/seloko/organisasi` (+ `/:id`). Modul: `src/modules/core/organizations/`.
 
@@ -128,4 +162,5 @@ data: {
 
 * Sub-menu ada di `items` (bukan `children`). `menuService.getMyMenus()` mengembalikan `data.menus`.
 * Daftar kosong = user tidak punya akses di app itu; tampilkan kosong, jangan diganti menu karangan. Menu cadangan (`FALLBACK_MENUS` di `Sidebar.tsx`) hanya saat request gagal.
-* `icon` adalah nama ikon Lucide kebab-case. Setiap ikon yang dipakai seeder `../seloko-api/prisma/seeds/core/menus.json` wajib ada di `ICON_MAP` `src/components/layout/Sidebar.tsx`; yang tidak terdaftar tampil sebagai lingkaran kosong.
+* `icon` adalah nama ikon Lucide kebab-case. Setiap ikon yang dipakai seeder `../seloko-api/prisma/seeds/core/menus.json` wajib ada di `MENU_ICONS` (`src/config/menu-icons.ts`) — satu sumber untuk `MenuIcon`, `AppLogo`, dan dropdown pemilihan ikon di form menu. Yang tidak terdaftar tampil sebagai lingkaran kosong.
+* `menuService.getMyMenus(appCode)` menerima `appCode` sebagai ARGUMEN; jangan membaca store di dalam `queryFn` — nilai itu harus sama dengan `queryKey` (`['menus', appCode]`) agar respons tidak masuk cache environment yang salah saat pengguna berganti cepat.

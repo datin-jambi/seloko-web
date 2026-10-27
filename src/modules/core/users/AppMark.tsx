@@ -1,27 +1,39 @@
-import { Building2, LayoutGrid, Shield, Smartphone, Store } from 'lucide-react'
+import { LayoutGrid } from 'lucide-react'
+import { MenuIcon } from '@/components/shared/MenuIcon'
 import { cn } from '@/lib/utils'
 
-// Penanda aplikasi: ikon + warna per kode app. Kode tak dikenal → ikon grid netral.
-// Warna memakai token tema (primary) atau palet Tailwind yang sama dengan badge, tanpa gradien.
-const MARKS: Record<string, { Icon: typeof Shield; className: string }> = {
-  seloko: { Icon: Shield, className: 'bg-blue-500/15 text-blue-700 dark:bg-blue-400/25 dark:text-blue-100' },
-  'bapenda-profile': { Icon: Building2, className: 'bg-sky-500/15 text-sky-700 dark:bg-sky-400/20 dark:text-sky-200' },
-  'lapak-jambi-web': { Icon: Store, className: 'bg-emerald-500/15 text-emerald-700 dark:bg-emerald-400/20 dark:text-emerald-200' },
-  'lapak-jambi-app': { Icon: Smartphone, className: 'bg-emerald-500/15 text-emerald-700 dark:bg-emerald-400/20 dark:text-emerald-200' },
+/**
+ * Penanda aplikasi ringkas (ikon di dalam kotak berwarna) untuk daftar/tabel.
+ *
+ * Sumbernya `icon` dari DB (nama ikon Lucide), BUKAN peta per-kode seperti
+ * sebelumnya: peta itu tidak mengenal aplikasi baru dan mencampur kode PUBLIK
+ * dengan INTERNAL. Untuk tampilan yang butuh LOGO asli, pakai `AppLogo`.
+ */
+const TONE: Record<string, string> = {
+  seloko: 'bg-primary/10 text-primary',
+  'bapenda-profile': 'bg-muted text-foreground',
+  'lapak-jambi-web': 'bg-muted text-foreground',
 }
 
-export function AppMark({ code, size = 'md' }: { code: string; size?: 'sm' | 'md' }) {
-  const m = MARKS[code] ?? { Icon: LayoutGrid, className: 'bg-muted text-muted-foreground' }
+export function AppMark({
+  code,
+  icon,
+  size = 'md',
+}: {
+  code: string
+  icon?: string | null
+  size?: 'sm' | 'md'
+}) {
   return (
     <span
       aria-hidden
       className={cn(
         'flex shrink-0 items-center justify-center rounded-md',
         size === 'sm' ? 'size-6 [&_svg]:size-3.5' : 'size-8 [&_svg]:size-4',
-        m.className,
+        TONE[code] ?? 'bg-muted text-muted-foreground',
       )}
     >
-      <m.Icon />
+      {icon ? <MenuIcon name={icon} className={size === 'sm' ? 'size-3.5' : 'size-4'} /> : <LayoutGrid />}
     </span>
   )
 }

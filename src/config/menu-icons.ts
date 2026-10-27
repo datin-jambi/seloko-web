@@ -9,6 +9,7 @@ import {
   FileDown,
   FileText,
   FolderTree,
+  Globe,
   Handshake,
   House,
   Image,
@@ -17,6 +18,7 @@ import {
   Layers,
   LayoutDashboard,
   LayoutGrid,
+  ListTree,
   MapPin,
   Newspaper,
   Package,
@@ -36,12 +38,15 @@ import {
 } from 'lucide-react'
 
 /**
- * Nama ikon Lucide yang dikenali sidebar. Nilai `menuItem.icon` adalah nama ini
- * (disimpan sebagai string di DB, bukan komponen).
+ * Nama ikon Lucide yang dikenali sidebar. Nilai `menuItem.icon` / `application.icon`
+ * adalah nama ini (disimpan sebagai string di DB, bukan komponen).
  *
- * Satu sumber untuk dua pemakai: `Sidebar` (merender) dan form menu (memilih),
- * supaya operator tidak bisa memilih ikon yang tidak akan pernah muncul.
- * Ikon tak dikenal → `Circle` sebagai penanda netral.
+ * Satu sumber untuk dua pemakai: `MenuIcon` (merender menu & ikon aplikasi) dan
+ * form menu (memilih), supaya operator tidak bisa memilih ikon yang tidak akan
+ * pernah muncul. Ikon tak dikenal → `Circle` sebagai penanda netral.
+ *
+ * Setiap nama yang dipakai seeder (`../seloko-api/prisma/seeds/core/menus.json`
+ * & `applications.json`) WAJIB terdaftar di sini.
  */
 export const MENU_ICONS: Record<string, ElementType> = {
   'layout-dashboard': LayoutDashboard,
@@ -54,10 +59,12 @@ export const MENU_ICONS: Record<string, ElementType> = {
   key: Key,
   settings: Settings,
   'layout-grid': LayoutGrid,
-  'list-tree': FolderTree,
+  'list-tree': ListTree,
+  'list-tree-x': FolderTree,
   'scroll-text': FileText,
   'external-link': ExternalLink,
   'building-2': Building2,
+  globe: Globe,
   newspaper: Newspaper,
   send: Send,
   tags: Tags,

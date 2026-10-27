@@ -1,35 +1,57 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { ChevronRight } from 'lucide-react'
 import { menuService } from '@/services/menu.service'
-import { useAppStore } from '@/stores/app-store'
 import { useAuthStore } from '@/stores/auth-store'
-import { APP_CONFIGS } from '@/config/constants'
+import { useActiveApp } from '@/hooks/use-apps'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { EmptyState } from '@/components/shared/EmptyState'
 import type { MenuItemTree } from '@/types'
 
-// Dasbor tiap aplikasi: pintasan ke menu yang memang boleh diakses user (dari /menus/me).
+/**
+ * Beranda tiap environment. Isinya pintasan ke menu yang memang boleh diakses
+ * user (dari `/menus/me`), bukan metrik karangan — super app ini tidak punya
+ * data statistik sendiri.
+ */
 export function DashboardPage() {
-  const activeAppCode = useAppStore((s) => s.activeAppCode)
+  const { activeAppCode, current: app } = useActiveApp()
   const user = useAuthStore((s) => s.user)
-  const { data: menus } = useQuery({ queryKey: ['menus', activeAppCode], queryFn: menuService.getMyMenus })
+  const { pathname } = useLocation()
+  const menusQuery = useQuery({
+    queryKey: ['menus', activeAppCode],
+    queryFn: () => menuService.getMyMenus(activeAppCode),
+    enabled: !!activeAppCode,
+  })
 
-  const groups = (menus ?? []).filter((m) => m.items.length > 0)
-  const app = APP_CONFIGS[activeAppCode]
+  // Menu yang menunjuk halaman ini sendiri ("Dashboard") dibuang: pintasan ke
+  // beranda yang sedang dibuka tidak berguna dan tampil sebagai grup aneh.
+  const menus = (menusQuery.data ?? []).filter((m) => m.path !== pathname)
+  // Menu tingkat atas tanpa anak tetap ditampilkan (mis. portal publik hanya
+  // punya satu menu datar); tanpa ini beranda tampak kosong padahal ada akses.
+  const groups = menus.filter((m) => m.items.length > 0)
+  const leaves = menus.filter((m) => m.items.length === 0)
 
   return (
     <>
       <PageHeader
-        title={`Dasbor ${app?.name ?? ''}`.trim()}
-        description={user ? `Selamat datang, ${user.fullName}.` : undefined}
+        title={app ? `Dasbor ${app.name}` : 'Dasbor'}
+        description={app?.tagline ?? app?.description ?? (user ? `Selamat datang, ${user.fullName}.` : undefined)}
       />
+
+      {!menusQuery.isPending && groups.length === 0 && leaves.length === 0 && (
+        <EmptyState
+          title="Belum ada menu untuk environment ini"
+          description="Akun Anda belum punya role aktif di aplikasi ini, atau admin belum menambahkan menu."
+        />
+      )}
+
       <div className="grid gap-x-8 gap-y-6 md:grid-cols-2 xl:grid-cols-3">
-        {groups.map((g) => (
-          <section key={g.id}>
+        {[...groups, ...leaves].map((g) => (
+          <section key={g.id || g.code}>
             <h2 className="mb-2 text-sm font-semibold">{g.label}</h2>
             <ul className="divide-y divide-border rounded-lg border border-border bg-card">
-              {g.items.map((item) => (
-                <ShortcutRow key={item.id} item={item} />
+              {(g.items.length > 0 ? g.items : [g]).map((item) => (
+                <ShortcutRow key={item.id || item.code} item={item} />
               ))}
             </ul>
           </section>
