@@ -44,7 +44,7 @@ src/
 │   ├── ui/          # Komponen dasar shadcn (Button, Dialog, Card, Input, dll.)
 │   ├── layout/      # Sidebar, Header, AppSwitcher, DashboardLayout
 │   └── shared/      # Pakai ulang: PageHeader, DataTable, RowActions, ConfirmDialog, FormField, SearchBar, PendingApiPage, TopLoader, AppLogo, IconAction, IconPicker, ImageUpload, ListPagination
-├── config/          # APP_CODES, APP_WORKSPACE (app ↔ segmen URL), menu-icons, env
+├── config/          # APP_CODES, APP_WORKSPACE (app ↔ segmen URL), WORKSPACE_ALIAS (lapak-jambi → lapak), menu-icons, env
 ├── hooks/           # Custom React hooks (use-list: fetch list — page/search/filter/sort di URL)
 ├── lib/             # Helper murni (utils, axios instance, formatters, query-keys)
 ├── modules/         # Fitur per domain
@@ -56,7 +56,8 @@ src/
 │   │   ├── users/   # UsersPage, UserDetailPage, UserCreatePage, UserEditPage, UserRolesCard, AppMark, AppCount, AccountTypeBadge, use-user-actions, user-form
 │   │   ├── organizations/ # OrganizationsPage, OrganizationDetailPage, OrganizationFormDialog, OrganizationChildrenCard, OrganizationParentCard, organization-form, organization-paths
 │   │   └── menus/   # MenusPage (inventaris + filter aplikasi/induk/status)
-│   └── bapenda/     # pages.tsx: berita, review, kategori, halaman, banner
+│   ├── bapenda/     # pages.tsx: berita, review, kategori, halaman, banner
+│   └── lapak/       # LapakOpdPage (tabel OPD) + LapakOpdDetailPage, lapak-access (role admin/superadmin Lapak), use-opd-list, lapak-paths
 ├── services/        # API service layer (auth.service, menu.service, storage.service, dll.)
 ├── stores/          # Zustand store (authStore, appStore, themeStore)
 ├── types/           # DTO: index.ts (umum), core.ts, bapenda.ts
@@ -86,6 +87,14 @@ Aturan:
 2. Invalidasi memakai `*.all` (prefix) agar semua varian ikut tersegarkan.
 3. Mutasi yang mengubah **angka ringkasan** (mis. jumlah menu) juga harus meng-invalidate detail entitas induknya, karena `counts.*` berasal dari `GET /applications/:id`.
 4. Verifikasi dengan `npm run check:invalidation` (menguji perilaku nyata di browser, bukan kompilasi).
+
+---
+
+## 4c. Workspace dari URL — Alias Segmen
+
+`appCodeFromPath()` (`src/config/constants.ts`) menentukan aplikasi mana yang menyala dari segmen pertama URL. **Segmen tidak selalu sama dengan nama workspace**: menu Lapak di DB menunjuk `/lapak-jambi/…`, sedangkan workspace-nya `lapak`. Karena itu ada `WORKSPACE_ALIAS` (`lapak-jambi` → `lapak`).
+
+Gejala bila alias hilang: halaman tampil normal tetapi **sidebar tetap milik aplikasi sebelumnya** (biasanya Seloko), karena `appCodeFromPath` mengembalikan `null` dan `DashboardLayout` tidak menyinkronkan store. Saat menambah prefix rute baru, selalu periksa apakah segmennya sudah dikenali fungsi ini.
 
 ---
 

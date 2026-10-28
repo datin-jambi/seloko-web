@@ -54,6 +54,15 @@ const APP_OF_WORKSPACE: Record<Workspace, string> = {
 
 const segment = (path: string) => path.split('/')[1] ?? ''
 
+/**
+ * Alias segmen URL → workspace. Menu Lapak di DB menunjuk `/lapak-jambi/…`
+ * (lihat `prisma/seeds/core/menus.json`), sedangkan workspace-nya bernama
+ * `lapak`. Tanpa alias ini, membuka `/lapak-jambi/opd` membuat URL tidak
+ * dikenali sebagai workspace mana pun sehingga sidebar tetap memakai aplikasi
+ * sebelumnya (biasanya Seloko).
+ */
+const WORKSPACE_ALIAS: Record<string, Workspace> = { 'lapak-jambi': 'lapak' }
+
 /** Workspace milik sebuah aplikasi, atau `null` bila halamannya tidak ada di sini. */
 export const appWorkspace = (code: string): Workspace | null => APP_WORKSPACE[code] ?? null
 
@@ -76,9 +85,10 @@ export const appHome = (code: string) => {
   return ws ? workspaceHome(ws) : DEFAULT_HOME
 }
 
-/** Kode aplikasi dari prefix URL (`/lapak/produk` → `lapak-jambi-web`). */
+/** Kode aplikasi dari prefix URL (`/lapak/produk` → `lapak-jambi-web`, `/lapak-jambi/opd` → sama). */
 export const appCodeFromPath = (pathname: string) => {
-  const ws = segment(pathname) as Workspace
+  const raw = segment(pathname)
+  const ws = (WORKSPACE_ALIAS[raw] ?? raw) as Workspace
   return WORKSPACES.includes(ws) ? APP_OF_WORKSPACE[ws] : null
 }
 

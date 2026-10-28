@@ -58,4 +58,6 @@ export const userKeys = {
 export const organizationKeys = {
   all: ['organizations'] as const,
   detail: (id: string) => ['organizations', 'detail', id] as const,
+  /** Daftar publik (cukup login) — dipakai direktori OPD di aplikasi lain. */
+  public: ['organizations', 'public'] as const,
 }

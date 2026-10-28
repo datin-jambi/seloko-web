@@ -24,6 +24,8 @@ import {
   PagesPage,
 } from '@/modules/bapenda/pages'
 import { PendingApiPage } from '@/components/shared/PendingApiPage'
+import { LapakOpdPage } from '@/modules/lapak/LapakOpdPage'
+import { LapakOpdDetailPage } from '@/modules/lapak/LapakOpdDetailPage'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { NotFoundPage } from '@/components/shared/NotFoundPage'
 import { TopLoader } from '@/components/shared/TopLoader'
@@ -55,7 +57,6 @@ const pending = (title: string, note: string) => <PendingApiPage title={title} n
 
 /** Halaman Lapak yang endpoint/UI-nya belum ada — didaftarkan di dua prefix. */
 const LAPAK_PENDING: [string, string][] = [
-  ['opd', 'belum ada endpoint API'],
   ['objek-retribusi', 'belum ada endpoint API'],
   ['kategori', 'modul lapak belum ada'],
   ['pengaturan-skrd', 'modul skrd belum ada'],
@@ -147,6 +148,13 @@ export function App() {
 
                   {/* ── Lapak Jambi CMS (aplikasi `lapak-jambi-web`) ──────── */}
                   {lapakRoutes}
+                  {/* Direktori OPD: data dari master Organisasi Seloko, khusus jenis OPD. */}
+                  {LAPAK_PREFIXES.map((base) => (
+                    <Route key={`${base}/opd`} path={`${base}/opd`} element={<LapakOpdPage />} />
+                  ))}
+                  {LAPAK_PREFIXES.map((base) => (
+                    <Route key={`${base}/opd/:code`} path={`${base}/opd/:code`} element={<LapakOpdDetailPage />} />
+                  ))}
                   <Route path="/lapak-jambi/berita" element={<NewsPage />} />
                   <Route path="/lapak/berita" element={<NewsPage />} />
 

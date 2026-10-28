@@ -21,6 +21,14 @@ export const organizationService = {
       (o) => o.isActive,
     ),
 
+  /**
+   * Profil satu OPD berdasarkan KODE (bukan id) — `GET /organizations/public/:code`.
+   * Tanpa permission, jadi aman dipakai aplikasi lain (mis. detail OPD di Lapak).
+   */
+  publicByCode: async (code: string) =>
+    (await apiClient.get<ApiResponse<OrganizationListItem>>(`/organizations/public/${encodeURIComponent(code)}`)).data
+      .data,
+
   // ── CMS (master OPD) ───────────────────────────────────────────────────────
   list: async (params?: Record<string, string>) =>
     (await apiClient.get<ApiResponse<OrganizationListItem[]>>('/organizations', { params })).data,
