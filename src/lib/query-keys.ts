@@ -50,6 +50,8 @@ export const permissionKeys = {
 export const userKeys = {
   all: ['users'] as const,
   detail: (id: string) => ['users', id] as const,
+  /** Pengguna yang punya akses ke satu aplikasi (dihitung di klien dari /users). */
+  byApp: (appId: string) => ['users', 'by-app', appId] as const,
 }
 
 /** Organisasi / OPD. */

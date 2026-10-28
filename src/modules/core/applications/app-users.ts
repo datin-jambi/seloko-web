@@ -1,4 +1,5 @@
 import { apiClient } from '@/lib/api-client'
+import { userKeys } from '@/lib/query-keys'
 import type { UserListItem } from '@/types/core'
 
 // GET /users belum punya filter applicationId, jadi daftar diambil lalu disaring di browser.
@@ -15,7 +16,7 @@ export type AppUsersData = {
 }
 
 /** Kunci cache bersama: tab "Pengguna" dan kartunya memakai satu permintaan yang sama. */
-export const appUsersKey = (appId: string) => ['/users', 'by-app', appId]
+export const appUsersKey = userKeys.byApp
 
 export async function fetchAppUsers(appId: string): Promise<AppUsersData> {
   const first = await apiClient.get<{ data: UserListItem[]; meta?: { totalPages?: number } }>('/users', {

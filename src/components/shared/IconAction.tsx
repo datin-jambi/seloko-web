@@ -1,4 +1,5 @@
 import type { LucideIcon } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
@@ -31,6 +32,8 @@ interface IconActionProps {
   tone?: IconActionTone
   onClick?: () => void
   disabled?: boolean
+  /** Bila diisi, komponen dirender sebagai tautan (`<a>`), bukan tombol. */
+  to?: string
   className?: string
 }
 
@@ -38,19 +41,23 @@ interface IconActionProps {
  * Tombol aksi ikon + tooltip (Radix/shadcn `Tooltip`).
  *
  * Ikon saja tanpa keterangan hanya bisa ditebak; tooltip memberi nama aksinya
- * saat hover DAN saat fokus keyboard (trigger = button asli). `label` wajib,
+ * saat hover DAN saat fokus keyboard (trigger = elemen asli). `label` wajib,
  * jadi tombol tanpa keterangan tidak mungkin dibuat lewat komponen ini.
+ *
+ * `to` dipakai untuk aksi yang berpindah halaman (mis. "Atur role") supaya
+ * tetap satu pola visual dengan aksi lain di baris yang sama.
  */
-export function IconAction({ icon: Icon, label, tone = 'neutral', onClick, disabled, className }: IconActionProps) {
-  const button = (
-    <Button
-      variant="ghost"
-      size="icon-sm"
-      aria-label={label}
-      onClick={onClick}
-      disabled={disabled}
-      className={cn(TONES[tone], className)}
-    >
+export function IconAction({ icon: Icon, label, tone = 'neutral', onClick, disabled, to, className }: IconActionProps) {
+  const classes = cn(TONES[tone], className)
+
+  const trigger = to ? (
+    <Button variant="ghost" size="icon-sm" asChild className={classes}>
+      <Link to={to} aria-label={label}>
+        <Icon />
+      </Link>
+    </Button>
+  ) : (
+    <Button variant="ghost" size="icon-sm" aria-label={label} onClick={onClick} disabled={disabled} className={classes}>
       <Icon />
     </Button>
   )
@@ -60,7 +67,7 @@ export function IconAction({ icon: Icon, label, tone = 'neutral', onClick, disab
       {/* Tombol ber-`disabled` mendapat `pointer-events-none`, sehingga hover tidak
           pernah sampai ke trigger dan tooltip tak muncul. Pembungkus span membuat
           tooltip tetap terbuka saat kursor di atas tombol yang sedang tidak bisa dipakai. */}
-      <TooltipTrigger asChild>{disabled ? <span className="inline-flex">{button}</span> : button}</TooltipTrigger>
+      <TooltipTrigger asChild>{disabled && !to ? <span className="inline-flex">{trigger}</span> : trigger}</TooltipTrigger>
       <TooltipContent>{label}</TooltipContent>
     </Tooltip>
   )
