@@ -43,7 +43,7 @@ src/
 ├── components/      # Komponen UI
 │   ├── ui/          # Komponen dasar shadcn (Button, Dialog, Card, Input, dll.)
 │   ├── layout/      # Sidebar, Header, AppSwitcher, DashboardLayout
-│   └── shared/      # Pakai ulang: PageHeader, DataTable, RowActions, ConfirmDialog, FormField, SearchBar, PendingApiPage, TopLoader, AppLogo, IconAction, IconPicker, ImageUpload
+│   └── shared/      # Pakai ulang: PageHeader, DataTable, RowActions, ConfirmDialog, FormField, SearchBar, PendingApiPage, TopLoader, AppLogo, IconAction, IconPicker, ImageUpload, ListPagination
 ├── config/          # APP_CODES, APP_WORKSPACE (app ↔ segmen URL), menu-icons, env
 ├── hooks/           # Custom React hooks (use-list: fetch list — page/search/filter/sort di URL)
 ├── lib/             # Helper murni (utils, axios instance, formatters)
