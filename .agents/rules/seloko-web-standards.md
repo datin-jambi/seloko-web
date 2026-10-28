@@ -46,7 +46,7 @@ src/
 │   └── shared/      # Pakai ulang: PageHeader, DataTable, RowActions, ConfirmDialog, FormField, SearchBar, PendingApiPage, TopLoader, AppLogo, IconAction, IconPicker, ImageUpload, ListPagination
 ├── config/          # APP_CODES, APP_WORKSPACE (app ↔ segmen URL), menu-icons, env
 ├── hooks/           # Custom React hooks (use-list: fetch list — page/search/filter/sort di URL)
-├── lib/             # Helper murni (utils, axios instance, formatters)
+├── lib/             # Helper murni (utils, axios instance, formatters, query-keys)
 ├── modules/         # Fitur per domain
 │   ├── auth/        # Login page, auth guard
 │   ├── core/        # DashboardPage (semua app) + pages.tsx (barrel re-export)

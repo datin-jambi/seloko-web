@@ -2,12 +2,11 @@ import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import {
-  ArrowDown,
-  ArrowUp,
   ChevronDown,
   ChevronRight,
   ExternalLink,
   FolderTree,
+  GripVertical,
   ListTree,
   Pencil,
   Plus,
@@ -30,7 +29,8 @@ import { applicationKeys, menuKeys } from '@/lib/query-keys'
 import { MenuIcon } from '@/components/shared/MenuIcon'
 import type { ApplicationDetail, MenuCmsNode } from '@/types/core'
 import { MenuFormDialog } from './MenuFormDialog'
-import { buildTree, flattenForReorder, moveWithinSiblings, type Tree } from './menu-tree'
+import { buildTree, flattenForReorder, reorderWithinParent, type DropPosition, type Tree } from './menu-tree'
+import { MenuTreeDnd, SortableRow } from './MenuTreeDnd'
 
 type Pending = { kind: 'toggle' | 'delete'; node: MenuCmsNode } | null
 type Form = { open: boolean; node: MenuCmsNode | null; parentId: string | null }
@@ -41,7 +41,10 @@ interface MenuActions {
   busy: boolean
   collapsed: Set<string>
   onToggleCollapse: (id: string) => void
-  onMove: (node: MenuCmsNode, direction: -1 | 1) => void
+  /** Simpan hasil drag: urutkan ulang `activeId` relatif terhadap `overId`. */
+  onReorder: (activeId: string, overId: string, position: DropPosition) => void
+  /** Seret antar-tingkat ditolak (perubahan induk lewat form Ubah). */
+  onRejectDrop: (activeId: string) => void
   onAddChild: (node: MenuCmsNode) => void
   onEdit: (node: MenuCmsNode) => void
   onToggleActive: (node: MenuCmsNode) => void
@@ -128,9 +131,18 @@ export function AppMenusCard({ app }: { app: ApplicationDetail }) {
         else next.add(id)
         return next
       }),
-    onMove: (node, direction) => {
+    onReorder: (activeId, overId, position) => {
       if (reorder.isPending) return
-      reorder.mutate(moveWithinSiblings(tree, node.id, direction))
+      // `reorderWithinParent` mengembalikan null untuk gerakan tidak sah
+      // (mis. antar-tingkat) — jangan kirim apa pun ke API.
+      const next = reorderWithinParent(tree, activeId, overId, position)
+      if (next) reorder.mutate(next)
+    },
+    onRejectDrop: (activeId) => {
+      const label = findNode(tree, activeId)?.label ?? 'Menu'
+      toast.info(`${label} hanya bisa diurutkan di tingkatnya sendiri`, {
+        description: 'Untuk memindahkan ke induk lain, pakai tombol Ubah → Induk menu.',
+      })
     },
     onAddChild: (node) => setForm({ open: true, node: null, parentId: node.id }),
     onEdit: (node) => setForm({ open: true, node, parentId: null }),
@@ -174,17 +186,18 @@ export function AppMenusCard({ app }: { app: ApplicationDetail }) {
           </p>
         </div>
       ) : (
-        <ul className="space-y-3 p-3">
-          {tree.map((node, index) => (
-            <MenuGroup
-              key={node.id}
-              node={node}
-              actions={actions}
-              isFirst={index === 0}
-              isLast={index === tree.length - 1}
-            />
-          ))}
-        </ul>
+        <MenuTreeDnd
+          tree={tree}
+          enabled={canUpdate && !busy && app.isActive}
+          onReorder={actions.onReorder}
+          onRejected={(activeId) => actions.onRejectDrop(activeId)}
+        >
+          <ul className="space-y-3 p-3">
+            {tree.map((node) => (
+              <MenuGroup key={node.id} node={node} actions={actions} />
+            ))}
+          </ul>
+        </MenuTreeDnd>
       )}
 
       {form.open && (
@@ -239,7 +252,7 @@ export function AppMenusCard({ app }: { app: ApplicationDetail }) {
  * - Induk: latar `muted`, judul tebal, ikon dalam kotak, diakhiri garis pemisah.
  * - Anak: latar kartu, ikon polos, garis penghubung siku di kiri.
  */
-function MenuGroup({ node, actions, isFirst, isLast }: { node: Tree<MenuCmsNode>; actions: MenuActions; isFirst: boolean; isLast: boolean }) {
+function MenuGroup({ node, actions }: { node: Tree<MenuCmsNode>; actions: MenuActions }) {
   const { collapsed } = actions
   const hasChildren = node.items.length > 0
   const isCollapsed = collapsed.has(node.id)
@@ -247,24 +260,19 @@ function MenuGroup({ node, actions, isFirst, isLast }: { node: Tree<MenuCmsNode>
   return (
     <li className="overflow-hidden rounded-lg border border-border bg-card">
       <div className="bg-muted/50">
-        <MenuRow node={node} depth={0} actions={actions} isFirst={isFirst} isLast={isLast} />
+        <MenuRow node={node} depth={0} actions={actions} />
       </div>
 
       {hasChildren && !isCollapsed && (
-        // Garis vertikal ditarik dari TENGAH kotak ikon induk. Posisinya:
-        // px-3 (12) + chevron size-6 (24) + gap-x-2 (8) + size-8/2 (16) = 60px
-        // = 3.75rem. Angka ini harus ikut berubah bila padding/ukuran ikon induk
-        // diubah, kalau tidak garisnya melayang di sebelah kiri ikon.
-        <ul className="ml-[3.75rem] border-l-2 border-border">
-          {node.items.map((child, index) => (
-            <MenuRow
-              key={child.id}
-              node={child}
-              depth={1}
-              actions={actions}
-              isFirst={index === 0}
-              isLast={index === node.items.length - 1}
-            />
+        // Garis vertikal ditarik dari TENGAH kotak ikon induk. Posisinya dihitung
+        // dari kiri baris: px-3 (12) + pegangan drag size-6 (24) + gap-x-2 (8)
+        // + chevron size-6 (24) + gap-x-2 (8) + size-8/2 (16) = 92px = 5.75rem.
+        // Angka ini WAJIB ikut berubah bila padding/ukuran salah satu elemen kiri
+        // berubah, kalau tidak garisnya melayang (pernah meleset 32px saat
+        // pegangan drag ditambahkan).
+        <ul className="ml-[5.75rem] border-l-2 border-border">
+          {node.items.map((child) => (
+            <MenuRow key={child.id} node={child} depth={1} actions={actions} />
           ))}
         </ul>
       )}
@@ -290,25 +298,23 @@ function MenuGroup({ node, actions, isFirst, isLast }: { node: Tree<MenuCmsNode>
   )
 }
 
+/** Cari node berdasarkan id (untuk pesan penolakan drag). */
+function findNode<T extends { id: string; items: T[] }>(nodes: T[], id: string): T | undefined {
+  for (const node of nodes) {
+    if (node.id === id) return node
+    const hit = findNode(node.items, id)
+    if (hit) return hit
+  }
+  return undefined
+}
+
 /** Titik pemisah metadata. `aria-hidden` — makna kalimat tidak bergantung padanya. */
 function MetaDot() {
   return <span aria-hidden className="size-1 shrink-0 rounded-full bg-muted-foreground/40" />
 }
 
 /** Baris menu. `depth` 0 = induk, ≥1 = anak/cucu. */
-function MenuRow({
-  node,
-  depth,
-  actions,
-  isFirst,
-  isLast,
-}: {
-  node: Tree<MenuCmsNode>
-  depth: number
-  actions: MenuActions
-  isFirst: boolean
-  isLast: boolean
-}) {
+function MenuRow({ node, depth, actions }: { node: Tree<MenuCmsNode>; depth: number; actions: MenuActions }) {
   const { canUpdate, busy, collapsed, onToggleCollapse } = actions
   const hasChildren = node.items.length > 0
   const isCollapsed = collapsed.has(node.id)
@@ -316,6 +322,8 @@ function MenuRow({
 
   return (
     <li>
+      <SortableRow node={node} disabled={busy}>
+        {({ attributes, listeners }) => (
       <div
         className={cn(
           'group/row relative flex flex-wrap items-center gap-x-2 gap-y-1.5 px-3 transition-colors',
@@ -325,6 +333,21 @@ function MenuRow({
         {/* Siku horizontal dari garis vertikal (border-l pada <ul>) menuju label.
             `-left-0.5` mengimbangi `border-l-2` agar pangkal siku menempel garis. */}
         {!top && <span aria-hidden className="absolute -left-0.5 top-1/2 h-px w-3 bg-border" />}
+
+        {/* Pegangan drag: satu-satunya area yang memicu drag, jadi tombol aksi
+            di baris tetap bisa diklik tanpa takut baris ikut terseret. */}
+        {canUpdate && (
+          <button
+            type="button"
+            aria-label={`Seret ${node.label} untuk mengubah urutan`}
+            title="Seret untuk mengubah urutan"
+            className="flex size-6 shrink-0 cursor-grab touch-none items-center justify-center rounded text-muted-foreground/60 transition-colors hover:bg-card hover:text-foreground active:cursor-grabbing focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+            {...attributes}
+            {...listeners}
+          >
+            <GripVertical className="size-4" />
+          </button>
+        )}
 
         {/* Chevron buka/tutup — hanya pada induk yang punya anak. */}
         {top ? (
@@ -390,20 +413,9 @@ function MenuRow({
         {canUpdate && (
           <>
             {/* Desktop: tombol ikon berwarna + tooltip. Mobile: dilipat ke ⋯ agar
-                enam tombol ikon tidak berdesakan untuk jari. */}
+                tombol tidak berdesakan untuk jari. Urutan diubah lewat pegangan
+                drag di kiri baris, bukan tombol naik/turun. */}
             <div className="hidden shrink-0 items-center gap-0.5 sm:flex">
-              <IconAction
-                icon={ArrowUp}
-                label={`Naikkan ${node.label}`}
-                disabled={busy || isFirst}
-                onClick={() => actions.onMove(node, -1)}
-              />
-              <IconAction
-                icon={ArrowDown}
-                label={`Turunkan ${node.label}`}
-                disabled={busy || isLast}
-                onClick={() => actions.onMove(node, 1)}
-              />
               {top && <IconAction icon={Plus} label={`Tambah sub-menu di ${node.label}`} tone="primary" onClick={() => actions.onAddChild(node)} />}
               <IconAction icon={Pencil} label={`Ubah ${node.label}`} tone="warning" onClick={() => actions.onEdit(node)} />
               <IconAction
@@ -419,8 +431,6 @@ function MenuRow({
               <RowActions
                 label={`menu ${node.label}`}
                 actions={[
-                  { label: 'Naikkan', icon: ArrowUp, onSelect: () => actions.onMove(node, -1), show: !isFirst && !busy },
-                  { label: 'Turunkan', icon: ArrowDown, onSelect: () => actions.onMove(node, 1), show: !isLast && !busy },
                   { label: 'Tambah sub-menu', icon: Plus, onSelect: () => actions.onAddChild(node) },
                   { label: 'Ubah', icon: Pencil, onSelect: () => actions.onEdit(node) },
                   {
@@ -435,19 +445,14 @@ function MenuRow({
           </>
         )}
       </div>
+        )}
+      </SortableRow>
 
       {/* Cucu: ditarik ke kanan dengan rel tambahan. */}
       {hasChildren && !isCollapsed && !top && (
         <ul className="ml-6 border-l border-border">
-          {node.items.map((child, index) => (
-            <MenuRow
-              key={child.id}
-              node={child}
-              depth={depth + 1}
-              actions={actions}
-              isFirst={index === 0}
-              isLast={index === node.items.length - 1}
-            />
+          {node.items.map((child) => (
+            <MenuRow key={child.id} node={child} depth={depth + 1} actions={actions} />
           ))}
         </ul>
       )}

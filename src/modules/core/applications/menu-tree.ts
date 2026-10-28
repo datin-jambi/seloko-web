@@ -92,20 +92,59 @@ export function parentOptions<T extends Node & { label: string }>(
   return out
 }
 
-/** Pindahkan satu node ke atas/bawah di antara saudara sekandungnya. */
-export function moveWithinSiblings<T extends Node>(tree: Tree<T>[], id: string, direction: -1 | 1): Tree<T>[] {
-  const clone = structuredClone(tree) as Tree<T>[]
-  const walk = (nodes: Tree<T>[]): boolean => {
-    const index = nodes.findIndex((n) => n.id === id)
-    if (index >= 0) {
-      const target = index + direction
-      if (target < 0 || target >= nodes.length) return true
-      ;[nodes[index], nodes[target]] = [nodes[target], nodes[index]]
-      return true
+export type DropPosition = 'before' | 'after'
+
+/** Id induk sebuah node (`null` = akar, `undefined` = node tidak ditemukan). */
+export function parentOf<T extends Node>(tree: Tree<T>[], id: string): string | null | undefined {
+  const walk = (nodes: Tree<T>[], parentId: string | null): string | null | undefined => {
+    for (const node of nodes) {
+      if (node.id === id) return parentId
+      const hit = walk(node.items, node.id)
+      if (hit !== undefined) return hit
     }
-    return nodes.some((n) => walk(n.items))
+    return undefined
   }
-  walk(clone)
+  return walk(tree, null)
+}
+
+/**
+ * Urutkan ulang `activeId` di antara **saudara sekandungnya**.
+ *
+ * Sengaja TIDAK memindah antar-induk: satu gerakan drag yang meleset beberapa
+ * piksel tidak boleh mengubah hierarki sidebar. Perubahan induk punya jalurnya
+ * sendiri (field "Induk menu" di form Ubah) yang eksplisit dan bisa dibatalkan.
+ *
+ * Mengembalikan pohon BARU tanpa memutasi masukan, atau `null` bila gerakan
+ * tidak sah (node sama, atau induk berbeda — pemanggil memberi tahu pengguna).
+ */
+export function reorderWithinParent<T extends Node>(
+  tree: Tree<T>[],
+  activeId: string,
+  overId: string,
+  position: DropPosition,
+): Tree<T>[] | null {
+  if (activeId === overId) return null
+  const parent = parentOf(tree, activeId)
+  if (parent === undefined || parent !== parentOf(tree, overId)) return null
+
+  const clone = structuredClone(tree) as Tree<T>[]
+  // Array saudara = tempat `overId` berada (induknya sudah dipastikan sama).
+  const siblingsOf = (nodes: Tree<T>[]): Tree<T>[] | undefined => {
+    if (nodes.some((n) => n.id === overId)) return nodes
+    for (const node of nodes) {
+      const hit = siblingsOf(node.items)
+      if (hit) return hit
+    }
+  }
+  const siblings = parent === null ? clone : siblingsOf(clone)
+  if (!siblings) return null
+
+  const from = siblings.findIndex((n) => n.id === activeId)
+  if (from < 0) return null
+  const [moving] = siblings.splice(from, 1)
+  // Hitung ulang setelah pengambilan: indeks sasaran bisa bergeser satu.
+  const at = siblings.findIndex((n) => n.id === overId)
+  siblings.splice(position === 'before' ? at : at + 1, 0, moving)
   return clone
 }
 

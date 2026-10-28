@@ -4,8 +4,9 @@ import assert from 'node:assert/strict'
 import {
   buildTree,
   flattenForReorder,
-  moveWithinSiblings,
+  parentOf,
   parentOptions,
+  reorderWithinParent,
   subtreeIds,
   validateMenu,
 } from '../src/modules/core/applications/menu-tree.ts'
@@ -58,10 +59,20 @@ assert.deepEqual(
 )
 assert.deepEqual(parentOptions(tree).map((o) => o.id), ['a', 'a2', 'a1', 'b'])
 
-// moveWithinSiblings: tukar posisi, tidak mengubah struktur lain
-assert.deepEqual(moveWithinSiblings(tree, 'a1', -1)[0].items.map((n) => n.id), ['a1', 'a2'])
+// reorderWithinParent: urut ulang antar-saudara saja; antar-tingkat ditolak (null).
+// Pohon uji: a(a2, a1), b
+assert.deepEqual(reorderWithinParent(tree, 'a1', 'a2', 'before')![0].items.map((n) => n.id), ['a1', 'a2'], 'sebelum saudara')
 assert.deepEqual(tree[0].items.map((n) => n.id), ['a2', 'a1'], 'pohon asli tidak ikut berubah')
-assert.deepEqual(moveWithinSiblings(tree, 'a2', -1)[0].items.map((n) => n.id), ['a2', 'a1'], 'di ujung: tidak berubah')
+assert.deepEqual(reorderWithinParent(tree, 'a2', 'a1', 'after')![0].items.map((n) => n.id), ['a1', 'a2'], 'sesudah saudara')
+assert.deepEqual(reorderWithinParent(tree, 'a2', 'a1', 'before')![0].items.map((n) => n.id), ['a2', 'a1'], 'tetap di tempat')
+// Antar-tingkat DITOLAK: drag tidak boleh mengubah hierarki sidebar.
+assert.equal(reorderWithinParent(tree, 'a1', 'b', 'before'), null, 'anak ke akar')
+assert.equal(reorderWithinParent(tree, 'a', 'a1', 'before'), null, 'akar ke anak')
+assert.equal(reorderWithinParent(tree, 'a', 'a', 'before'), null, 'ke dirinya sendiri')
+// parentOf memetakan induk tiap node.
+assert.equal(parentOf(tree, 'a'), null)
+assert.equal(parentOf(tree, 'a1'), 'a')
+assert.equal(parentOf(tree, 'tidak-ada'), undefined)
 
 // validateMenu
 const ok = { parentId: '', code: 'pengguna.daftar', label: 'Daftar Pengguna', icon: 'users', path: '/seloko/pengguna', isExternal: false, sortOrder: 0 }

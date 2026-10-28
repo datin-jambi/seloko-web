@@ -16,8 +16,9 @@ const ERRORS = [
   [/variant=["']gradient["']/, 'variant gradient'],
   [/(?![©®™])\p{Extended_Pictographic}/u, 'emoji'],
 ]
-// Komponen mengambang boleh pakai shadow besar.
-const FLOATING = /dropdown-menu|dialog|sheet|popover|tooltip|select|toast|sonner/
+// Komponen mengambang boleh pakai shadow besar. `MenuTreeDnd` termasuk: isinya
+// `DragOverlay` — pratinjau yang mengambang mengikuti kursor, bukan permukaan statis.
+const FLOATING = /dropdown-menu|dialog|sheet|popover|tooltip|select|toast|sonner|MenuTreeDnd/
 const WARNINGS = [
   [/\buppercase\b[^"'`]*\btracking-(?:wide|wider|widest)\b/, 'label uppercase tracking-wider'],
   [/\brounded-(?:2xl|3xl)\b/, 'radius terlalu besar'],
