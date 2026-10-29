@@ -9,6 +9,7 @@ Dokumen ini adalah aturan resmi yang wajib dipatuhi saat menulis kode di `seloko
 * **Konteks aplikasi aktif** (`bapenda-profile`, dsb.) dikirim lewat **query param** (`?appCode=`) atau path API domain (`/api/bapenda/*`), bukan header.
 * **Sumber daftar environment: `GET /applications/me`** (bukan `/applications`). Hanya `audience === 'INTERNAL'` yang boleh tampil, dan hanya aplikasi yang punya halaman (ada di `APP_WORKSPACE`) yang ditawarkan — kalau tidak, sidebar kosong & halaman 404.
 * **`code` aplikasi ≠ segmen URL.** `bapenda-profile` → `/bapenda/…`, `lapak-jambi-web` → `/lapak-jambi/…`. Pakai `appWorkspace()`/`appCodeFromPath()`, jangan menurunkan segmen dari `code`.
+* **Modul Lapak memakai endpoint ber-scope sendiri, bukan endpoint core.** Contoh: pengguna Lapak dilayani `GET/POST/PUT /lapak/users` (+ `GET /lapak/users/roles`), bukan `GET/POST/PATCH /users` yang menuntut permission aplikasi Seloko dan membuka seluruh pengguna platform. Gerbangnya role `admin`/`superadmin` pada aplikasi Lapak di service, bukan permission. Saat menambah modul Lapak, cek dulu apakah core endpoint-nya menuntut permission Seloko — kalau ya, buat endpoint ber-scope di `../seloko-api/src/modules/lapak/<modul>/`.
 * **Logo aplikasi** SELALU lewat `AppLogo` (jangan `<img src={logoUrl}>` mentah). Rantai fallback dievaluasi **per tema**: `logoDarkUrl` untuk gelap, `logoUrl` untuk terang; bila hanya ada `logoUrl`, tema gelap memakainya sebagai mask putih (`currentColor`). Slot yang kosong/mati jatuh ke `icon` dari DB → ikon netral. Jangan menebak ikon dari `code`. Detail tabel fallback: PRD 03 §4f.
 * **State Sinkronisasi**: Saat user mengganti aplikasi di App Switcher:
   1. Update active app di Zustand `useAppStore`.
@@ -60,6 +61,8 @@ src/
 │   │   └── lapak/       # OPD (LapakOpdPage/Detail), categories/ (Kategori Layanan),
 │   │                    # products/ (Produk & Layanan: list, detail, approval (antrean PENDING_REVIEW),
 │   │                    #   form bertab + anak-anak, ProductImagesField untuk galeri multi-foto),
+│   │                    # users/ (LapakUsersPage + LapakUserFormDialog: pengguna aplikasi Lapak,
+│   │                    #   tambah akun + role Lapak, ubah profil/role ber-scope Lapak),
 │                    # lapak-access (gerbang izin), use-lapak-list (list envelope Lapak),
 │                    # lapak-paths. Pipeline: .agents/prd/04-modul-lapak.prd.md
 ├── services/        # API service layer (auth.service, menu.service, storage.service, dll.)

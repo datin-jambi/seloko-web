@@ -185,6 +185,41 @@ Rute `/lapak-jambi/produk/persetujuan` (+ alias `/lapak/…`), komponen
 - Kolom OPD hanya berguna bagi Bapenda/superadmin (melihat semua OPD); admin OPD tetap melihat
   satu OPD saja.
 
+### 3g. Pengguna Lapak (`/lapak-jambi/users`)
+
+Daftar pengguna yang **terdaftar di aplikasi Lapak** — hanya superadmin & admin Lapak.
+
+- Endpoint KHUSUS **`GET /lapak/users`** (`src/modules/lapak/users/`), **bukan** `GET /users`:
+  endpoint core menuntut permission `user:list` pada aplikasi **Seloko** (admin Lapak kena 403)
+  dan mengembalikan SELURUH pengguna platform — termasuk akun Bapenda & warga.
+- Otorisasi memakai **role** pada aplikasi Lapak (`admin`/`superadmin`) plus bypass
+  `isSuperAdmin`, diperiksa di service (`assertLapakUserManager`); route hanya `authenticate`.
+  Sengaja TIDAK memakai `requirePermission` karena aplikasi Lapak tidak punya permission
+  ber-scope pengguna — menambahkannya berarti membuka seluruh modul pengguna core.
+- Isi: hanya pengguna dengan penugasan role **aktif dan belum kedaluwarsa** di Lapak.
+  Superadmin tanpa penugasan TIDAK ikut — halaman ini mendata keanggotaan, bukan akses.
+- Respons `{ success, message, data, meta }` dengan **`meta.totalItems`** (dibaca
+  `useLapakList`) + `summary { total, active, inactive }`. Filter: `page`, `limit`, `search`
+  (nama/email/username/NIP), `isActive`.
+- Tiap baris membawa `roles[]` **khusus Lapak** beserta `organizations[]` per penugasan
+  (kosong = seluruh OPD), sehingga UI tidak perlu N+1 request.
+- UI `LapakUsersPage` memakai `useLapakList('/lapak/users')` + `DataTable`; gerbang tampilan
+  dari `useLapakAccess().canManage` → `ForbiddenPage` bila bukan pengelola.
+- **Halaman ini adalah manajemen penuh, bukan baca-saja.** Tombol *Tambah pengguna* memanggil
+  `POST /lapak/users` (akun `INTERNAL` + role Lapak dalam satu transaksi, jadi pengguna bisa
+  langsung masuk), dan ikon pensil per baris membuka `PUT /lapak/users/:id`.
+- **Yang bisa diubah dari sini**: nama, NIP, telepon, dan role Lapak + lingkup OPD. Username,
+  email, jenis akun, dan password tidak — itu tetap wilayah Seloko (password hanya diset saat
+  pembuatan akun, supaya admin Lapak tidak bisa mengambil alih akun yang juga punya role lain).
+- **Pilihan role diambil dari `GET /lapak/users/roles`** (role aplikasi Lapak, `audience`
+  INTERNAL saja). Form memakai `LapakUserFormDialog`, dan pilihan OPD memakai
+  `lapakProductService.organizationChoices()` → `GET /lapak/opd/tampilan`.
+- **Lingkup OPD pada form berlaku untuk semua role terpilih** (satu pilihan). Saat mengubah,
+  `roles` hanya dikirim bila operator benar-benar mengubah role/lingkup, sehingga penugasan
+  berlingkup berbeda per role tidak tertimpa hanya karena dialog dibuka.
+- **Role akun sendiri tidak bisa diubah** (server `400`, UI mengunci field) — mencegah admin
+  mengunci dirinya keluar dari halaman ini.
+
 ---
 
 ## 4. Di Luar Cakupan (endpoint belum ada)

@@ -29,6 +29,7 @@ import { LapakCategoriesPage } from '@/modules/lapak/categories/LapakCategoriesP
 import { LapakProductsPage } from '@/modules/lapak/products/LapakProductsPage'
 import { LapakProductDetailPage } from '@/modules/lapak/products/LapakProductDetailPage'
 import { LapakProductApprovalPage } from '@/modules/lapak/products/LapakProductApprovalPage'
+import { LapakUsersPage } from '@/modules/lapak/users/LapakUsersPage'
 import { LapakOpdDetailPage } from '@/modules/lapak/LapakOpdDetailPage'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { NotFoundPage } from '@/components/shared/NotFoundPage'
@@ -166,6 +167,10 @@ export function App() {
                   {/* Direktori OPD: data dari master Organisasi Seloko, khusus jenis OPD. */}
                   {LAPAK_PREFIXES.map((base) => (
                     <Route key={`${base}/opd`} path={`${base}/opd`} element={<LapakOpdPage />} />
+                  ))}
+                  {/* Pengguna Lapak: hanya superadmin & admin Lapak (server menegakkan hal sama). */}
+                  {LAPAK_PREFIXES.map((base) => (
+                    <Route key={`${base}/users`} path={`${base}/users`} element={<LapakUsersPage />} />
                   ))}
                   {/* Master kategori layanan — dikelola Bapenda (lihat lapak-access). */}
                   {LAPAK_PREFIXES.map((base) => (

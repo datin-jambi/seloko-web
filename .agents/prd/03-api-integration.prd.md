@@ -185,6 +185,21 @@ Sumber: `../seloko-api/src/modules/core/users/users.schema.ts` (`UserShape`, `Us
 * **Nomor telepon selalu disimpan `+62`.** API hanya menyimpan string (maks 20 karakter) tanpa menormalkan apa pun, jadi penormatan ada di klien: `normalizePhoneId()` (`src/lib/phone.ts`) dipanggil sebelum validasi & sebelum dikirim, dan `displayPhoneId()` menormalkan baris lama (`08…`) saat ditampilkan. Jangan menulis nomor mentah ke UI.
 * Filter daftar: `accountType`, `isActive`, `isSuperAdmin` — ketiganya sudah dipakai toolbar daftar pengguna.
 
+### 4i. Pengguna Lapak (Manajemen Ber-scope, bukan Endpoint Core)
+
+Sumber: `../seloko-api/src/modules/lapak/users/` (`users.schema.ts`, `users.routes.ts`, `users.service.ts`).
+
+* **Jangan pakai `GET/POST/PATCH /users` core untuk modul Lapak.** Endpoint itu menuntut `user:list`/`user:create`/`user:update` pada aplikasi **Seloko** (admin Lapak kena `403`) dan isinya seluruh pengguna platform. Modul Lapak punya jalur sendiri di prefix `/lapak/users`.
+* **Empat endpoint**: `GET /lapak/users` (daftar), `GET /lapak/users/roles` (pilihan role), `POST /lapak/users` (buat akun + role), `PUT /lapak/users/:id` (ubah profil + role).
+* **Gerbang = role, bukan permission.** Service `assertLapakUserManager()` menerima superadmin global **atau** pemegang role `admin`/`superadmin` pada aplikasi `lapak-jambi-web`; route cukup `authenticate`. Tidak ada permission `user:*` di aplikasi Lapak — menambahkannya berarti membuka modul pengguna core.
+* **Lingkup ditegakkan di server**: `PUT` memanggil `findLapakUser()` dulu, sehingga pengguna yang tidak punya penugasan role aktif di Lapak dibalas `404` — endpoint ini tidak bisa dipakai menyunting akun aplikasi lain.
+* **`POST` membuat akun `INTERNAL` + role dalam satu transaksi.** `isSuperAdmin` tidak ada di body (selalu `false`), dan role yang boleh dipilih dibatasi `applicationId` Lapak + `audience: INTERNAL`. Username/email dinormalkan ke huruf kecil; duplikat (termasuk baris soft-deleted) dibalas `409` agar tidak jadi `500` P2002.
+* **`roles` bersifat replace-set untuk aplikasi Lapak saja** — penugasan aplikasi lain tidak disentuh (`deleteMany` difilter `applicationId`). Body `PUT` minimal satu field; `roles` opsional, jadi menyimpan profil tidak menghapus role.
+* **Mengubah role akun sendiri ditolak `400`** (mencegah admin mengunci dirinya dari halaman ini); UI menonaktifkan bagian role dengan penjelasan.
+* **Password hanya ada di `POST`.** `PUT` tidak menerima `password`: admin Lapak tidak boleh mengambil alih akun yang mungkin juga punya role Bapenda/Seloko. Reset kata sandi tetap lewat `PATCH /users/:id` oleh superadmin.
+* Password di-hash argon2id dengan parameter sama seperti modul core (`memoryCost 65536`, `timeCost 3`, `parallelism 4`).
+* Respons `POST`/`PUT` memakai mapper yang sama dengan daftar (`mapLapakUser`) sehingga bentuk baris konsisten: `roles[]` Lapak + `organizations[]` per penugasan (kosong = semua OPD).
+
 ### 4e. Organisasi (OPD / Unit Kerja)
 
 Rute `/seloko/organisasi` (+ `/:id`). Modul: `src/modules/core/organizations/`.

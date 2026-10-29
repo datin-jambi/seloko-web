@@ -310,3 +310,68 @@ export interface RateStatusBody {
   /** Wajib saat `reject`. */
   note?: string
 }
+
+// ─── Pengguna Lapak (GET /lapak/users) ────────────────────────────────────────
+
+/** Satu penugasan role Lapak milik pengguna. */
+export interface LapakUserRole {
+  /** ID penugasan (UserAppRole) — bukan roleId. */
+  assignmentId: string
+  roleId: string
+  roleName: string
+  expiresAt: string | null
+  /** Kosong = berlaku untuk seluruh OPD. */
+  organizations: { id: string; code: string; name: string }[]
+}
+
+/**
+ * Pengguna yang punya penugasan role aktif di aplikasi Lapak.
+ * Superadmin tanpa penugasan tidak ikut — halaman ini mendata "siapa yang
+ * terdaftar di Lapak", bukan "siapa yang bisa mengakses Lapak".
+ */
+export interface LapakUser {
+  id: string
+  fullName: string
+  email: string
+  username: string | null
+  nip: string | null
+  phoneNumber: string | null
+  avatarUrl: string | null
+  accountType: 'INTERNAL' | 'PUBLIC'
+  isActive: boolean
+  isSuperAdmin: boolean
+  lastLoginAt: string | null
+  roles: LapakUserRole[]
+}
+
+/** Pilihan role yang boleh diberikan lewat halaman Lapak (`GET /lapak/users/roles`). */
+export interface LapakRoleOption {
+  id: string
+  name: string
+  description: string | null
+}
+
+/** Satu role yang dikirim saat menambah/mengubah pengguna. */
+export interface LapakRoleAssignmentInput {
+  roleId: string
+  /** Kosong = seluruh OPD. */
+  organizationIds?: string[]
+}
+
+export interface CreateLapakUserBody {
+  fullName: string
+  username: string
+  email: string
+  password: string
+  nip?: string
+  phoneNumber?: string
+  roles: LapakRoleAssignmentInput[]
+}
+
+export interface UpdateLapakUserBody {
+  fullName?: string
+  nip?: string | null
+  phoneNumber?: string | null
+  /** Replace-set untuk aplikasi Lapak saja. */
+  roles?: LapakRoleAssignmentInput[]
+}
