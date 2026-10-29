@@ -154,8 +154,16 @@ boleh punya banyak foto, bukan hanya satu cover.
 - **Jangan hapus berkas saat tombol hapus ditekan.** Baris DB bisa bertahan bila form
   dibatalkan; dialog menampung `fileId` yang dibuang dan baru menghapusnya di ImageKit
   setelah simpan sukses.
-- Detail produk menampilkan galeri (strip horizontal, gambar utama ditandai); daftar memakai
-  `coverUrl`.
+- Detail produk menampilkan galeri (gambar besar + thumbnail terpilih, gambar utama ditandai);
+  bila galeri kosong tetapi `coverUrl` ada, cover itu yang ditampilkan. Daftar memakai
+  `coverUrl` sebagai thumbnail dan menyertakan jumlah gambar pada baris meta.
+- **Detail UI yang dijaga**: unggah lewat tombol **atau lepas berkas** ke area galeri (ada ubin
+  "Tambah gambar"), progres unggah terlihat, penghitung `n dari 20`, penghitung karakter alt,
+  nomor urut tiap gambar, dan dialog **tidak bisa ditutup** selama unggahan berjalan (berkas
+  setengah jalan akan yatim). Tab form memakai penghitung isi (`Gambar (3)`, `Tarif (2)`),
+  error memfokuskan field pertama yang salah, dan produk non-draf menampilkan keterangan
+  "hanya bisa dibaca" alih-alih tombol simpan.
+- Filter daftar: **status** dan **kategori** (`categoryId`, opsi dari `/lapak/categories/public`).
 
 ---
 

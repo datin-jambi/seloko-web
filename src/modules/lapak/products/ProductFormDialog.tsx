@@ -38,6 +38,14 @@ import { ProductImagesField } from './ProductImagesField'
 /** Sentinel Select — nilai kosong tidak boleh string kosong. */
 const INHERIT = '__inherit__'
 
+/** Kunci error → id elemen, supaya fokus bisa diarahkan ke field yang salah. */
+const FIELD_IDS: Record<string, string> = {
+  organizationId: 'p-org',
+  categoryId: 'p-cat',
+  name: 'p-name',
+  description: 'p-desc',
+}
+
 interface Values {
   organizationId: string
   categoryId: string
@@ -145,6 +153,8 @@ export function ProductFormDialog({
   // Berkas yang dibuang dari galeri — dihapus di ImageKit hanya SETELAH simpan
   // berhasil; menghapus lebih awal mematahkan gambar bila form dibatalkan.
   const removedFiles = useRef<string[]>([])
+  // Unggahan gambar menahan dialog tertutup: berkas setengah jalan jadi yatim.
+  const [uploading, setUploading] = useState(false)
   const set = <K extends keyof Values>(k: K, val: Values[K]) => setV((s) => ({ ...s, [k]: val }))
 
   // OPD & kategori aktif — keduanya wajib valid di server.
@@ -220,6 +230,10 @@ export function ProductFormDialog({
     if (v.description.trim().length < 10) next.description = 'Deskripsi minimal 10 karakter.'
     if (Object.keys(next).length) {
       setErrors(next)
+      // Fokus ke field pertama yang salah — pesan di bawah input saja tidak cukup
+      // saat tab aktif sedang menampilkan field lain.
+      const first = Object.keys(next)[0]
+      document.getElementById(FIELD_IDS[first] ?? first)?.focus()
       return
     }
     setErrors({})
@@ -229,13 +243,29 @@ export function ProductFormDialog({
   const lockOrg = !!organizationId
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        // Jangan tutup di tengah unggahan: berkas yang belum selesai akan yatim.
+        if (!next && uploading) return
+        onOpenChange(next)
+      }}
+    >
       <DialogContent className="sm:max-w-3xl">
         <form onSubmit={submit} noValidate className="flex min-h-0 flex-1 flex-col">
           <DialogHeader>
             <DialogTitle>{isEdit ? 'Ubah produk' : 'Tambah produk'}</DialogTitle>
             <DialogDescription>
-              Produk dibuat sebagai <strong>draf</strong>. Ajukan review, lalu terbitkan setelah disetujui.
+              {readOnly ? (
+                <>
+                  Produk berstatus <strong>{product?.status}</strong> — hanya bisa dibaca. Ubah status ke Draf/Ditolak
+                  untuk menyunting.
+                </>
+              ) : (
+                <>
+                  Produk dibuat sebagai <strong>draf</strong>. Ajukan review, lalu terbitkan setelah disetujui.
+                </>
+              )}
             </DialogDescription>
           </DialogHeader>
 
@@ -243,10 +273,16 @@ export function ProductFormDialog({
             <Tabs defaultValue="info">
               <TabsList>
                 <TabsTrigger value="info">Info</TabsTrigger>
-                <TabsTrigger value="images">Gambar</TabsTrigger>
-                <TabsTrigger value="rates">Tarif & addon</TabsTrigger>
-                <TabsTrigger value="req">Persyaratan</TabsTrigger>
-                <TabsTrigger value="fac">Fasilitas</TabsTrigger>
+                <TabsTrigger value="images">Gambar{images.length > 0 ? ` (${images.length})` : ''}</TabsTrigger>
+                <TabsTrigger value="rates">
+                  Tarif & addon{rates.length + addons.length > 0 ? ` (${rates.length + addons.length})` : ''}
+                </TabsTrigger>
+                <TabsTrigger value="req">
+                  Persyaratan{requirements.length > 0 ? ` (${requirements.length})` : ''}
+                </TabsTrigger>
+                <TabsTrigger value="fac">
+                  Fasilitas{facilities.length > 0 ? ` (${facilities.length})` : ''}
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="info" className="mt-4 space-y-4">
@@ -292,6 +328,8 @@ export function ProductFormDialog({
                     value={v.name}
                     onChange={(e) => set('name', e.target.value)}
                     placeholder="Aula Gedung Bapenda"
+                    aria-invalid={!!errors.name || undefined}
+                    aria-describedby="p-name-msg"
                   />
                 </FormField>
 
@@ -321,6 +359,8 @@ export function ProductFormDialog({
                     value={v.description}
                     onChange={(e) => set('description', e.target.value)}
                     rows={4}
+                    aria-invalid={!!errors.description || undefined}
+                    aria-describedby="p-desc-msg"
                   />
                 </FormField>
 
@@ -389,6 +429,7 @@ export function ProductFormDialog({
                   images={images}
                   onChange={setImages}
                   readOnly={readOnly}
+                  onBusyChange={setUploading}
                   onRemoveFile={(fileId) => removedFiles.current.push(fileId)}
                 />
               </TabsContent>
@@ -424,13 +465,18 @@ export function ProductFormDialog({
           </DialogBody>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={save.isPending || uploading}
+            >
               {readOnly ? 'Tutup' : 'Batal'}
             </Button>
             {!readOnly && (
-              <Button type="submit" disabled={save.isPending}>
-                {save.isPending && <Loader2 className="animate-spin" />}
-                {isEdit ? 'Simpan' : 'Buat draf'}
+              <Button type="submit" disabled={save.isPending || uploading}>
+                {(save.isPending || uploading) && <Loader2 className="animate-spin" />}
+                {uploading ? 'Menunggu unggahan…' : save.isPending ? 'Menyimpan…' : isEdit ? 'Simpan perubahan' : 'Buat draf'}
               </Button>
             )}
           </DialogFooter>

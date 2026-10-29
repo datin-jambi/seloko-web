@@ -26,6 +26,8 @@ export function LapakProductDetailPage() {
   const qc = useQueryClient()
   const access = useLapakAccess()
   const [editOpen, setEditOpen] = useState(false)
+  // Indeks gambar yang sedang diperbesar. Dijepit saat data berubah.
+  const [activeImage, setActiveImage] = useState(0)
 
   const q = useQuery({
     queryKey: lapakKeys.product(id),
@@ -98,36 +100,69 @@ export function LapakProductDetailPage() {
         }
       />
 
-      {p.images.length > 0 && (
-        <section aria-label="Galeri gambar produk" className="mb-6 rounded-lg border border-border bg-card p-3">
-          <ul className="flex gap-3 overflow-x-auto pb-1">
-            {p.images.map((img) => (
-              <li key={img.id} className="shrink-0">
-                <a
-                  href={img.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  title={img.altText ?? 'Buka gambar di tab baru'}
-                  className="relative block"
-                >
-                  <img
-                    src={img.url}
-                    alt={img.altText ?? p.name}
-                    loading="lazy"
-                    className={cn(
-                      'h-28 w-40 rounded-md border object-cover',
-                      img.isPrimary ? 'border-primary ring-2 ring-primary/40' : 'border-border',
-                    )}
-                  />
-                  {img.isPrimary && (
-                    <span className="absolute left-1.5 top-1.5 rounded bg-primary px-1.5 py-0.5 text-xs font-medium text-primary-foreground">
-                      Utama
-                    </span>
-                  )}
-                </a>
-              </li>
-            ))}
-          </ul>
+      {p.images.length > 0 &&
+        (() => {
+          const shown = p.images[Math.min(activeImage, p.images.length - 1)]
+          return (
+            <section
+              aria-label={`Galeri gambar produk (${p.images.length} gambar)`}
+              className="mb-6 grid gap-3 rounded-lg border border-border bg-card p-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]"
+            >
+              <a
+                href={shown.url}
+                target="_blank"
+                rel="noreferrer"
+                className="relative block overflow-hidden rounded-md bg-muted"
+                title="Buka gambar ukuran penuh"
+              >
+                <img
+                  src={shown.url}
+                  alt={shown.altText ?? p.name}
+                  className="aspect-video w-full object-cover"
+                />
+                <span className="absolute left-2 top-2 rounded bg-black/65 px-1.5 py-0.5 text-xs font-medium text-white">
+                  {shown.isPrimary ? 'Gambar utama' : `Gambar ${Math.min(activeImage, p.images.length - 1) + 1}`}
+                </span>
+              </a>
+
+              <ul className="grid grid-cols-4 content-start gap-2 sm:grid-cols-3">
+                {p.images.map((img, i) => {
+                  const selected = img.id === shown.id
+                  return (
+                    <li key={img.id}>
+                      <button
+                        type="button"
+                        onClick={() => setActiveImage(i)}
+                        aria-label={`Tampilkan gambar ${i + 1}`}
+                        aria-current={selected || undefined}
+                        className={cn(
+                          'relative block w-full overflow-hidden rounded-md border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
+                          selected ? 'border-primary ring-2 ring-primary/40' : 'border-border hover:border-primary/50',
+                        )}
+                      >
+                        <img
+                          src={img.url}
+                          alt={img.altText ?? `Gambar ${i + 1}`}
+                          loading="lazy"
+                          className="aspect-square w-full object-cover"
+                        />
+                        {img.isPrimary && (
+                          <span className="absolute inset-x-0 bottom-0 bg-black/65 py-0.5 text-center text-xs font-medium text-white">
+                            Utama
+                          </span>
+                        )}
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            </section>
+          )
+        })()}
+
+      {p.images.length === 0 && p.coverUrl && (
+        <section aria-label="Gambar produk" className="mb-6 overflow-hidden rounded-lg border border-border bg-card">
+          <img src={p.coverUrl} alt={p.name} className="aspect-video w-full object-cover" />
         </section>
       )}
 

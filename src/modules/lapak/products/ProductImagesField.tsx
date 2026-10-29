@@ -31,17 +31,26 @@ export function ProductImagesField({
   images,
   onChange,
   onRemoveFile,
+  onBusyChange,
   readOnly,
 }: {
   images: ProductImageInput[]
   onChange: (next: ProductImageInput[]) => void
   onRemoveFile?: (fileId: string) => void
+  /** Dipakai induk untuk menahan dialog tertutup saat unggahan berjalan. */
+  onBusyChange?: (busy: boolean) => void
   readOnly?: boolean
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [dragging, setDragging] = useState(false)
+
+  const markBusy = (value: boolean) => {
+    setBusy(value)
+    onBusyChange?.(value)
+  }
 
   /** Normalisasi: urutan = indeks, dan selalu ada tepat satu gambar utama. */
   const normalize = (list: ProductImageInput[]): ProductImageInput[] => {
@@ -87,7 +96,7 @@ export function ProductImagesField({
   }
 
   const upload = async (files: FileList | null) => {
-    if (!files?.length) return
+    if (!files?.length || readOnly) return
     setError(null)
     const room = MAX_IMAGES - images.length
     if (room <= 0) {
@@ -96,9 +105,9 @@ export function ProductImagesField({
     }
     const picked = Array.from(files)
     const accepted = picked.slice(0, room)
-    if (picked.length > room) setError(`Hanya ${room} gambar pertama diunggah (maksimal ${MAX_IMAGES}).`)
+    if (picked.length > room) setError(`Hanya ${room} gambar pertama diunggah — maksimal ${MAX_IMAGES} per produk.`)
 
-    setBusy(true)
+    markBusy(true)
     setProgress({ done: 0, total: accepted.length })
     const added: ProductImageInput[] = []
     try {
@@ -123,32 +132,50 @@ export function ProductImagesField({
     } catch (e) {
       setError(`Gagal mengunggah: ${apiErrorMessage(e)}`)
     } finally {
-      setBusy(false)
+      markBusy(false)
       setProgress(null)
       if (inputRef.current) inputRef.current.value = ''
     }
   }
 
+  const canAdd = !readOnly && images.length < MAX_IMAGES
   const accept = (PRODUCT_IMAGE_RULE.accept ?? ['image/png', 'image/jpeg']).join(',')
 
   return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs text-muted-foreground">
-          {images.length}/{MAX_IMAGES} gambar · maks {formatFileSize(PRODUCT_IMAGE_RULE.maxBytes)} per berkas ·
-          minimal {PRODUCT_IMAGE_RULE.minWidth}×{PRODUCT_IMAGE_RULE.minHeight} px. Gambar utama menjadi thumbnail
-          katalog.
-        </p>
+    <div
+      className={cn('space-y-3 rounded-lg transition-shadow', dragging && 'ring-2 ring-primary/40')}
+      onDragOver={(e) => {
+        if (readOnly || busy) return
+        e.preventDefault()
+        setDragging(true)
+      }}
+      onDragLeave={() => setDragging(false)}
+      onDrop={(e) => {
+        e.preventDefault()
+        setDragging(false)
+        if (!readOnly && !busy) void upload(e.dataTransfer.files)
+      }}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="space-y-0.5">
+          <p className="text-sm font-medium tabular-nums">
+            {images.length} dari {MAX_IMAGES} gambar
+          </p>
+          <p className="text-xs text-muted-foreground">
+            PNG/JPG/WEBP · maks {formatFileSize(PRODUCT_IMAGE_RULE.maxBytes)} · minimal{' '}
+            {PRODUCT_IMAGE_RULE.minWidth}×{PRODUCT_IMAGE_RULE.minHeight} px
+          </p>
+        </div>
         {!readOnly && (
           <Button
             type="button"
             variant="outline"
             size="sm"
-            disabled={busy || images.length >= MAX_IMAGES}
+            disabled={busy || !canAdd}
             onClick={() => inputRef.current?.click()}
           >
             {busy ? <Loader2 className="animate-spin" /> : <ImagePlus />}
-            {busy ? `Mengunggah… ${progress?.done ?? 0}/${progress?.total ?? 0}` : 'Tambah gambar'}
+            {busy ? `Mengunggah… ${progress?.done ?? 0}/${progress?.total ?? 0}` : 'Pilih gambar'}
           </Button>
         )}
       </div>
@@ -164,93 +191,144 @@ export function ProductImagesField({
         onChange={(e) => void upload(e.target.files)}
       />
 
+      {dragging && (
+        <p className="rounded-md border border-primary/40 bg-primary/5 px-2.5 py-1.5 text-xs text-primary">
+          Lepaskan berkas untuk mengunggah.
+        </p>
+      )}
+
+      {busy && progress && (
+        <div
+          className="h-1.5 overflow-hidden rounded-full bg-muted"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={progress.total}
+          aria-valuenow={progress.done}
+          aria-label="Progres unggah gambar"
+        >
+          <div
+            className="h-full bg-primary transition-all"
+            style={{ width: `${progress.total ? (progress.done / progress.total) * 100 : 0}%` }}
+          />
+        </div>
+      )}
+
       {error && (
-        <p className="text-xs text-destructive" role="alert">
+        <p className="rounded-md bg-destructive/10 px-2.5 py-1.5 text-xs text-destructive" role="alert">
           {error}
         </p>
       )}
 
-      {images.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-input p-6 text-center">
-          <ImagePlus className="mx-auto size-6 text-muted-foreground" />
-          <p className="mt-2 text-sm font-medium">Belum ada gambar</p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Foto aset boleh lebih dari satu. Tandai satu sebagai gambar utama.
-          </p>
-        </div>
+      {images.length === 0 && readOnly ? (
+        <p className="rounded-lg border border-dashed border-input p-6 text-center text-sm text-muted-foreground">
+          Produk ini belum punya gambar.
+        </p>
       ) : (
-        <ul className="grid gap-3 sm:grid-cols-2">
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {images.map((img, i) => (
             <li
               key={img.id ?? `${img.url}-${i}`}
               className={cn(
-                'flex gap-3 rounded-lg border p-2',
-                img.isPrimary ? 'border-primary/50 bg-primary/5' : 'border-border',
+                'overflow-hidden rounded-lg border bg-card',
+                img.isPrimary ? 'border-primary/60 ring-1 ring-primary/30' : 'border-border',
               )}
             >
               <a
                 href={img.url}
                 target="_blank"
                 rel="noreferrer"
-                className="relative shrink-0"
-                title="Buka gambar di tab baru"
+                className="group relative block aspect-[4/3] bg-muted"
+                title="Buka gambar ukuran penuh"
               >
                 <img
                   src={img.url}
                   alt={img.altText ?? ''}
                   loading="lazy"
-                  className="size-20 rounded-md border border-border bg-muted object-cover"
+                  className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02] motion-reduce:transition-none"
                 />
+                <span className="absolute left-1.5 top-1.5 rounded bg-black/65 px-1.5 py-0.5 text-xs font-medium text-white tabular-nums">
+                  {img.isPrimary ? 'Utama' : `#${i + 1}`}
+                </span>
                 {img.isPrimary && (
-                  <span className="absolute left-1 top-1 rounded bg-primary px-1.5 py-0.5 text-xs font-medium text-primary-foreground">
-                    Utama
+                  <span className="absolute bottom-1.5 left-1.5 rounded bg-black/65 px-1.5 py-0.5 text-xs text-white">
+                    Thumbnail katalog
                   </span>
                 )}
               </a>
 
-              <div className="grid min-w-0 flex-1 content-start gap-1.5">
-                <Input
-                  value={img.altText ?? ''}
-                  onChange={(e) => patch(i, { altText: e.target.value || null })}
-                  maxLength={150}
-                  placeholder="Teks alternatif (opsional)"
-                  aria-label={`Teks alternatif gambar ${i + 1}`}
-                  disabled={readOnly}
-                  className="h-8 text-xs"
-                />
+              <div className="grid gap-1.5 p-2">
+                <div className="relative">
+                  <Input
+                    value={img.altText ?? ''}
+                    onChange={(e) => patch(i, { altText: e.target.value || null })}
+                    maxLength={150}
+                    placeholder="Teks alternatif"
+                    aria-label={`Teks alternatif gambar ${i + 1}`}
+                    disabled={readOnly}
+                    className="h-8 pr-14 text-xs"
+                  />
+                  <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-xs text-muted-foreground tabular-nums">
+                    {(img.altText ?? '').length}/150
+                  </span>
+                </div>
                 {!readOnly && (
-                  <div className="flex items-center gap-0.5">
+                  <div className="flex items-center justify-between gap-1">
                     <IconAction
                       icon={Star}
                       tone={img.isPrimary ? 'success' : 'neutral'}
-                      label={img.isPrimary ? 'Gambar utama' : 'Jadikan gambar utama'}
+                      label={img.isPrimary ? 'Sudah menjadi gambar utama' : 'Jadikan gambar utama'}
                       disabled={img.isPrimary}
                       onClick={() => makePrimary(i)}
                     />
-                    <IconAction
-                      icon={ChevronLeft}
-                      label={`Geser gambar ${i + 1} ke kiri`}
-                      disabled={i === 0}
-                      onClick={() => move(i, -1)}
-                    />
-                    <IconAction
-                      icon={ChevronRight}
-                      label={`Geser gambar ${i + 1} ke kanan`}
-                      disabled={i === images.length - 1}
-                      onClick={() => move(i, 1)}
-                    />
-                    <IconAction
-                      icon={Trash2}
-                      tone="destructive"
-                      label={`Hapus gambar ${i + 1}`}
-                      onClick={() => remove(i)}
-                    />
+                    <div className="flex items-center gap-0.5">
+                      <IconAction
+                        icon={ChevronLeft}
+                        label={`Geser gambar ${i + 1} ke kiri`}
+                        disabled={i === 0}
+                        onClick={() => move(i, -1)}
+                      />
+                      <IconAction
+                        icon={ChevronRight}
+                        label={`Geser gambar ${i + 1} ke kanan`}
+                        disabled={i === images.length - 1}
+                        onClick={() => move(i, 1)}
+                      />
+                      <IconAction
+                        icon={Trash2}
+                        tone="destructive"
+                        label={`Hapus gambar ${i + 1}`}
+                        onClick={() => remove(i)}
+                      />
+                    </div>
                   </div>
                 )}
               </div>
             </li>
           ))}
+
+          {/* Ubin tambah: jalur unggah yang selalu terlihat, sekaligus sasaran drop. */}
+          {canAdd && (
+            <li>
+              <button
+                type="button"
+                onClick={() => inputRef.current?.click()}
+                disabled={busy}
+                className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-input bg-muted/20 text-sm text-muted-foreground transition-colors hover:border-primary hover:bg-primary/5 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+              >
+                {busy ? <Loader2 className="size-5 animate-spin" /> : <ImagePlus className="size-5" />}
+                <span>{busy ? 'Mengunggah…' : 'Tambah gambar'}</span>
+                <span className="text-xs">atau lepas berkas di sini</span>
+              </button>
+            </li>
+          )}
         </ul>
+      )}
+
+      {images.length > 0 && !readOnly && (
+        <p className="text-xs text-muted-foreground">
+          Urutan di sini = urutan di portal. Gambar bertanda <strong>Utama</strong> dipakai sebagai thumbnail
+          katalog.
+        </p>
       )}
     </div>
   )

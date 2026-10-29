@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Check, Eye, Pencil, Plus, Send, Trash2, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -10,6 +10,7 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { IconAction } from '@/components/shared/IconAction'
 import { RowActions } from '@/components/shared/RowActions'
 import { lapakProductService } from '@/services/lapak/product.service'
+import { lapakCategoryService } from '@/services/lapak/category.service'
 import { lapakKeys } from '@/lib/query-keys'
 import { apiErrorMessage } from '@/lib/utils'
 import { useLapakList } from '../use-lapak-list'
@@ -45,6 +46,12 @@ export function LapakProductsPage() {
   const list = useLapakList<LapakProduct>('/lapak/products')
   const { params, setSearch, setFilter } = list
   const access = useLapakAccess()
+  // Opsi filter kategori — kunci sama dengan form produk agar cache dipakai bersama.
+  const categories = useQuery({
+    queryKey: [...lapakKeys.categories, 'pilihan'],
+    queryFn: () => lapakCategoryService.publicList(),
+    staleTime: 5 * 60_000,
+  })
 
   const [form, setForm] = useState<{ open: boolean; product: LapakProduct | null }>({
     open: false,
@@ -116,6 +123,7 @@ export function LapakProductsPage() {
             <div className="mt-0.5 truncate text-xs text-muted-foreground">
               {p.category.name}
               {p.organization?.name ? ` · ${p.organization.name}` : ''} · {p.rates.length} tarif
+              {p.images.length > 0 ? ` · ${p.images.length} gambar` : ''}
             </div>
           </div>
         </div>
@@ -230,6 +238,12 @@ export function LapakProductsPage() {
               value={params.status}
               options={STATUS_OPTIONS}
               onChange={(v) => setFilter('status', v)}
+            />
+            <FilterSelect
+              label="Kategori"
+              value={params.categoryId}
+              options={(categories.data ?? []).map((c) => [c.id, c.name] as [string, string])}
+              onChange={(v) => setFilter('categoryId', v)}
             />
           </>
         }
