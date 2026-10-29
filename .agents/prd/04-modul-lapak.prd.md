@@ -23,7 +23,7 @@ bawah **wajib** sama persis dengan `path` menu, kalau tidak menu bisa diklik tap
 | **P1** | Kategori · `/lapak-jambi/kategori` | `/lapak/categories` (9) | ✅ selesai |
 | **P2** | Produk · `/lapak-jambi/produk` | `/lapak/products` (8) | ✅ selesai |
 | **P3** | (publik) | `/lapak/organizations/:code` (2) | 🟡 |
-| **P4** | Produk → tab Tarif | `/lapak/rates` (8) | 🟠 setelah P2 |
+| **P4** | Produk → kartu Tarif | `/lapak/rates` (8) | ✅ selesai |
 | **P5** | Produk → tab Jadwal | `/lapak/availability` (6) | 🟠 setelah P2 |
 | **P6** | Pesanan · `/lapak-jambi/pesanan` | `/lapak/orders` (5) | 🟠 setelah P2 |
 | **P7** | SKRD · `/lapak-jambi/pengaturan-skrd` | `/lapak/skrd` (10) | 🟠 setelah P6 |
@@ -95,6 +95,14 @@ Verifikasi terhadap server (token gateway `seloko`, `X-App-Code: seloko`):
 
 Jadi **tidak ada** endpoint Lapak yang butuh token per-aplikasi. Bila 403 muncul, periksa
 header yang benar-benar dikirim (DevTools → Network) sebelum menyalahkan token.
+
+### 3a-bis. Selisih dokumentasi vs schema (selalu cek schema)
+
+Dokumen Apidog kadang lebih longgar dari kode. Contoh nyata di Rates §3: daftar `unit`
+menyertakan `PACKAGE`, padahal `rates.schema.ts` memakai ulang `PricingUnitSchema` dari
+`products.schema.ts` yang **tidak** punya `PACKAGE`. Karena tipe frontend diturunkan dari
+schema (`src/types/lapak.ts`), mengikuti dokumen akan mengirim nilai yang ditolak `400`.
+Aturan: **schema Zod menang** atas tabel dokumentasi.
 
 ### 3b. Envelope respons Lapak ≠ envelope Core
 

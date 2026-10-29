@@ -259,3 +259,54 @@ export interface CreateLapakProductBody {
 
 /** PUT — semua field POST opsional, minimal satu. */
 export type UpdateLapakProductBody = Partial<CreateLapakProductBody>
+
+// ─── Tarif produk (entitas ber-status sendiri) ─────────────────────────────────
+
+/**
+ * Tarif adalah entitas TERPISAH dari produk: produk bisa `PUBLISHED` sementara
+ * tarifnya masih `DRAFT`, dan revisi harga tidak menurunkan status produk.
+ *
+ * Alur: DRAFT → PENDING_REVIEW → APPROVED, dengan REJECTED kembali ke PENDING_REVIEW.
+ * Portal publik hanya menyajikan `APPROVED`/`PUBLISHED` yang `effectiveFrom`-nya
+ * sudah tercapai.
+ */
+export interface LapakRateDetail {
+  id: string
+  productId: string
+  name: string
+  unit: PricingUnit
+  price: number
+  minQty: number
+  maxQty: number | null
+  /** `HH:MM` */
+  startTime: string | null
+  endTime: string | null
+  status: ContentStatus
+  /** Publik baru melihat tarif setelah tanggal ini. */
+  effectiveFrom: string | null
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export type RateAction = 'submit' | 'approve' | 'reject'
+
+export interface CreateRateBody {
+  name: string
+  unit: PricingUnit
+  price: number
+  minQty?: number
+  maxQty?: number | null
+  startTime?: string | null
+  endTime?: string | null
+  effectiveFrom?: string | null
+  isActive?: boolean
+}
+
+/** PUT — semua opsional, minimal satu. */
+export type UpdateRateBody = Partial<CreateRateBody>
+
+export interface RateStatusBody {
+  /** Wajib saat `reject`. */
+  note?: string
+}

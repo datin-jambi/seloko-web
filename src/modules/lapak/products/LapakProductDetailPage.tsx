@@ -14,6 +14,7 @@ import { StatusBadge, LAPAK_PRODUCTS } from './ProductBadges'
 import { formatRupiah } from './format-rupiah'
 import { ProductFormDialog } from './ProductFormDialog'
 import { useLapakAccess } from '../lapak-access'
+import { ProductRatesCard } from './ProductRatesCard'
 
 /**
  * Detail produk. Menampilkan tarif/addon/persyaratan/fasilitas sebagai bacaan;
@@ -123,20 +124,8 @@ export function LapakProductDetailPage() {
         </section>
 
         <div className="space-y-4">
-          <Panel title={`Tarif (${p.rates.length})`}
-            count={p.rates.length} empty="Belum ada tarif.">
-            {p.rates.map((r) => (
-              <li key={r.id} className="flex items-center justify-between gap-3 py-1.5">
-                <span className="min-w-0 truncate">
-                  {r.name}
-                  <span className="ml-1.5 text-xs text-muted-foreground">
-                    /{PRICING_UNIT_LABEL[r.unit].toLowerCase()}
-                  </span>
-                </span>
-                <span className="shrink-0 tabular-nums">{formatRupiah(r.price)}</span>
-              </li>
-            ))}
-          </Panel>
+          {/* Tarif punya alur persetujuan sendiri — kartu ini yang menanganinya. */}
+          <ProductRatesCard productId={p.id} />
 
           <Panel title={`Addon (${p.addons.length})`}
             count={p.addons.length} empty="Belum ada addon.">
