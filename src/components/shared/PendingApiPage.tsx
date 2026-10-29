@@ -2,7 +2,7 @@ import { Construction } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { EmptyState } from '@/components/shared/EmptyState'
 
-// Menu sudah terdaftar di DB tapi endpoint SELOKO API belum ada.
+// Menu sudah terdaftar di DB tetapi halaman/endpoint-nya belum ada.
 export function PendingApiPage({ title, note }: { title: string; note: string }) {
   return (
     <>
@@ -10,7 +10,7 @@ export function PendingApiPage({ title, note }: { title: string; note: string })
       <EmptyState
         icon={Construction}
         title="Belum tersedia"
-        description={`Endpoint SELOKO API untuk halaman ini belum dibuat (${note}).`}
+        description={`Fitur ini belum tersedia — ${note}.`}
       />
     </>
   )

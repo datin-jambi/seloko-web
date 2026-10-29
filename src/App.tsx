@@ -58,17 +58,32 @@ const queryClient = new QueryClient({
  */
 const pending = (title: string, note: string) => <PendingApiPage title={title} note={note} />
 
-/** Halaman Lapak yang endpoint/UI-nya belum ada — didaftarkan di dua prefix. */
+/**
+ * Halaman Lapak yang belum punya UI — didaftarkan di dua prefix.
+ *
+ * SEMUA `path` di `prisma/seeds/core/menus.json` wajib punya <Route>: tanpa itu
+ * menu bisa diklik tetapi berakhir di NotFoundPage. Catatan di sini menjelaskan
+ * alasan sebenarnya, karena tidak semuanya berarti "endpoint belum ada" —
+ * sebagian API-nya sudah tersedia dan hanya halaman CMS-nya yang belum dibuat.
+ */
 const LAPAK_PENDING: [string, string][] = [
-  ['objek-retribusi', 'belum ada endpoint API'],
-  ['pengaturan-skrd', 'modul skrd belum ada'],
-  ['reservasi', 'modul reservasi belum ada'],
-      ['pesanan', 'modul lapak belum ada'],
-  ['pembayaran', 'modul lapak belum ada'],
-  ['tiket', 'modul lapak belum ada'],
-  ['artikel', 'modul artikel belum ada'],
-  ['galeri', 'modul galeri belum ada'],
-  ['banner', 'modul banner belum ada'],
+  ['objek-retribusi', 'belum ada entitas objek retribusi di API'],
+  ['pengaturan-skrd', 'modul SKRD belum dibuat'],
+  ['reservasi', 'modul reservasi belum dibuat'],
+  ['produk/persetujuan', 'antrean persetujuan belum dibuat — daftar produk sudah bisa disaring status Menunggu review'],
+  ['transaksi', 'modul transaksi belum ada di API'],
+  ['pesanan', 'halaman pesanan belum dibuat meski API /lapak/orders tersedia'],
+  ['pembayaran', 'modul pembayaran belum dibuat'],
+  ['tiket', 'halaman tiket belum dibuat meski API /lapak/tickets tersedia'],
+  ['penerima', 'modul penerima retribusi belum ada di API'],
+  ['artikel', 'modul artikel belum dibuat'],
+  ['galeri', 'modul galeri belum dibuat'],
+  ['banner', 'modul banner belum dibuat'],
+  ['laporan', 'modul laporan belum ada di API'],
+  ['audit', 'belum ada endpoint log audit'],
+  ['pengguna', 'kelola pengguna Lapak belum dibuat — pakai menu Seloko → Pengguna'],
+  ['pengaturan', 'modul pengaturan Lapak belum ada di API'],
+  ['profile', 'profil akun dibuka dari menu akun di kanan atas (Seloko → Profil)'],
 ]
 
 const LAPAK_PREFIXES = ['/lapak-jambi', '/lapak']
