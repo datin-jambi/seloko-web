@@ -11,8 +11,9 @@
 apiClient.interceptors.request.use((config) => {
   const token = useAuthStore.getState().accessToken
   if (token) config.headers.Authorization = `Bearer ${token}`
-  // Selalu gateway — backend mewajibkan sama dengan appCode token.
-  config.headers['X-App-Code'] = APP_CODES.SELOKO
+  // Default gateway. `??=` (bukan `=`): modul Lapak menimpa header ini per
+  // request karena token/izinnya milik aplikasi lain — lihat §4c.
+  config.headers['X-App-Code'] ??= APP_CODES.SELOKO
   return config
 })
 ```
@@ -35,6 +36,7 @@ Dua bentuk envelope hidup berdampingan di SELOKO API — frontend wajib menerima
 |---|---|---|
 | Core (`/users`, `/roles`, `/permissions`, `/applications`, `/menus`, `/auth`) | `{ success, message, data, meta? }` | `total` |
 | Bapenda (`/bapenda/*`, artikel bersama) | `{ statusCode, code, message, data, meta? }` | `totalItems` |
+| Lapak (`/lapak/*`) | `{ statusCode, code, message, data, meta? }` | `totalItems` |
 
 `meta` lainnya sama: `{ page, limit, totalPages, hasNextPage, hasPreviousPage }`.
 
@@ -54,6 +56,33 @@ Error (dari `setErrorHandler` `../seloko-api/src/app.ts`): `{ statusCode, code, 
 * Role: `PATCH /roles/:id` (nama/deskripsi) lalu `PUT /roles/:id/permissions` (menyetel **seluruh** permission, bukan menambah). `GET /roles/:id` mengembalikan seluruh permission aplikasi + `granted` — inilah sumber centang di dialog. `applicationId` & `audience` terkunci setelah dibuat; role sistem (`isSystemRole`) tidak bisa diganti nama atau dihapus.
 * Permission: `POST /permissions` (kode + nama + modul), `PATCH /permissions/:id` (hanya nama/modul), `DELETE`. `code` dan `applicationId` terkunci: kode dipakai literal di `requirePermission(...)`. Hapus permission mencabutnya dari sekian role dan membuka menu yang memakainya.
 * Tombol create/update/delete role & permission digate permission `role:create|update|delete` dan `permission:create|update|delete` (superadmin lolos semua) — sama seperti di tab detail aplikasi.
+
+### 4c-bis. Modul Lapak: `X-App-Code` tetap `seloko`
+
+Modul Lapak (`src/modules/lapak/**`, `src/services/lapak/*`) memanggil endpoint
+`/api/lapak/*`, tetapi **header tetap `seloko`** — sama seperti modul lain.
+
+* **JANGAN menimpa `X-App-Code` menjadi `lapak-jambi-web`.** Rute CMS Lapak memang
+  dirancang untuk gateway; `../seloko-api/src/modules/lapak/categories/categories.routes.ts`
+  menulis `// ── 2. Endpoint CMS (seloko, Bapenda saja) ──`. Di situ
+  `requirePermission("category:list", { app: LAPAK })`, dan `app: LAPAK` adalah
+  **sumber IZIN** (permission `category:*` milik aplikasi Lapak), BUKAN nilai header.
+* `authenticate` membandingkan `payload.appCode` (dari token) dengan `request.appCode`
+  (dari header). Menimpa header membuat **semua** request gagal
+  `403 Token was issued for app "seloko" but request targets "lapak-jambi-web"`.
+  Gejalanya menyesatkan: tampak seperti masalah token/pengaturan, padahal hanya header.
+* Endpoint publik (segmen akhir `public`) hanya mewajibkan header itu **ada** — `seloko`
+  maupun `lapak-jambi-web` sama-sama `200`; tanpa header `400 Missing required header`.
+* **Envelope & paginasi**: `{ statusCode, code, message, data, meta }` dengan
+  `meta.totalItems`. Karena itu daftar Lapak memakai `useLapakList`
+  (`src/modules/lapak/use-lapak-list.ts`), bukan `useList` Core — `useList` membaca
+  `meta.total` sehingga `meta` kosong dan paginasi hilang.
+* **Kontrak sudah diverifikasi end-to-end** terhadap server: baca daftar, buat kategori
+  (slug otomatis dari `name`), dan hapus — semuanya `200/201` dengan token gateway
+  `seloko`. Tidak ada endpoint Lapak yang butuh token per-aplikasi.
+* Pelajaran: dokumen ini sempat menyimpulkan "blokir token per-aplikasi" dari pengujian
+  yang sendiri menyuntikkan header salah. Saat 403 muncul, **periksa header yang dikirim
+  lebih dulu** (DevTools → Network → Request Headers) sebelum menyalahkan token.
 
 ### 4d. Super App: Environment INTERNAL & Sidebar per Platform
 

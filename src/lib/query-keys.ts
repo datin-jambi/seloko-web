@@ -61,3 +61,28 @@ export const organizationKeys = {
   /** Daftar publik (cukup login) — dipakai direktori OPD di aplikasi lain. */
   public: ['organizations', 'public'] as const,
 }
+
+/**
+ * Modul Lapak Jambi. Prefix `['lapak']` sengaja dipakai semua entitas di bawah,
+ * sehingga invalidasi borongan (`lapakKeys.all`) aman untuk aksi yang mengubah
+ * angka ringkasan lintas modul — mis. menghapus OPD memengaruhi katalog.
+ */
+export const lapakKeys = {
+  all: ['lapak'] as const,
+  /** OPD dari endpoint Lapak (gerbang izin aplikasi Lapak, bukan Core). */
+  opd: ['lapak', 'opd'] as const,
+  categories: ['lapak', 'categories'] as const,
+  category: (id: string) => ['lapak', 'categories', id] as const,
+  /** Kategori publik — dipakai filter katalog & form produk. */
+  categoriesPublic: ['lapak', 'categories', 'public'] as const,
+  products: ['lapak', 'products'] as const,
+  product: (id: string) => ['lapak', 'products', id] as const,
+  productPublic: ['lapak', 'products', 'public'] as const,
+  rates: ['lapak', 'rates'] as const,
+  orders: ['lapak', 'orders'] as const,
+  order: (id: string) => ['lapak', 'orders', id] as const,
+  skrd: ['lapak', 'skrd'] as const,
+  tickets: ['lapak', 'tickets'] as const,
+  /** Profil OPD + katalog publiknya (`/lapak/organizations/:code`). */
+  catalogOpd: (code: string) => ['lapak', 'catalog', code] as const,
+}

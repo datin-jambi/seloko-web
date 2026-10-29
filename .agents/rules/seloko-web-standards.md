@@ -5,7 +5,7 @@ Dokumen ini adalah aturan resmi yang wajib dipatuhi saat menulis kode di `seloko
 ---
 
 ## 1. Konsep Multi-Tenancy & App Switcher
-* **Header `X-App-Code` selalu `seloko`** (gateway). Backend mewajibkan header ini sama dengan `appCode` token; mengikuti aplikasi aktif menyebabkan 401/403.
+* **Header `X-App-Code` selalu `seloko`** (gateway), termasuk untuk modul Lapak. Backend mewajibkan header ini sama dengan `appCode` token: mengikuti aplikasi aktif — atau menimpanya jadi `lapak-jambi-web` — menyebabkan `403 Token was issued for app…`. Aplikasi `lapak-jambi-web` hanya sumber IZIN (`requirePermission(..., { app })`), bukan nilai header. Detail: PRD 03 §4c-bis.
 * **Konteks aplikasi aktif** (`bapenda-profile`, dsb.) dikirim lewat **query param** (`?appCode=`) atau path API domain (`/api/bapenda/*`), bukan header.
 * **Sumber daftar environment: `GET /applications/me`** (bukan `/applications`). Hanya `audience === 'INTERNAL'` yang boleh tampil, dan hanya aplikasi yang punya halaman (ada di `APP_WORKSPACE`) yang ditawarkan — kalau tidak, sidebar kosong & halaman 404.
 * **`code` aplikasi ≠ segmen URL.** `bapenda-profile` → `/bapenda/…`, `lapak-jambi-web` → `/lapak-jambi/…`. Pakai `appWorkspace()`/`appCodeFromPath()`, jangan menurunkan segmen dari `code`.
@@ -57,7 +57,9 @@ src/
 │   │   ├── organizations/ # OrganizationsPage, OrganizationDetailPage, OrganizationFormDialog, OrganizationChildrenCard, OrganizationParentCard, organization-form, organization-paths
 │   │   └── menus/   # MenusPage (inventaris + filter aplikasi/induk/status)
 │   ├── bapenda/     # pages.tsx: berita, review, kategori, halaman, banner
-│   └── lapak/       # LapakOpdPage (tabel OPD) + LapakOpdDetailPage, lapak-access (role admin/superadmin Lapak), use-opd-list, lapak-paths
+│   │   └── lapak/       # OPD (LapakOpdPage/Detail), categories/ (Kategori Layanan),
+│                    # lapak-access (gerbang izin), use-lapak-list (list envelope Lapak),
+│                    # lapak-errors + LapakContextNotice, lapak-paths. Pipeline: .agents/prd/04-modul-lapak.prd.md
 ├── services/        # API service layer (auth.service, menu.service, storage.service, dll.)
 ├── stores/          # Zustand store (authStore, appStore, themeStore)
 ├── types/           # DTO: index.ts (umum), core.ts, bapenda.ts

@@ -15,7 +15,7 @@ Aplikasi ini adalah dashboard frontend internal yang dibangun menggunakan **Reac
 
 ### B. Aturan Wajib (Rules):
 1. **Multi-Tenancy via `X-App-Code` & App Switcher:** Buka [`.agents/rules/seloko-web-standards.md`](file:///.agents/rules/seloko-web-standards.md)
-   - Header `X-App-Code` selalu `seloko` (gateway); konteks aplikasi aktif dikirim lewat query param `appCode` atau path domain.
+   - Header `X-App-Code` **selalu** `seloko` (gateway); konteks aplikasi aktif dikirim lewat query param `appCode` atau path domain. Berlaku juga untuk modul Lapak — **jangan** menimpanya jadi `lapak-jambi-web` (header ≠ sumber izin; PRD 03 §4c-bis).
    - App Switcher di header membaca `GET /api/applications/me`, **hanya menampilkan `audience = INTERNAL`** yang punya halaman di repo ini, lalu mengubah active app code, me-reload menu dinamis (`/api/menus/me?appCode=…`), dan berpindah ke beranda workspace tujuan.
    - Logo aplikasi **selalu** lewat `AppLogo`, dengan fallback per tema: `logoDarkUrl` (gelap) → `logoUrl` (terang, di-mask putih pada tema gelap bila varian gelap tidak ada) → `icon` DB → ikon netral. `code` aplikasi ≠ segmen URL (`lapak-jambi-web` → `/lapak-jambi/…`).
 2. **Kredensial & Autentikasi (JWT + HttpOnly Cookie):**
@@ -57,5 +57,5 @@ Setiap perubahan struktur, aturan, token desain, alur API, atau keputusan baru d
 3. ✅ **Main Dashboard Layout & Dynamic Sidebar** (App Switcher di Header, Hierarchical Tree Menu via `/api/menus/me`, User Profile Dropdown, Dark/Light Mode).
 4. ✅ **Modul Core Seloko** (Manajemen Pengguna & NIP, Hak Akses Role & Permission, Manajemen Aplikasi, Manajemen Menu).
 5. 🚧 **Modul Domain Bapenda CMS** (Baru daftar berita/kategori/halaman/banner; form editor, alur review, UPTD Samsat & peta belum).
-6. 🚧 **Modul Domain Lapak Jambi CMS** (Baru kerangka rute; endpoint & UI modul belum ada).
+6. 🚧 **Modul Domain Lapak Jambi CMS** — pipeline 11 task di [`.agents/prd/04-modul-lapak.prd.md`](file:///.agents/prd/04-modul-lapak.prd.md). Selesai: OPD Pengelola, **Kategori Layanan** (list/form/aktif/hapus, 9 endpoint — terverifikasi end-to-end). Berikutnya: Produk → Tarif/Jadwal → Pesanan → SKRD/Tiket.
 7. 🚧 **Integrasi Storage ImageKit** (Upload multipart + preview logo sudah ada untuk organisasi; komponen belum dipakai luas).

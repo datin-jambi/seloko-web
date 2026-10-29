@@ -36,11 +36,13 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`
     }
 
-    // Gateway multi-tenancy — untuk dashboard internal ini SELALU "seloko".
-    // Backend (authenticate) mewajibkan X-App-Code == appCode token; konteks
-    // aplikasi lain (bapenda-profile dkk) dikirim lewat query param atau path
-    // API (/api/bapenda/*), BUKAN lewat header ini. Mengikuti activeAppCode UI
-    // di sini menyebabkan 403 lintas konteks dan 401 saat login.
+    // Gateway multi-tenancy — SELALU "seloko" untuk semua modul.
+    // Backend mewajibkan header ini sama dengan `appCode` di token, jadi JANGAN
+    // mengikuti `activeAppCode` UI: itu menyebabkan 403 lintas konteks dan 401
+    // saat login. Modul Lapak pun tetap `seloko` — rute CMS-nya dirancang untuk
+    // gateway (`categories.routes.ts`: "Endpoint CMS (seloko, Bapenda saja)");
+    // aplikasi `lapak-jambi-web` hanya dipakai sebagai sumber IZIN lewat
+    // `requirePermission(..., { app: LAPAK })`, bukan sebagai nilai header.
     config.headers['X-App-Code'] = APP_CODES.SELOKO
 
     track(1)

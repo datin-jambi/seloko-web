@@ -25,6 +25,7 @@ import {
 } from '@/modules/bapenda/pages'
 import { PendingApiPage } from '@/components/shared/PendingApiPage'
 import { LapakOpdPage } from '@/modules/lapak/LapakOpdPage'
+import { LapakCategoriesPage } from '@/modules/lapak/categories/LapakCategoriesPage'
 import { LapakOpdDetailPage } from '@/modules/lapak/LapakOpdDetailPage'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { NotFoundPage } from '@/components/shared/NotFoundPage'
@@ -58,7 +59,6 @@ const pending = (title: string, note: string) => <PendingApiPage title={title} n
 /** Halaman Lapak yang endpoint/UI-nya belum ada — didaftarkan di dua prefix. */
 const LAPAK_PENDING: [string, string][] = [
   ['objek-retribusi', 'belum ada endpoint API'],
-  ['kategori', 'modul lapak belum ada'],
   ['pengaturan-skrd', 'modul skrd belum ada'],
   ['reservasi', 'modul reservasi belum ada'],
   ['produk', 'modul lapak belum ada'],
@@ -151,6 +151,10 @@ export function App() {
                   {/* Direktori OPD: data dari master Organisasi Seloko, khusus jenis OPD. */}
                   {LAPAK_PREFIXES.map((base) => (
                     <Route key={`${base}/opd`} path={`${base}/opd`} element={<LapakOpdPage />} />
+                  ))}
+                  {/* Master kategori layanan — dikelola Bapenda (lihat lapak-access). */}
+                  {LAPAK_PREFIXES.map((base) => (
+                    <Route key={`${base}/kategori`} path={`${base}/kategori`} element={<LapakCategoriesPage />} />
                   ))}
                   {LAPAK_PREFIXES.map((base) => (
                     <Route key={`${base}/opd/:code`} path={`${base}/opd/:code`} element={<LapakOpdDetailPage />} />

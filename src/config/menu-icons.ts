@@ -1,19 +1,23 @@
 import type { ElementType } from 'react'
 import {
   BadgeCheck,
+  BedDouble,
   Building2,
   Circle,
+  Dumbbell,
   ExternalLink,
   EyeOff,
   File,
   FileDown,
   FileText,
+  FlaskConical,
   FolderTree,
   Globe,
   Handshake,
   House,
   Image,
   Images,
+  Landmark,
   Key,
   Layers,
   LayoutDashboard,
@@ -29,12 +33,14 @@ import {
   ShieldCheck,
   ShoppingCart,
   Smartphone,
+  Sprout,
   Store,
   Tags,
   User,
   UserCog,
   UserPlus,
   Users,
+  Wrench,
 } from 'lucide-react'
 
 /**
@@ -84,6 +90,14 @@ export const MENU_ICONS: Record<string, ElementType> = {
   home: House,
   'shopping-cart': ShoppingCart,
   smartphone: Smartphone,
+  // Kategori Layanan Lapak (`prisma/seeds/lapak/categories.json`). Nama ikon
+  // disimpan di DB, jadi tanpa entri di sini kategori tampil sebagai lingkaran.
+  'bed-double': BedDouble,
+  landmark: Landmark,
+  dumbbell: Dumbbell,
+  wrench: Wrench,
+  'flask-conical': FlaskConical,
+  sprout: Sprout,
 }
 
 /** Urut abjad untuk dropdown pemilihan ikon. */
