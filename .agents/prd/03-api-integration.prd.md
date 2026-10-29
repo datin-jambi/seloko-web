@@ -147,6 +147,7 @@ SELOKO web adalah **super app**: satu login, satu aplikasi React, untuk mengelol
   | Logo utama / logo gelap | `APP_LOGO_RULE` — 2 MB, ≥64×64 | `logo` / `logo tema gelap`, 2 MB, 64 |
   | Favicon | `APP_FAVICON_RULE` — **1 MB**, ≥16×16 | `favicon`, **1 MB**, 16 |
   | Open Graph | `APP_OG_IMAGE_RULE` — 3 MB, ≥200×200 | `Open Graph image`, 3 MB, 200 |
+  | Avatar pengguna | `AVATAR_RULE` — 2 MB, ≥100×100 | `validateAvatarImage`, 2 MB, 100 |
 
   Server memeriksa ulang berkas via ImageKit **saat simpan**, jadi aturan klien yang lebih longgar baru ketahuan setelah unggahan selesai: `400 BAD_REQUEST "Ukuran berkas favicon terlalu besar (1.52 MB). Maksimal yang diizinkan adalah 1 MB."` Berkas sudah terlanjur masuk ImageKit dan menjadi yatim. `ImageUpload` menolak berdasarkan `rule.maxBytes` **sebelum** request, jadi pastikan `rule` tiap `ImageUpload` cocok dengan asetnya — favicon memakai `APP_FAVICON_RULE`, bukan `LOGO_RULE`.
 * `LOGO_RULE` tetap dipakai untuk logo **organisasi** (modul lain); jangan mencampurnya dengan aturan media aplikasi.
@@ -166,6 +167,23 @@ SELOKO web adalah **super app**: satu login, satu aplikasi React, untuk mengelol
 * Pencarian mencocokkan nama kebab-case — itulah nilai yang disimpan di DB, jadi operator sekaligus belajar nama tersimpannya.
 * Jangan `setState` di dalam `useEffect` untuk reset kueri: lakukan di handler pembuka (`setOpen`). Linter `react(set-state-in-effect)` menandainya sebagai render berantai.
 * Pratinjau ikon di tombol pemicu memakai `menuIcon()` (`MENU_ICONS`, ±30 ikon umum) agar tidak menarik katalog. Ikon di luar peta tampil sebagai lingkaran netral sampai panel dibuka.
+
+### 4h. Pengguna (Avatar, NIK, Penugasan Role Berlingkup OPD)
+
+Sumber: `../seloko-api/src/modules/core/users/users.schema.ts` (`UserShape`, `UserDetailShape`).
+
+* **Field profil lengkap sudah dikirim API** — jangan biarkan tak tampil: `avatarUrl`/`avatarFileId`, `nik` (**selalu termasking**, mis. `••••••••••••1234`), `phoneNumber`, `emailVerifiedAt`, `createdAt`/`updatedAt`/`deletedAt`, `totalApplications`, `totalRoles`.
+* **Semua avatar pengguna lewat `UserAvatar`** (`src/modules/core/users/UserAvatar.tsx`): `AvatarImage` Radix otomatis jatuh ke `AvatarFallback` inisial saat URL kosong/mati. Jangan menulis inisial manual per halaman.
+* **Detail mengirim dua bentuk penugasan**: `applications[]` (dikelompokkan per aplikasi, tiap role punya `organizations[]`) **dan** `roles[]` datar (`UserRoleShape`, lengkap dengan `applicationCode`/`applicationName`). Keduanya sah — pakai yang sesuai tampilan.
+* **`organizations` kosong = berlaku untuk SEMUA OPD**, bukan "tanpa akses". UI wajib menulis "Semua OPD", bukan `—`.
+* **`GET /users/:id/roles`** (permission `user-app-role:list`) mengembalikan `meta` **dan** `summary` di **akar** respons (di luar `data`) — bukan bentuk `ApiResponse` biasa. `status` bawaannya `active`; kirim `all` untuk audit. Dipakai lewat `userService.listRoles()`.
+* **`POST /users/:id/roles`** menerima `organizationIds` (maks 50). Daftar itu **mengganti** lingkup lama, bukan menambah; kosong = seluruh OPD. Role wajib seaudiens dengan jenis akun (server menolak `400`).
+* **`PATCH /users/:id`** menerima `fullName`, `phoneNumber`, `avatarUrl`/`avatarFileId`, `nip`, `nik`, `password`, `isSuperAdmin` — minimal satu field. **Jangan mengisi input NIK dengan nilai termasking** (bisa tersimpan sebagai `••••1234`); input mulai kosong dan hanya dikirim bila operator mengetik 16 digit.
+* **Reset kata sandi lewat `PATCH /users/:id` juga** (bukan endpoint terpisah). Server menolak `403` bila pemanggil bukan superadmin, menghitung hash argon2id, **mencabut semua refresh token** pengguna itu, dan membuang cache izinnya. UI menampilkan bagian "Kata sandi" hanya untuk superadmin dan bukan untuk akunnya sendiri (mengganti kata sandi sendiri akan mengakhiri sesi yang sedang dipakai), lengkap dengan tombol tampil/sembunyikan. `password` tidak pernah dikembalikan API.
+* **Avatar divalidasi server** (`validateAvatarImage`): maks 2 MB, minimal 100×100 px, `fileId` wajib ada di ImageKit. `avatarUrl` dan `avatarFileId` selalu berpasangan (file lama dihapus otomatis saat diganti).
+* **Unggah avatar lewat `ImageUpload`** (`AVATAR_RULE`, `module=users`, `subFolder=avatars`) di form tambah **dan** ubah. Berkas diunggah saat dipilih; URL+`fileId` baru ikut saat form disimpan, jadi membatalkan form meninggalkan berkas yatim di ImageKit.
+* **Nomor telepon selalu disimpan `+62`.** API hanya menyimpan string (maks 20 karakter) tanpa menormalkan apa pun, jadi penormatan ada di klien: `normalizePhoneId()` (`src/lib/phone.ts`) dipanggil sebelum validasi & sebelum dikirim, dan `displayPhoneId()` menormalkan baris lama (`08…`) saat ditampilkan. Jangan menulis nomor mentah ke UI.
+* Filter daftar: `accountType`, `isActive`, `isSuperAdmin` — ketiganya sudah dipakai toolbar daftar pengguna.
 
 ### 4e. Organisasi (OPD / Unit Kerja)
 

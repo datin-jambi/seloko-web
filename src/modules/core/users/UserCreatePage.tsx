@@ -6,11 +6,14 @@ import { toast } from 'sonner'
 import { ArrowLeft, Eye, EyeOff, Loader2 } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { FormField } from '@/components/shared/FormField'
+import { ImageUpload, type UploadedImage } from '@/components/shared/ImageUpload'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { AVATAR_RULE } from '@/config/image-rules'
 import { userService } from '@/services/user.service'
 import { useAuthStore } from '@/stores/auth-store'
 import { apiErrorMessage, apiFieldErrors } from '@/lib/utils'
+import { normalizePhoneId } from '@/lib/phone'
 import type { CreateUserBody } from '@/types/core'
 import { conflictField, USER_DETAIL, USERS_LIST as LIST, validateCreateUser, type CreateUserErrors } from './user-form'
 
@@ -34,6 +37,8 @@ export function UserCreatePage() {
   const [v, setV] = useState<Values>(EMPTY)
   const [errors, setErrors] = useState<CreateUserErrors>({})
   const [showPassword, setShowPassword] = useState(false)
+  // Unggahan langsung ke ImageKit; URL+fileId baru ikut saat form disimpan.
+  const [avatar, setAvatar] = useState<UploadedImage | null>(null)
 
   const set = (key: keyof Values) => (value: string | boolean) => {
     setV((prev) => ({ ...prev, [key]: value }))
@@ -62,7 +67,14 @@ export function UserCreatePage() {
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
-    const values = { ...v, fullName: v.fullName.trim(), email: v.email.trim(), username: v.username.trim() }
+    // Telepon dinormalkan SEBELUM validasi agar yang diperiksa bentuk finalnya.
+    const values = {
+      ...v,
+      fullName: v.fullName.trim(),
+      email: v.email.trim(),
+      username: v.username.trim(),
+      phoneNumber: normalizePhoneId(v.phoneNumber),
+    }
     const found = validateCreateUser(values)
     setErrors(found)
     if (Object.keys(found).length > 0) {
@@ -77,6 +89,8 @@ export function UserCreatePage() {
       password: values.password,
       nip: values.nip || undefined,
       phoneNumber: values.phoneNumber || undefined,
+      avatarUrl: avatar?.url,
+      avatarFileId: avatar?.fileId,
       isSuperAdmin: values.isSuperAdmin,
     })
   }
@@ -104,14 +118,41 @@ export function UserCreatePage() {
         <fieldset className="grid items-start gap-4 p-5 sm:grid-cols-2" disabled={create.isPending}>
           <legend className="sr-only">Identitas</legend>
           <h2 className="text-sm font-semibold sm:col-span-2">Identitas</h2>
+          <FormField
+            id="avatar"
+            label="Foto profil"
+            hint="PNG/JPG/WEBP, maks 2 MB, minimal 100×100 px"
+            className="sm:col-span-2"
+          >
+            <ImageUpload
+              id="avatar"
+              rule={AVATAR_RULE}
+              module="users"
+              subFolder="avatars"
+              value={avatar}
+              onChange={setAvatar}
+              disabled={create.isPending}
+              savedLabel="Foto tersimpan"
+              previewAlt="Pratinjau foto profil"
+              previewClassName="rounded-full object-cover p-0"
+            />
+          </FormField>
           <FormField id="fullName" label="Nama lengkap" required error={errors.fullName} className="sm:col-span-2">
             <Input {...field('fullName')} autoComplete="name" autoFocus />
           </FormField>
           <FormField id="nip" label="NIP" error={errors.nip} hint="Kosongkan untuk pegawai non-ASN">
             <Input {...field('nip')} inputMode="numeric" className="tabular-nums" />
           </FormField>
-          <FormField id="phoneNumber" label="Telepon" error={errors.phoneNumber}>
-            <Input {...field('phoneNumber')} type="tel" autoComplete="tel" />
+          <FormField id="phoneNumber" label="Telepon" error={errors.phoneNumber} hint="Ditulis otomatis sebagai +62">
+            <Input
+              {...field('phoneNumber')}
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              placeholder="0812 3456 7890"
+              // Normalkan saat field ditinggalkan supaya operator melihat bentuk tersimpannya.
+              onBlur={() => set('phoneNumber')(normalizePhoneId(v.phoneNumber))}
+            />
           </FormField>
         </fieldset>
 

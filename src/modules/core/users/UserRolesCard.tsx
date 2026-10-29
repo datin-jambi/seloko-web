@@ -19,10 +19,25 @@ import { FormField } from '@/components/shared/FormField'
 import { userService } from '@/services/user.service'
 import { useAuthStore } from '@/stores/auth-store'
 import { apiErrorMessage, formatDate } from '@/lib/utils'
-import type { UserDetail } from '@/types/core'
+import type { OrganizationRef, UserDetail } from '@/types/core'
 import { AppMark } from './AppMark'
 
 type Assignment = { id: string; roleName: string; appName: string }
+
+/** `expiresAt` sudah lewat → penugasan tidak lagi memberi izin. */
+const isExpired = (expiresAt: string | null) => !!expiresAt && new Date(expiresAt).getTime() < Date.now()
+
+/**
+ * Lingkup OPD satu penugasan. Kosong BUKAN "tidak ada akses", melainkan
+ * "berlaku untuk seluruh OPD" (level Bapenda) — jangan ditulis "—".
+ */
+const scopeLabel = (orgs?: OrganizationRef[]) => {
+  if (!orgs || orgs.length === 0) return 'Semua OPD'
+  const first = orgs[0].shortName ?? orgs[0].name
+  return orgs.length === 1 ? first : `${first} +${orgs.length - 1} OPD`
+}
+const scopeTitle = (orgs?: OrganizationRef[]) =>
+  !orgs || orgs.length === 0 ? 'Berlaku untuk seluruh OPD' : orgs.map((o) => o.name).join(', ')
 
 /**
  * Kartu "Akses aplikasi" di detail pengguna: role per aplikasi + tugaskan/cabut.
@@ -92,18 +107,31 @@ export function UserRolesCard({ user }: { user: UserDetail }) {
                 {app.roles.map((r) => (
                   <li
                     key={r.id}
-                    className="inline-flex h-8 items-center gap-2 rounded-md border border-border bg-muted/50 pl-2.5 pr-1 text-sm"
+                    className="inline-flex min-h-9 max-w-full items-center gap-2 rounded-md border border-border bg-muted/50 py-1 pl-2.5 pr-1 text-sm"
                   >
-                    <span className="font-medium">{r.roleName}</span>
-                    {r.expiresAt && (
-                      <span
-                        className="inline-flex items-center gap-1 text-xs text-muted-foreground"
-                        title={`Berlaku sampai ${formatDate(r.expiresAt)}`}
-                      >
-                        <CalendarClock className="size-3.5" />
-                        {formatDate(r.expiresAt)}
+                    <span className="min-w-0">
+                      <span className="block truncate font-medium leading-tight">{r.roleName}</span>
+                      <span className="flex flex-wrap items-center gap-x-1.5 text-xs leading-tight text-muted-foreground">
+                        <span className="max-w-40 truncate" title={scopeTitle(r.organizations)}>
+                          {scopeLabel(r.organizations)}
+                        </span>
+                        {isExpired(r.expiresAt) ? (
+                          <span className="font-medium text-destructive" title={`Berakhir ${formatDate(r.expiresAt)}`}>
+                            Kedaluwarsa
+                          </span>
+                        ) : (
+                          r.expiresAt && (
+                            <span
+                              className="inline-flex items-center gap-1"
+                              title={`Berlaku sampai ${formatDate(r.expiresAt)}`}
+                            >
+                              <CalendarClock className="size-3.5" />
+                              {formatDate(r.expiresAt)}
+                            </span>
+                          )
+                        )}
                       </span>
-                    )}
+                    </span>
                     {canRevoke ? (
                       <button
                         type="button"

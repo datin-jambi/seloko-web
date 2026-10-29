@@ -59,3 +59,20 @@ export const APP_OG_IMAGE_RULE: ImageRule = {
   minHeight: 200,
   accept: IMAGE_ACCEPT,
 }
+
+/**
+ * Foto avatar pengguna: 2 MB, ≥100×100 px.
+ *
+ * Cermin `validateAvatarImage()` di
+ * `seloko-api/src/modules/core/users/users.service.ts`. Server memeriksa ulang
+ * berkas di ImageKit saat simpan, jadi aturan klien yang lebih longgar baru
+ * ketahuan setelah unggahan selesai (berkas yatim di ImageKit).
+ * SVG sengaja tidak diterima: avatar dirender kecil dan bentuk vektornya
+ * bisa menyimpang dari bingkai bulat.
+ */
+export const AVATAR_RULE: ImageRule = {
+  maxBytes: 2 * 1024 * 1024,
+  minWidth: 100,
+  minHeight: 100,
+  accept: ['image/png', 'image/jpeg', 'image/webp'],
+}

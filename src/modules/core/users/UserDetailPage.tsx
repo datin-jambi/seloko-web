@@ -8,11 +8,13 @@ import { ErrorState } from '@/components/shared/ErrorState'
 import { Button } from '@/components/ui/button'
 import { userService } from '@/services/user.service'
 import { apiErrorMessage, formatDate, formatDateTime } from '@/lib/utils'
+import { displayPhoneId } from '@/lib/phone'
 import { useUserActions } from './use-user-actions'
 import { USER_EDIT, USERS_LIST as LIST } from './user-form'
 import { UserRolesCard } from './UserRolesCard'
 import { useAuthStore } from '@/stores/auth-store'
 import { AccountTypeBadge, SuperAdminBadge } from './AccountTypeBadge'
+import { UserAvatar } from './UserAvatar'
 
 
 // GET /users/:id — profil + penugasan role per aplikasi.
@@ -56,7 +58,12 @@ export function UserDetailPage() {
     <>
       {back}
       <PageHeader
-        title={u.fullName}
+        title={
+          <span className="flex items-center gap-3">
+            <UserAvatar name={u.fullName} src={u.avatarUrl} size="md" />
+            <span className="min-w-0 break-words">{u.fullName}</span>
+          </span>
+        }
         description={<span className="break-all">{u.email}</span>}
         actions={
           <>
@@ -98,8 +105,14 @@ export function UserDetailPage() {
               <AccountTypeBadge type={u.accountType} />
             </Row>
             <Row label="NIP" mono>{u.nip}</Row>
+            <Row label="NIK" mono>
+              {/* Selalu versi termasking dari API (••••••••••••1234). */}
+              {u.nik}
+            </Row>
             <Row label="Username" mono>{u.username}</Row>
-            <Row label="Telepon" mono>{u.phoneNumber}</Row>
+            <Row label="Telepon" mono>
+              {displayPhoneId(u.phoneNumber)}
+            </Row>
             <Row label="Email terverifikasi">{u.emailVerifiedAt ? formatDate(u.emailVerifiedAt) : 'Belum'}</Row>
             <Row label="Login terakhir">{formatDateTime(u.lastLoginAt)}</Row>
             <Row label="Terdaftar">{formatDate(u.createdAt)}</Row>

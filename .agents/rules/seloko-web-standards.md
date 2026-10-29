@@ -46,14 +46,14 @@ src/
 │   └── shared/      # Pakai ulang: PageHeader, DataTable, RowActions, ConfirmDialog, FormField, SearchBar, PendingApiPage, TopLoader, AppLogo, IconAction, IconPicker, ImageUpload, ListPagination
 ├── config/          # APP_CODES, APP_WORKSPACE (app ↔ segmen URL), WORKSPACE_ALIAS (lapak-jambi → lapak), menu-icons, env
 ├── hooks/           # Custom React hooks (use-list: fetch list — page/search/filter/sort di URL)
-├── lib/             # Helper murni (utils, axios instance, formatters, query-keys)
+├── lib/             # Helper murni (utils, phone (normalisasi +62), axios instance, formatters, query-keys)
 ├── modules/         # Fitur per domain
 │   ├── auth/        # Login page, auth guard
 │   ├── core/        # DashboardPage (semua app) + pages.tsx (barrel re-export)
 │   │   ├── profile/ # ProfilePage (/seloko/profile: identitas + akses aplikasi)
 │   │   ├── access/  # RolesPage, RoleDetailPage, PermissionsPage, PermissionDetailPage, RoleFormDialog, PermissionFormDialog, PermissionChecklist, use-access-actions, access-form, paths
 │   │   ├── applications/ # ApplicationsPage, ApplicationDetailPage (tab Role/Permission/Menu/Pengguna), AppRolesCard, AppPermissionsCard, AppMenusCard, AppUsersCard, MenuFormDialog, menu-tree, app-users, application-paths
-│   │   ├── users/   # UsersPage, UserDetailPage, UserCreatePage, UserEditPage, UserRolesCard, AppMark, AppCount, AccountTypeBadge, use-user-actions, user-form
+│   │   ├── users/   # UsersPage, UserDetailPage, UserCreatePage, UserEditPage, UserRolesCard, UserAvatar, AppMark, AppCount, AccountTypeBadge, use-user-actions, user-form
 │   │   ├── organizations/ # OrganizationsPage, OrganizationDetailPage, OrganizationFormDialog, OrganizationChildrenCard, OrganizationParentCard, organization-form, organization-paths
 │   │   └── menus/   # MenusPage (inventaris + filter aplikasi/induk/status)
 │   ├── bapenda/     # pages.tsx: berita, review, kategori, halaman, banner

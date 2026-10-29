@@ -1,4 +1,5 @@
 import type { CreateUserBody } from '../../../types/core.ts'
+import { isValidPhoneId, normalizePhoneId } from '../../../lib/phone.ts'
 
 export const USERS_LIST = '/seloko/pengguna'
 export const USER_CREATE = '/seloko/pengguna/tambah'
@@ -10,7 +11,8 @@ export const USER_EDIT = (id: string) => `/seloko/pengguna/${id}/ubah`
 export type CreateUserErrors = Partial<Record<keyof CreateUserBody | 'confirm', string>>
 
 // Field profil yang sama di form tambah & ubah (UpdateUserBodySchema).
-type Profile = { fullName: string; nip: string; phoneNumber: string }
+// `nik` hanya ada di PATCH (tambah akun pegawai tidak menerimanya).
+type Profile = { fullName: string; nip: string; phoneNumber: string; nik?: string }
 export type ProfileErrors = Partial<Record<keyof Profile, string>>
 
 export function validateProfile(v: Profile): ProfileErrors {
@@ -18,7 +20,16 @@ export function validateProfile(v: Profile): ProfileErrors {
   if (v.fullName.trim().length < 2) e.fullName = 'Nama lengkap minimal 2 karakter'
   else if (v.fullName.length > 150) e.fullName = 'Nama lengkap maksimal 150 karakter'
   if (v.nip && !/^\d{1,30}$/.test(v.nip)) e.nip = 'NIP hanya berisi angka (maks. 30 digit)'
-  if (v.phoneNumber && v.phoneNumber.length > 20) e.phoneNumber = 'Nomor telepon maksimal 20 karakter'
+  // Nomor disimpan seragam +62 (lihat src/lib/phone.ts); server hanya membatasi
+  // panjang 20 karakter, jadi penormatan & validasi bentuk ada di klien.
+  if (v.phoneNumber) {
+    const phone = normalizePhoneId(v.phoneNumber)
+    if (!isValidPhoneId(phone)) e.phoneNumber = 'Nomor tidak valid (contoh: 0812 3456 7890)'
+    else if (phone.length > 20) e.phoneNumber = 'Nomor telepon maksimal 20 karakter'
+  }
+  // NIK lengkap 16 digit; API membalas versi termasking saat dibaca, jadi
+  // field ini hanya diisi bila operator memang menggantinya.
+  if (v.nik && !/^\d{16}$/.test(v.nik)) e.nik = 'NIK harus 16 digit angka'
   return e
 }
 
@@ -48,4 +59,20 @@ export function conflictField(message: string): keyof CreateUserBody | undefined
   if (/^Username/i.test(message)) return 'username'
   if (/^Email/i.test(message)) return 'email'
   if (/^NIP/i.test(message)) return 'nip'
+}
+
+// Reset kata sandi (khusus superadmin) — aturan sama dengan CreateUserBodySchema.
+// Kosong = tidak diubah, jadi tidak ada error.
+export type PasswordErrors = { password?: string; confirm?: string }
+
+export function validatePasswordChange(password: string, confirm: string): PasswordErrors {
+  const e: PasswordErrors = {}
+  if (!password) return e
+  if (password.length < 8) e.password = 'Kata sandi minimal 8 karakter'
+  else if (password.length > 100) e.password = 'Kata sandi maksimal 100 karakter'
+  else if (!/[A-Z]/.test(password)) e.password = 'Harus mengandung minimal 1 huruf besar'
+  else if (!/[0-9]/.test(password)) e.password = 'Harus mengandung minimal 1 angka'
+  if (!confirm) e.confirm = 'Ulangi kata sandi baru'
+  else if (confirm !== password) e.confirm = 'Konfirmasi tidak sama dengan kata sandi'
+  return e
 }

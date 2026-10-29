@@ -26,6 +26,12 @@ interface Props {
   onChange: (next: UploadedImage | null) => void
   disabled?: boolean
   error?: string
+  /** Teks baris pratinjau, mis. "Foto tersimpan". */
+  savedLabel?: string
+  /** Alt gambar pratinjau. */
+  previewAlt?: string
+  /** Kelas tambahan pratinjau — avatar memakai `rounded-full object-cover p-0`. */
+  previewClassName?: string
 }
 
 const readDimensions = (file: File): Promise<{ width: number; height: number } | null> =>
@@ -62,6 +68,9 @@ export function ImageUpload({
   onChange,
   disabled,
   error,
+  savedLabel = 'Berkas tersimpan',
+  previewAlt = 'Pratinjau berkas',
+  previewClassName,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
@@ -185,11 +194,14 @@ export function ImageUpload({
           {/* Berkas dari ImageKit; bukan data lokal, jadi <img> biasa sudah cukup. */}
           <img
             src={value.url}
-            alt="Pratinjau logo organisasi"
-            className="size-14 shrink-0 rounded-md border border-border bg-muted object-contain p-1"
+            alt={previewAlt}
+            className={cn(
+              'size-14 shrink-0 rounded-md border border-border bg-muted object-contain p-1',
+              previewClassName,
+            )}
           />
           <div className="min-w-0 flex-1 text-xs">
-            <div className="truncate font-medium text-foreground">Logo tersimpan</div>
+            <div className="truncate font-medium text-foreground">{savedLabel}</div>
             <div className="text-muted-foreground">
               {displaySize ? formatFileSize(displaySize) : meta.isPending ? 'memuat ukuran…' : 'ukuran tidak diketahui'}
               {displayWidth && displayHeight ? ` · ${displayWidth}×${displayHeight} px` : ''}

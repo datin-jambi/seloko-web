@@ -2,34 +2,103 @@
 
 export type Audience = 'INTERNAL' | 'PUBLIC'
 
+/** Ringkasan OPD pada penugasan role (users.schema.ts → OrganizationRefShape). */
+export interface OrganizationRef {
+  id: string
+  code: string
+  name: string
+  shortName: string | null
+}
+
+/**
+ * Satu penugasan role milik pengguna (UserRoleShape).
+ *
+ * `organizations` kosong = berlaku untuk SEMUA OPD (level Bapenda); berisi =
+ * hanya OPD tersebut (mis. admin OPD). Mengirim ulang `organizationIds`
+ * MENGGANTI lingkup lama, bukan menambah.
+ */
+export interface UserRoleAssignment {
+  id: string
+  roleId: string
+  roleName: string
+  applicationId: string
+  applicationCode: string
+  applicationName: string
+  expiresAt: string | null
+  createdAt: string
+  organizations: OrganizationRef[]
+}
+
+// GET /users — UserListItemShape (ringkasan aplikasi, tanpa daftar role).
 export interface UserListItem {
   id: string
   nip: string | null
   username: string | null
   email: string
   fullName: string
+  phoneNumber: string | null
+  /** NIK SELALU termasking (4 digit terakhir) — nilai penuh tidak pernah dikirim API. */
+  nik: string | null
+  avatarUrl: string | null
+  avatarFileId: string | null
   accountType: Audience
   isSuperAdmin: boolean
   isActive: boolean
+  emailVerifiedAt: string | null
   lastLoginAt: string | null
+  createdAt: string
+  updatedAt: string
+  deletedAt: string | null
+  totalApplications: number
   totalRoles: number
   applications: { id: string; code: string; name: string }[]
 }
 
+/** Role pengguna di dalam satu aplikasi (UserApplicationRoleItemShape). */
+export interface UserApplicationRole {
+  id: string
+  roleId: string
+  roleName: string
+  expiresAt: string | null
+  createdAt: string
+  organizations: OrganizationRef[]
+}
+
 // GET /users/:id — UserDetailShape
 export interface UserDetail extends Omit<UserListItem, 'applications'> {
-  phoneNumber: string | null
-  avatarUrl: string | null
-  emailVerifiedAt: string | null
-  createdAt: string
-  updatedAt: string
-  totalApplications: number
   applications: {
     id: string
     code: string
     name: string
-    roles: { id: string; roleId: string; roleName: string; expiresAt: string | null; createdAt: string }[]
+    roles: UserApplicationRole[]
   }[]
+  /** Daftar datar seluruh penugasan role (UserRoleShape) — bentuk cadangan dari API. */
+  roles: UserRoleAssignment[]
+}
+
+/** Filter masa berlaku penugasan role (ListRoleAssignmentsQuerySchema). */
+export type RoleAssignmentStatus = 'active' | 'expired' | 'all'
+
+export interface ListRoleAssignmentsQuery {
+  page?: number
+  limit?: number
+  applicationId?: string
+  roleId?: string
+  organizationId?: string
+  status?: RoleAssignmentStatus
+  sortBy?: 'createdAt' | 'expiresAt' | 'application'
+  sortOrder?: 'asc' | 'desc'
+}
+
+/** Ringkasan lintas halaman untuk badge kartu pengguna. */
+export interface RoleAssignmentSummary {
+  totalAssignments: number
+  activeAssignments: number
+  expiredAssignments: number
+  totalApplications: number
+  totalOrganizations: number
+  /** Penugasan yang berlaku untuk seluruh OPD. */
+  globalAssignments: number
 }
 
 // POST /users — CreateUserBodySchema. Hanya membuat akun INTERNAL (pegawai).
@@ -40,6 +109,8 @@ export interface CreateUserBody {
   password: string
   nip?: string
   phoneNumber?: string
+  avatarUrl?: string
+  avatarFileId?: string | null
   isSuperAdmin: boolean
 }
 
@@ -48,6 +119,16 @@ export interface UpdateUserBody {
   fullName?: string
   nip?: string | null
   phoneNumber?: string | null
+  /** Hanya dikirim saat unggah/ganti avatar; URL valid dari storage. */
+  avatarUrl?: string | null
+  avatarFileId?: string | null
+  /** 16 digit; null mengosongkan. API hanya mengirim versi termasking saat baca. */
+  nik?: string | null
+  /**
+   * Reset kata sandi (khusus superadmin). Semua sesi pengguna itu dicabut
+   * setelah berhasil. Tidak pernah dikembalikan oleh API.
+   */
+  password?: string
   isSuperAdmin?: boolean
 }
 
@@ -56,6 +137,8 @@ export interface AssignRoleBody {
   applicationId: string
   roleId: string
   expiresAt?: string
+  /** Lingkup OPD; kosong = seluruh OPD. Mengganti lingkup lama, bukan menambah. */
+  organizationIds?: string[]
 }
 
 export interface RoleListItem {

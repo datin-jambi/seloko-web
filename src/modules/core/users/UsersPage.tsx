@@ -14,6 +14,7 @@ import { useUserActions } from './use-user-actions'
 import { USER_CREATE, USER_DETAIL, USER_EDIT } from './user-form'
 import { AppCount } from './AppCount'
 import { AccountTypeBadge, SuperAdminBadge } from './AccountTypeBadge'
+import { UserAvatar } from './UserAvatar'
 
 const mono = 'font-mono text-xs tabular-nums'
 
@@ -21,15 +22,18 @@ const columns: Column<UserListItem>[] = [
   {
     header: 'Nama',
     cell: (u) => (
-      <div>
-        {/* Baris bisa diklik: nama tebal + garis bawah saat baris di-hover. Link = akses keyboard. */}
-        <Link
-          to={USER_DETAIL(u.id)}
-          className="font-medium underline-offset-2 hover:underline focus-visible:underline focus-visible:outline-none group-hover/row:font-bold group-hover/row:underline"
-        >
-          {u.fullName}
-        </Link>
-        <div className="text-xs text-muted-foreground">{u.email}</div>
+      <div className="flex items-center gap-3">
+        <UserAvatar name={u.fullName} src={u.avatarUrl} />
+        <div className="min-w-0">
+          {/* Baris bisa diklik: nama tebal + garis bawah saat baris di-hover. Link = akses keyboard. */}
+          <Link
+            to={USER_DETAIL(u.id)}
+            className="font-medium underline-offset-2 hover:underline focus-visible:underline focus-visible:outline-none group-hover/row:font-bold group-hover/row:underline"
+          >
+            {u.fullName}
+          </Link>
+          <div className="text-xs text-muted-foreground">{u.email}</div>
+        </div>
       </div>
     ),
   },
@@ -114,6 +118,17 @@ export function UsersPage() {
                 ['false', 'Nonaktif'],
               ]}
               onChange={(v) => setFilter('isActive', v)}
+            />
+            {/* Filter didukung API (isSuperAdmin) — tanpa ini akun istimewa
+                hanya bisa ditemukan lewat mata. */}
+            <FilterSelect
+              label="Superadmin"
+              value={params.isSuperAdmin}
+              options={[
+                ['true', 'Ya'],
+                ['false', 'Bukan'],
+              ]}
+              onChange={(v) => setFilter('isSuperAdmin', v)}
             />
           </>
         }
