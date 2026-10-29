@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { LogOut, User, Shield, ChevronDown, Menu } from 'lucide-react'
+import { LogOut, User, ChevronDown, Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAppStore } from '@/stores/app-store'
 import { useNavigate } from 'react-router-dom'
@@ -28,14 +28,9 @@ function getInitials(name?: string) {
 }
 
 export function Header() {
-  const { user, permissions, clearAuth } = useAuthStore()
+  const { user, clearAuth } = useAuthStore()
   const { mobileNavOpen, setMobileNavOpen } = useAppStore()
   const navigate = useNavigate()
-
-  // Dibaca langsung dari `user`/`permissions` agar selector tidak mengembalikan
-  // referensi fungsi (yang tidak pernah berubah → komponen tak re-render saat
-  // permission diperbarui).
-  const can = (code: string) => !!user?.isSuperAdmin || permissions.includes(code)
 
   const handleLogout = async () => {
     try {
@@ -102,12 +97,6 @@ export function Header() {
               <User className="text-muted-foreground" />
               Profil
             </DropdownMenuItem>
-            {can('role:list') && (
-              <DropdownMenuItem onClick={() => navigate('/seloko/akses/role')}>
-                <Shield className="text-muted-foreground" />
-                Hak akses
-              </DropdownMenuItem>
-            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={handleLogout}
