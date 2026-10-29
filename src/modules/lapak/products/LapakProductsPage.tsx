@@ -19,7 +19,7 @@ import { PRICING_UNIT_LABEL } from '../categories/category-labels'
 import type { LapakProduct, ProductStatusAction } from '@/types/lapak'
 import { ProductFormDialog } from './ProductFormDialog'
 import { ProductLink, StatusBadge } from './ProductBadges'
-import { formatRupiah } from './format-rupiah'
+import { formatRupiah, startingPrice } from './format-rupiah'
 import {
   ACTION_DESCRIPTION,
   ACTION_LABEL,
@@ -27,12 +27,6 @@ import {
   allowedActions,
   isPositiveAction,
 } from './product-status'
-
-/** Harga awal = tarif aktif termurah, sama dengan perhitungan katalog publik. */
-const startingPrice = (p: LapakProduct) => {
-  const active = p.rates.filter((r) => r.isActive).map((r) => r.price)
-  return active.length ? Math.min(...active) : null
-}
 
 /**
  * Produk & Layanan — `/lapak-jambi/produk`.
@@ -178,7 +172,7 @@ export function LapakProductsPage() {
               (action === 'publish' && access.canPublishProduct) ||
               (action === 'unpublish' && access.canPublishProduct) ||
               action === 'submit' ||
-              action === 'reject',
+              (action === 'reject' && access.canRejectProduct),
           }))
           return (
             <>

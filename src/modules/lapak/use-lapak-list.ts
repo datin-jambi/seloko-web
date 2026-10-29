@@ -21,14 +21,29 @@ type ListApi<T> = ReturnType<typeof useLapakList<T>>
  * selain `page` kembali ke halaman 1. `DataTable` hanya butuh bentuk
  * `ListState`, jadi keduanya bisa dipertukarkan.
  */
-export function useLapakList<T>(path: string, fixed: Record<string, string> = {}) {
+export function useLapakList<T>(
+  path: string,
+  fixed: Record<string, string> = {},
+  /**
+   * Param yang dikirim ke API tetapi TIDAK ditampilkan sebagai filter di UI
+   * (mis. `status` yang dikunci halaman antrean). Tanpa ini `DataTable`
+   * mengira daftar sedang difilter dan menampilkan tombol Reset yang tak berguna.
+   */
+  hidden: string[] = [],
+) {
   const [searchParams, setSearchParams] = useSearchParams()
-  const params: Record<string, string> = { limit: DEFAULT_LIMIT, ...Object.fromEntries(searchParams), ...fixed }
+  const allParams: Record<string, string> = {
+    limit: DEFAULT_LIMIT,
+    ...Object.fromEntries(searchParams),
+    ...fixed,
+  }
+  const params = { ...allParams }
+  for (const key of hidden) delete params[key]
 
   const query = useQuery({
-    queryKey: ['lapak-list', path, params],
+    queryKey: ['lapak-list', path, allParams],
     queryFn: async () => {
-      const { rows, meta: m } = await lapakGetPage<T>(path, params)
+      const { rows, meta: m } = await lapakGetPage<T>(path, allParams)
       const meta: PaginationMeta | undefined = m && {
         page: m.page,
         limit: m.limit,

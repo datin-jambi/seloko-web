@@ -30,6 +30,8 @@ interface DataTableProps<T> {
   columns: Column<T>[]
   rowKey: (row: T) => string
   emptyTitle?: string
+  /** Keterangan saat daftar kosong tanpa filter aktif (mis. antrean kosong). */
+  emptyDescription?: string
   /** SearchBar / FilterSelect. Tombol Reset ditambahkan otomatis saat ada search/filter aktif. */
   toolbar?: ReactNode
   /** Kolom aksi di kanan (mis. RowActions). Tidak dirender bila tidak diisi. */
@@ -47,6 +49,7 @@ export function DataTable<T>({
   columns,
   rowKey,
   emptyTitle = 'Belum ada data',
+  emptyDescription,
   toolbar,
   actions,
   onRowClick,
@@ -155,7 +158,9 @@ export function DataTable<T>({
                 onAction={list.reset}
                 title={filtered ? 'Tidak ada hasil' : emptyTitle}
                 description={
-                  filtered ? 'Ubah kata kunci atau filter.' : 'Data akan muncul di sini setelah ditambahkan.'
+                  filtered
+                    ? 'Ubah kata kunci atau filter.'
+                    : (emptyDescription ?? 'Data akan muncul di sini setelah ditambahkan.')
                 }
               />
             </div>

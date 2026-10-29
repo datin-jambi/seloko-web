@@ -28,6 +28,7 @@ import { LapakOpdPage } from '@/modules/lapak/LapakOpdPage'
 import { LapakCategoriesPage } from '@/modules/lapak/categories/LapakCategoriesPage'
 import { LapakProductsPage } from '@/modules/lapak/products/LapakProductsPage'
 import { LapakProductDetailPage } from '@/modules/lapak/products/LapakProductDetailPage'
+import { LapakProductApprovalPage } from '@/modules/lapak/products/LapakProductApprovalPage'
 import { LapakOpdDetailPage } from '@/modules/lapak/LapakOpdDetailPage'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { NotFoundPage } from '@/components/shared/NotFoundPage'
@@ -70,7 +71,6 @@ const LAPAK_PENDING: [string, string][] = [
   ['objek-retribusi', 'belum ada entitas objek retribusi di API'],
   ['pengaturan-skrd', 'modul SKRD belum dibuat'],
   ['reservasi', 'modul reservasi belum dibuat'],
-  ['produk/persetujuan', 'antrean persetujuan belum dibuat — daftar produk sudah bisa disaring status Menunggu review'],
   ['transaksi', 'modul transaksi belum ada di API'],
   ['pesanan', 'halaman pesanan belum dibuat meski API /lapak/orders tersedia'],
   ['pembayaran', 'modul pembayaran belum dibuat'],
@@ -174,6 +174,13 @@ export function App() {
                   {/* Produk & Layanan — daftar tersaring lingkup OPD oleh server. */}
                   {LAPAK_PREFIXES.map((base) => (
                     <Route key={`${base}/produk`} path={`${base}/produk`} element={<LapakProductsPage />} />
+                  ))}
+                  {LAPAK_PREFIXES.map((base) => (
+                    <Route
+                      key={`${base}/produk/persetujuan`}
+                      path={`${base}/produk/persetujuan`}
+                      element={<LapakProductApprovalPage />}
+                    />
                   ))}
                   {LAPAK_PREFIXES.map((base) => (
                     <Route

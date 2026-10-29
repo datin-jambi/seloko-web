@@ -60,6 +60,8 @@ export function useLapakAccess() {
     canCreateProduct: can('product:create'),
     canUpdateProduct: can('product:update'),
     canApproveProduct: can('product:approve'),
+    /** Menolak produk (`product:reject`) — dipakai antrean Persetujuan Produk. */
+    canRejectProduct: can('product:reject'),
     canPublishProduct: can('product:publish'),
     canDeleteProduct: can('product:delete'),
     canListOrders: can('order:list') || can('order:read'),

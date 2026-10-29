@@ -58,8 +58,8 @@ src/
 │   │   └── menus/   # MenusPage (inventaris + filter aplikasi/induk/status)
 │   ├── bapenda/     # pages.tsx: berita, review, kategori, halaman, banner
 │   │   └── lapak/       # OPD (LapakOpdPage/Detail), categories/ (Kategori Layanan),
-│   │                    # products/ (Produk & Layanan: list, detail, form bertab + anak-anak,
-│   │                    #   ProductImagesField untuk galeri multi-foto),
+│   │                    # products/ (Produk & Layanan: list, detail, approval (antrean PENDING_REVIEW),
+│   │                    #   form bertab + anak-anak, ProductImagesField untuk galeri multi-foto),
 │                    # lapak-access (gerbang izin), use-lapak-list (list envelope Lapak),
 │                    # lapak-paths. Pipeline: .agents/prd/04-modul-lapak.prd.md
 ├── services/        # API service layer (auth.service, menu.service, storage.service, dll.)

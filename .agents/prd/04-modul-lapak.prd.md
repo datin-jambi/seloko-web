@@ -165,14 +165,33 @@ boleh punya banyak foto, bukan hanya satu cover.
   "hanya bisa dibaca" alih-alih tombol simpan.
 - Filter daftar: **status** dan **kategori** (`categoryId`, opsi dari `/lapak/categories/public`).
 
+### 3f. Persetujuan Produk
+
+Rute `/lapak-jambi/produk/persetujuan` (+ alias `/lapak/…`), komponen
+`LapakProductApprovalPage.tsx`.
+
+- Antrean = `GET /lapak/products?status=PENDING_REVIEW`; server menyaring lingkup OPD.
+- Keputusan = `PATCH /lapak/products/:id/status/approve|reject`. **Tidak ada body** — alasan
+  penolakan belum didukung API, jadi jangan mengirim `note` yang tidak dibaca.
+- Izin diperiksa **di service**, di balik `product:read`: `product:approve` untuk menyetujui,
+  `product:reject` untuk menolak. Tombol wajib mengikuti `canApproveProduct` /
+  `canRejectProduct` (`lapak-access.ts`); menampilkan "Tolak" tanpa izin hanya menghasilkan 403.
+- Transisi sah hanya dari `PENDING_REVIEW` (`TRANSITIONS` backend). Setelah diputuskan baris
+  hilang dari antrean karena filternya status.
+- `useLapakList(path, { status }, ['status'])` — argumen ketiga `hidden` membuat `status` tetap
+  dikirim ke API tetapi tidak dianggap filter UI. Tanpa itu `DataTable` menampilkan tombol
+  **Reset** yang tidak mengubah apa pun.
+- `DataTable` menerima `emptyDescription` untuk teks kosong khusus konteks (mis. antrean).
+- Kolom OPD hanya berguna bagi Bapenda/superadmin (melihat semua OPD); admin OPD tetap melihat
+  satu OPD saja.
+
 ---
 
 ## 4. Di Luar Cakupan (endpoint belum ada)
 
 `/lapak/objek-retribusi`, `/lapak/transaksi` (laporan warga), `/lapak/penerima`,
-`/lapak/produk/persetujuan` (bisa jadi filter P2), `/lapak/artikel|galeri|banner|berita`
-(modul konten, kemungkinan berbagi endpoint Bapenda), `/lapak/audit`, `/lapak/pengguna`,
-`/lapak/profile`. Semua tetap `PendingApiPage`.
+`/lapak/artikel|galeri|banner` (modul konten, kemungkinan berbagi endpoint Bapenda),
+`/lapak/audit`, `/lapak/pengguna`, `/lapak/profile`. Semua tetap `PendingApiPage`.
 
 Catatan: dokumen Kategori §Catatan menyebut *"`/lapak/objek-retribusi` dan
 `/lapak/pengaturan-skrd` di menu belum punya endpoint — menyusul"*. Untuk
