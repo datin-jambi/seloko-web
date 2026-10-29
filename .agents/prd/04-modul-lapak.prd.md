@@ -21,7 +21,7 @@ bawah **wajib** sama persis dengan `path` menu, kalau tidak menu bisa diklik tap
 |---|---|---|---|
 | **P0** | — (fondasi) | — | ✅ selesai |
 | **P1** | Kategori · `/lapak-jambi/kategori` | `/lapak/categories` (9) | ✅ selesai |
-| **P2** | Produk · `/lapak-jambi/produk` | `/lapak/products` (8) | 🔴 |
+| **P2** | Produk · `/lapak-jambi/produk` | `/lapak/products` (8) | ✅ selesai |
 | **P3** | (publik) | `/lapak/organizations/:code` (2) | 🟡 |
 | **P4** | Produk → tab Tarif | `/lapak/rates` (8) | 🟠 setelah P2 |
 | **P5** | Produk → tab Jadwal | `/lapak/availability` (6) | 🟠 setelah P2 |
@@ -30,6 +30,12 @@ bawah **wajib** sama persis dengan `path` menu, kalau tidak menu bisa diklik tap
 | **P8** | Tiket · `/lapak-jambi/tiket` | `/lapak/tickets` (5) | 🟠 setelah P6 |
 | **P9** | Pengaturan · `/lapak-jambi/pengaturan` | `/lapak/expiry` (5) | 🟡 |
 | **P10** | Reservasi · `/lapak-jambi/reservasi`, Laporan · `/lapak-jambi/laporan` | `/lapak/reservations` (4), `/lapak/reports` (2) | 🟡 |
+
+**Catatan penamaan (penting):** permintaan sempat menyebut produk ada di
+`/lapak-jambi/objek-retribusi`. Itu **menu berbeda**: *Objek Retribusi* berada di grup
+`Management Retribusi`, sedangkan produk ada di grup `Katalog` → **`/lapak-jambi/produk`**.
+Backend **belum punya entitas objek retribusi** (tidak ada model/tabel; `LapakProduct`
+hanya menyimpan `retributionObjectId` yang menganggur), jadi menu itu tetap `PendingApiPage`.
 
 Menu yang **belum punya endpoint** (tetap `PendingApiPage`, jangan dikerjakan):
 `objek-retribusi`, `transaksi`, `penerima`, `produk/persetujuan`, `artikel`, `galeri`,

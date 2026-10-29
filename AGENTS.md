@@ -57,5 +57,5 @@ Setiap perubahan struktur, aturan, token desain, alur API, atau keputusan baru d
 3. ✅ **Main Dashboard Layout & Dynamic Sidebar** (App Switcher di Header, Hierarchical Tree Menu via `/api/menus/me`, User Profile Dropdown, Dark/Light Mode).
 4. ✅ **Modul Core Seloko** (Manajemen Pengguna & NIP, Hak Akses Role & Permission, Manajemen Aplikasi, Manajemen Menu).
 5. 🚧 **Modul Domain Bapenda CMS** (Baru daftar berita/kategori/halaman/banner; form editor, alur review, UPTD Samsat & peta belum).
-6. 🚧 **Modul Domain Lapak Jambi CMS** — pipeline 11 task di [`.agents/prd/04-modul-lapak.prd.md`](file:///.agents/prd/04-modul-lapak.prd.md). Selesai: OPD Pengelola, **Kategori Layanan** (list/form/aktif/hapus, 9 endpoint — terverifikasi end-to-end). Berikutnya: Produk → Tarif/Jadwal → Pesanan → SKRD/Tiket.
+6. 🚧 **Modul Domain Lapak Jambi CMS** — pipeline 11 task di [`.agents/prd/04-modul-lapak.prd.md`](file:///.agents/prd/04-modul-lapak.prd.md). Selesai: OPD Pengelola, **Kategori Layanan** (9 endpoint), **Produk & Layanan** (8 endpoint + detail, form bertab, alur status; terverifikasi terhadap data nyata). Berikutnya: Tarif/Jadwal → Pesanan → SKRD/Tiket.
 7. 🚧 **Integrasi Storage ImageKit** (Upload multipart + preview logo sudah ada untuk organisasi; komponen belum dipakai luas).

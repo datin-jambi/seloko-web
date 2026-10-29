@@ -77,3 +77,185 @@ export interface CreateLapakCategoryBody {
 
 /** PUT — semua field POST opsional, minimal satu. */
 export type UpdateLapakCategoryBody = Partial<CreateLapakCategoryBody>
+
+// ─── Produk / Aset Katalog ────────────────────────────────────────────────────
+
+/** Tipe field persyaratan dokumen produk. */
+export type RequirementFieldType = 'FILE' | 'TEXT' | 'NUMBER' | 'DATE' | 'SELECT'
+
+/** Tarif — anak produk. `id` ada = perbarui baris itu (replace-set saat PUT). */
+export interface LapakRate {
+  id: string
+  name: string
+  unit: PricingUnit
+  price: number
+  minQty: number
+  maxQty: number | null
+  /** `HH:MM` — hanya untuk tarif berbasis slot. */
+  startTime: string | null
+  endTime: string | null
+  status: ContentStatus
+  effectiveFrom: string | null
+  isActive: boolean
+}
+
+export interface LapakAddon {
+  id: string
+  name: string
+  unit: PricingUnit
+  price: number
+  isActive: boolean
+}
+
+export interface LapakRequirement {
+  id: string
+  label: string
+  fieldType: RequirementFieldType
+  /** Wajib & hanya boleh untuk `SELECT`. */
+  options: string[] | null
+  isRequired: boolean
+  sortOrder: number
+}
+
+export interface LapakFacility {
+  id: string
+  name: string
+  icon: string | null
+}
+
+export interface LapakProductImage {
+  id: string
+  url: string
+  fileId: string | null
+  altText: string | null
+  isPrimary: boolean
+  sortOrder: number
+}
+
+/** Objek penuh (CMS). */
+export interface LapakProduct {
+  id: string
+  applicationId: string
+  organizationId: string
+  categoryId: string
+  retributionObjectId: string | null
+  name: string
+  slug: string
+  excerpt: string | null
+  description: string
+  address: string | null
+  latitude: number | null
+  longitude: number | null
+  capacity: number | null
+  areaM2: number | null
+  pricingUnit: PricingUnit
+  availabilityType: AvailabilityType
+  fulfillmentType: FulfillmentType
+  status: ContentStatus
+  publishedAt: string | null
+  coverUrl: string | null
+  coverFileId: string | null
+  organization: { id: string; code: string; name: string }
+  category: { id: string; name: string; slug: string }
+  rates: LapakRate[]
+  addons: LapakAddon[]
+  requirements: LapakRequirement[]
+  facilities: LapakFacility[]
+  images: LapakProductImage[]
+  createdAt: string
+  updatedAt: string
+}
+
+/** Kartu ringkas katalog publik. */
+export interface PublicLapakProduct {
+  id: string
+  name: string
+  slug: string
+  excerpt: string | null
+  coverUrl: string | null
+  address: string | null
+  pricingUnit: PricingUnit
+  /** Tarif aktif termurah. */
+  startingPrice: number | null
+  organization: { code: string; name: string }
+  category: { name: string; slug: string }
+}
+
+/** Aksi alur persetujuan (`PATCH /:id/status/:action`). */
+export type ProductStatusAction = 'submit' | 'approve' | 'reject' | 'publish' | 'unpublish'
+
+/**
+ * Body anak-anak produk. Bentuk kiriman = replace-set saat PUT: item dengan `id`
+ * diperbarui, tanpa `id` dibuat, dan yang tidak dikirim di-soft-delete.
+ */
+export interface ProductRateInput {
+  id?: string
+  name: string
+  unit: PricingUnit
+  price: number
+  minQty?: number
+  maxQty?: number | null
+  startTime?: string | null
+  endTime?: string | null
+  isActive?: boolean
+}
+
+export interface ProductAddonInput {
+  id?: string
+  name: string
+  unit: PricingUnit
+  price: number
+  isActive?: boolean
+}
+
+export interface ProductRequirementInput {
+  id?: string
+  label: string
+  fieldType: RequirementFieldType
+  options?: string[] | null
+  isRequired?: boolean
+  sortOrder?: number
+}
+
+export interface ProductFacilityInput {
+  id?: string
+  name: string
+  icon?: string | null
+}
+
+export interface ProductImageInput {
+  id?: string
+  url: string
+  fileId?: string | null
+  altText?: string | null
+  isPrimary?: boolean
+  sortOrder?: number
+}
+
+export interface CreateLapakProductBody {
+  organizationId: string
+  categoryId: string
+  name: string
+  slug?: string
+  excerpt?: string | null
+  description: string
+  address?: string | null
+  latitude?: number | null
+  longitude?: number | null
+  capacity?: number | null
+  areaM2?: number | null
+  /** `null` = warisi bawaan kategori. */
+  pricingUnit?: PricingUnit | null
+  availabilityType?: AvailabilityType | null
+  fulfillmentType?: FulfillmentType | null
+  coverUrl?: string | null
+  coverFileId?: string | null
+  rates?: ProductRateInput[]
+  addons?: ProductAddonInput[]
+  requirements?: ProductRequirementInput[]
+  facilities?: ProductFacilityInput[]
+  images?: ProductImageInput[]
+}
+
+/** PUT — semua field POST opsional, minimal satu. */
+export type UpdateLapakProductBody = Partial<CreateLapakProductBody>

@@ -26,6 +26,8 @@ import {
 import { PendingApiPage } from '@/components/shared/PendingApiPage'
 import { LapakOpdPage } from '@/modules/lapak/LapakOpdPage'
 import { LapakCategoriesPage } from '@/modules/lapak/categories/LapakCategoriesPage'
+import { LapakProductsPage } from '@/modules/lapak/products/LapakProductsPage'
+import { LapakProductDetailPage } from '@/modules/lapak/products/LapakProductDetailPage'
 import { LapakOpdDetailPage } from '@/modules/lapak/LapakOpdDetailPage'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { NotFoundPage } from '@/components/shared/NotFoundPage'
@@ -61,9 +63,7 @@ const LAPAK_PENDING: [string, string][] = [
   ['objek-retribusi', 'belum ada endpoint API'],
   ['pengaturan-skrd', 'modul skrd belum ada'],
   ['reservasi', 'modul reservasi belum ada'],
-  ['produk', 'modul lapak belum ada'],
-  ['produk/persetujuan', 'modul lapak belum ada'],
-  ['pesanan', 'modul lapak belum ada'],
+      ['pesanan', 'modul lapak belum ada'],
   ['pembayaran', 'modul lapak belum ada'],
   ['tiket', 'modul lapak belum ada'],
   ['artikel', 'modul artikel belum ada'],
@@ -155,6 +155,17 @@ export function App() {
                   {/* Master kategori layanan — dikelola Bapenda (lihat lapak-access). */}
                   {LAPAK_PREFIXES.map((base) => (
                     <Route key={`${base}/kategori`} path={`${base}/kategori`} element={<LapakCategoriesPage />} />
+                  ))}
+                  {/* Produk & Layanan — daftar tersaring lingkup OPD oleh server. */}
+                  {LAPAK_PREFIXES.map((base) => (
+                    <Route key={`${base}/produk`} path={`${base}/produk`} element={<LapakProductsPage />} />
+                  ))}
+                  {LAPAK_PREFIXES.map((base) => (
+                    <Route
+                      key={`${base}/produk/:id`}
+                      path={`${base}/produk/:id`}
+                      element={<LapakProductDetailPage />}
+                    />
                   ))}
                   {LAPAK_PREFIXES.map((base) => (
                     <Route key={`${base}/opd/:code`} path={`${base}/opd/:code`} element={<LapakOpdDetailPage />} />
