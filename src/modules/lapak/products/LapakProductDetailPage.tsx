@@ -8,7 +8,7 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { ErrorState } from '@/components/shared/ErrorState'
 import { lapakProductService } from '@/services/lapak/product.service'
 import { lapakKeys } from '@/lib/query-keys'
-import { apiErrorMessage } from '@/lib/utils'
+import { apiErrorMessage, cn } from '@/lib/utils'
 import { PRICING_UNIT_LABEL, AVAILABILITY_LABEL, FULFILLMENT_LABEL } from '../categories/category-labels'
 import { StatusBadge, LAPAK_PRODUCTS } from './ProductBadges'
 import { formatRupiah } from './format-rupiah'
@@ -97,6 +97,39 @@ export function LapakProductDetailPage() {
           )
         }
       />
+
+      {p.images.length > 0 && (
+        <section aria-label="Galeri gambar produk" className="mb-6 rounded-lg border border-border bg-card p-3">
+          <ul className="flex gap-3 overflow-x-auto pb-1">
+            {p.images.map((img) => (
+              <li key={img.id} className="shrink-0">
+                <a
+                  href={img.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={img.altText ?? 'Buka gambar di tab baru'}
+                  className="relative block"
+                >
+                  <img
+                    src={img.url}
+                    alt={img.altText ?? p.name}
+                    loading="lazy"
+                    className={cn(
+                      'h-28 w-40 rounded-md border object-cover',
+                      img.isPrimary ? 'border-primary ring-2 ring-primary/40' : 'border-border',
+                    )}
+                  />
+                  {img.isPrimary && (
+                    <span className="absolute left-1.5 top-1.5 rounded bg-primary px-1.5 py-0.5 text-xs font-medium text-primary-foreground">
+                      Utama
+                    </span>
+                  )}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="space-y-3 rounded-lg border border-border bg-card p-4">

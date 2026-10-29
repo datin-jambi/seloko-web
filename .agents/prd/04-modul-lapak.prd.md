@@ -133,6 +133,30 @@ Seed `categories.json` memakai `bed-double`, `landmark`, `dumbbell`, `wrench`,
   di effect).
 - Warna: token (`primary`, `muted`, `destructive`), jangan `blue-*`.
 
+### 3e. Gambar produk (multi-foto)
+
+`ProductChildrenSchema.images` menerima **maks 20** gambar per produk — satu produk memang
+boleh punya banyak foto, bukan hanya satu cover.
+
+- Field: `url` (wajib, ≤500), `fileId` (nullable), `altText` (≤150), `isPrimary`, `sortOrder`.
+- **Replace-set**: `images` yang dikirim menggantikan SELURUH galeri; baris yang tidak
+  dikirim di-soft-delete. Karena itu form wajib mengirim seluruh galeri (termasuk yang tidak
+  diubah) — `ProductFormDialog` menyimpan state galeri dari `product.images`.
+- **`isPrimary` tunggal**: server menormalkan ulang (`normalizePrimary`); bila tak ada yang
+  ditandai, gambar dengan `sortOrder` terkecil diangkat. UI tetap menjaga tepat satu agar
+  operator melihat hasil akhirnya sebelum simpan.
+- **`coverUrl` mengikuti gambar utama** bila `coverUrl` tidak dikirim eksplisit — itulah
+  thumbnail katalog (daftar produk), jadi jangan mengirim `coverUrl` terpisah dari galeri.
+- **Berkas**: unggah ke `POST /storage/upload` (`module=lapak`, `subFolder=products`) lewat
+  `ProductImagesField` (`src/modules/lapak/products/`). Batas klien = `PRODUCT_IMAGE_RULE`
+  (5 MB, ≥400×300). Server Lapak **tidak** memeriksa ukuran/dimensi berkas produk (hanya
+  `url` divalidasi), jadi aturan klien adalah satu-satunya penjaga kuota ImageKit.
+- **Jangan hapus berkas saat tombol hapus ditekan.** Baris DB bisa bertahan bila form
+  dibatalkan; dialog menampung `fileId` yang dibuang dan baru menghapusnya di ImageKit
+  setelah simpan sukses.
+- Detail produk menampilkan galeri (strip horizontal, gambar utama ditandai); daftar memakai
+  `coverUrl`.
+
 ---
 
 ## 4. Di Luar Cakupan (endpoint belum ada)

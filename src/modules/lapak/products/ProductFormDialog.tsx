@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/dialog'
 import { lapakProductService } from '@/services/lapak/product.service'
 import { lapakCategoryService } from '@/services/lapak/category.service'
+import { storageService } from '@/services/storage.service'
 import { lapakKeys } from '@/lib/query-keys'
 import { apiErrorMessage, apiFieldErrors } from '@/lib/utils'
 import type {
@@ -26,11 +27,13 @@ import type {
   LapakProduct,
   ProductAddonInput,
   ProductFacilityInput,
+  ProductImageInput,
   ProductRateInput,
   ProductRequirementInput,
 } from '@/types/lapak'
 import { AVAILABILITY_OPTIONS, FULFILLMENT_OPTIONS, PRICING_UNIT_OPTIONS } from '../categories/category-labels'
 import { AddonRows, FacilityRows, RateRows, RequirementRows } from './ProductChildrenFields'
+import { ProductImagesField } from './ProductImagesField'
 
 /** Sentinel Select — nilai kosong tidak boleh string kosong. */
 const INHERIT = '__inherit__'
@@ -127,6 +130,21 @@ export function ProductFormDialog({
     () => product?.requirements ?? [],
   )
   const [facilities, setFacilities] = useState<ProductFacilityInput[]>(() => product?.facilities ?? [])
+  // Galeri: satu produk boleh punya banyak gambar (maks 20 di backend).
+  const [images, setImages] = useState<ProductImageInput[]>(
+    () =>
+      product?.images?.map((img) => ({
+        id: img.id,
+        url: img.url,
+        fileId: img.fileId,
+        altText: img.altText,
+        isPrimary: img.isPrimary,
+        sortOrder: img.sortOrder,
+      })) ?? [],
+  )
+  // Berkas yang dibuang dari galeri — dihapus di ImageKit hanya SETELAH simpan
+  // berhasil; menghapus lebih awal mematahkan gambar bila form dibatalkan.
+  const removedFiles = useRef<string[]>([])
   const set = <K extends keyof Values>(k: K, val: Values[K]) => setV((s) => ({ ...s, [k]: val }))
 
   // OPD & kategori aktif — keduanya wajib valid di server.
@@ -143,6 +161,12 @@ export function ProductFormDialog({
 
   const save = useMutation({
     mutationFn: async () => {
+      // Urutan gambar = indeks array dan selalu ada tepat satu utama. Server
+      // menormalkan ulang, tetapi UI harus mengirim bentuk akhir yang benar.
+      const normalizedImages = images.map((img, i) => ({ ...img, sortOrder: i }))
+      if (normalizedImages.length > 0 && !normalizedImages.some((img) => img.isPrimary)) {
+        normalizedImages[0].isPrimary = true
+      }
       const body: CreateLapakProductBody = {
         organizationId: v.organizationId,
         categoryId: v.categoryId,
@@ -166,10 +190,14 @@ export function ProductFormDialog({
         addons: addons.filter((a) => a.name.trim()),
         requirements: requirements.filter((r) => r.label.trim()),
         facilities: facilities.filter((f) => f.name.trim()),
+        images: normalizedImages,
       }
       return isEdit ? lapakProductService.update(product!.id, body) : lapakProductService.create(body)
     },
     onSuccess: (p) => {
+      // Baru sekarang berkas yang dibuang aman dihapus dari ImageKit.
+      for (const fileId of removedFiles.current) void storageService.remove(fileId).catch(() => undefined)
+      removedFiles.current = []
       toast.success(isEdit ? `${p.name} diperbarui` : `${p.name} dibuat sebagai draf`)
       void qc.invalidateQueries({ queryKey: lapakKeys.products })
       onSaved?.()
@@ -215,6 +243,7 @@ export function ProductFormDialog({
             <Tabs defaultValue="info">
               <TabsList>
                 <TabsTrigger value="info">Info</TabsTrigger>
+                <TabsTrigger value="images">Gambar</TabsTrigger>
                 <TabsTrigger value="rates">Tarif & addon</TabsTrigger>
                 <TabsTrigger value="req">Persyaratan</TabsTrigger>
                 <TabsTrigger value="fac">Fasilitas</TabsTrigger>
@@ -347,6 +376,20 @@ export function ProductFormDialog({
                   value={v.fulfillmentType}
                   options={FULFILLMENT_OPTIONS}
                   onChange={(x) => set('fulfillmentType', x)}
+                />
+              </TabsContent>
+
+              <TabsContent value="images" className="mt-4 space-y-3">
+                <h3 className="text-sm font-medium">Gambar produk</h3>
+                <p className="text-xs text-muted-foreground">
+                  Satu produk boleh punya beberapa foto. Gambar bertanda <strong>Utama</strong> dipakai sebagai
+                  thumbnail katalog dan menjadi cover produk.
+                </p>
+                <ProductImagesField
+                  images={images}
+                  onChange={setImages}
+                  readOnly={readOnly}
+                  onRemoveFile={(fileId) => removedFiles.current.push(fileId)}
                 />
               </TabsContent>
 

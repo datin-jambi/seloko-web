@@ -60,6 +60,14 @@ export const APP_OG_IMAGE_RULE: ImageRule = {
   accept: IMAGE_ACCEPT,
 }
 
+/** Foto produk / aset katalog: 5 MB, ≥400×300 px. */
+export const PRODUCT_IMAGE_RULE: ImageRule = {
+  maxBytes: 5 * 1024 * 1024,
+  minWidth: 400,
+  minHeight: 300,
+  accept: ['image/png', 'image/jpeg', 'image/webp'],
+}
+
 /**
  * Foto avatar pengguna: 2 MB, ≥100×100 px.
  *

@@ -4,6 +4,7 @@ import { isAxiosError } from 'axios'
 import { ImagePlus, Loader2, RefreshCw, Trash2, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { apiErrorMessage, cn } from '@/lib/utils'
+import { readImageDimensions } from '@/lib/image-file'
 import { formatFileSize, storageService, type StorageFile } from '@/services/storage.service'
 import type { ImageRule } from '@/config/image-rules'
 
@@ -33,23 +34,6 @@ interface Props {
   /** Kelas tambahan pratinjau — avatar memakai `rounded-full object-cover p-0`. */
   previewClassName?: string
 }
-
-const readDimensions = (file: File): Promise<{ width: number; height: number } | null> =>
-  new Promise((resolve) => {
-    // SVG tidak punya dimensi raster yang bisa diukur lewat <img> dengan andal.
-    if (file.type === 'image/svg+xml') return resolve(null)
-    const url = URL.createObjectURL(file)
-    const img = new Image()
-    img.onload = () => {
-      resolve({ width: img.naturalWidth, height: img.naturalHeight })
-      URL.revokeObjectURL(url)
-    }
-    img.onerror = () => {
-      resolve(null)
-      URL.revokeObjectURL(url)
-    }
-    img.src = url
-  })
 
 /**
  * Input berkas gambar: pilih/lepas berkas → unggah ke /storage/upload → simpan
@@ -111,7 +95,7 @@ export function ImageUpload({
       return
     }
 
-    const dims = await readDimensions(file)
+    const dims = await readImageDimensions(file)
     if (dims && rule.minWidth && rule.minHeight) {
       if (dims.width < rule.minWidth || dims.height < rule.minHeight) {
         setLocalError(`Dimensi ${dims.width}×${dims.height} px terlalu kecil (minimal ${rule.minWidth}×${rule.minHeight} px).`)
