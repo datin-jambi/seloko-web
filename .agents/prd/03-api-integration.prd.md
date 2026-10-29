@@ -82,8 +82,19 @@ SELOKO web adalah **super app**: satu login, satu aplikasi React, untuk mengelol
 
 `GET /applications/me` mengirim `logoUrl`, `logoDarkUrl`, `faviconUrl`, dan `icon` (nama ikon Lucide, mis. `building-2`).
 
-* **Rantai fallback wajib** (`src/components/shared/AppLogo.tsx`): `logoDarkUrl` (tema gelap) → `logoUrl` → `icon` dari DB → `LayoutGrid` netral. Gambar resmi selalu menang; ikon dipakai bila logo belum diunggah.
-* **URL mati harus turun ke ikon, bukan kotak kosong.** `logoUrl` hanya string di DB, jadi CDN pindah/berkas dihapus tidak terdeteksi API. `AppLogo` mencatat kegagalan muat per-`src` di state lalu merender ulang rantai fallback. Jangan sekadar mengembalikan `null` di `onError` tanpa eskalasi — hasilnya area kosong. Pola yang sama dipakai `MediaRow` di halaman detail (`Aset Visual`), yang menampilkan pesan "Berkas tidak dapat dimuat" alih-alih ikon gambar rusak.
+* **Rantai fallback dievaluasi PER TEMA** (`src/components/shared/AppLogo.tsx`), karena slot terang dan gelap bisa punya status muat berbeda:
+
+  | yang tersedia | tema terang | tema gelap |
+  |---|---|---|
+  | `logoUrl` + `logoDarkUrl` | `logoUrl` | `logoDarkUrl` |
+  | `logoUrl` saja | `logoUrl` | mask putih `logoUrl` |
+  | `logoDarkUrl` saja | `icon` DB | `logoDarkUrl` |
+  | kosong / mati semua | `icon` DB → `LayoutGrid` netral | sama |
+
+  Rantai global (satu daftar untuk kedua tema) **salah** untuk data nyata: ada aplikasi yang `logoUrl`-nya menunjuk CDN mati sementara `logoDarkUrl` (ImageKit) masih hidup. Dengan rantai global, tema terang ikut merender logo mati sehingga tersisa kotak kosong padahal `icon` DB tersedia.
+* **Satu berkas logo pun harus mengikuti tema.** Tanpa `logoDarkUrl`, slot gelap merender `logoUrl` sebagai **mask** ber-`currentColor`, sehingga warna mengikuti kelas pemanggil (`text-primary` → `dark:text-white`). Alasan mask, bukan `filter: invert()`: logo bisa berwarna (bukan hitam pekat) sehingga invert menghasilkan warna komplementer yang salah, bukan putih. Syaratnya PNG transparan/SVG (dicek `canMask`); JPEG berlatar putih akan jadi kotak penuh, jadi berkas non-PNG/SVG dirender sebagai gambar biasa. Varian `logoDarkUrl` bila ada **tidak** di-mask — berkasnya sudah disiapkan untuk latar gelap.
+* **URL mati harus turun ke ikon, bukan kotak kosong.** `logoUrl` hanya string di DB, jadi CDN pindah/berkas dihapus tidak terdeteksi API. `AppLogo` mencatat kegagalan muat per-`src` di state lalu merender ulang rantai fallback. Jangan sekadar mengembalikan `null` di `onError` tanpa eskalasi — hasilnya area kosong. Mask tidak memicu `onError` (bukan elemen gambar), jadi keberadaan berkas diuji lewat `Image()`. Pola yang sama dipakai `MediaRow` di halaman detail (`Aset Visual`), yang menampilkan pesan "Berkas tidak dapat dimuat" alih-alih ikon gambar rusak.
+* **Semua tampilan logo aplikasi WAJIB lewat `AppLogo`**, jangan `<img src={logoUrl}>` mentah: hanya `AppLogo` yang punya fallback & deteksi URL mati. Pemanggil di latar **gelap tetap** (rel sidebar navy di kedua tema) memberi `className="text-white"`; di latar **mengikuti tema** memberi `className="text-primary dark:text-white"`. `variant="original"` memaksa berkas apa adanya untuk pratinjau aset (halaman detail), di mana yang diperiksa justru berkas aslinya.
 * **JANGAN menebak ikon dari `code`.** Peta per-kode (perilaku lama `AppMark`) tidak mengenal aplikasi baru dan mencampur kode INTERNAL dengan PUBLIC. Penanda ringkas di tabel (`AppMark`) juga memakai `icon` dari DB.
 * Varian terang/gelap dirender bersamaan lalu dipilih CSS (`dark:hidden` / `hidden dark:block`), bukan `document.documentElement` — supaya reaktif terhadap `ThemeToggle`.
 * Identitas di kepala Sidebar memakai aplikasi **aktif** (logo + nama dari API), bukan hardcode "SELOKO": satu super app, sidebar berganti isi.

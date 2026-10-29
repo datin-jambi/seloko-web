@@ -53,7 +53,7 @@ export function AppSwitcher() {
           className="flex h-9 min-w-0 max-w-[280px] items-center gap-2 rounded-md px-2 text-sm outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/40 data-[state=open]:bg-accent"
         >
           {current ? (
-            <AppLogo app={current} size="md" />
+            <AppLogo app={current} size="md" className="text-primary dark:text-white" />
           ) : (
             <Loader2 className={cn('size-4 shrink-0 text-muted-foreground', isLoading && 'animate-spin')} />
           )}
@@ -102,7 +102,7 @@ export function AppSwitcher() {
                 key={`${app.logoUrl ?? ''}|${app.logoDarkUrl ?? ''}|${app.icon ?? ''}`}
                 app={app}
                 size="lg"
-                className="mt-0.5"
+                className="mt-0.5 text-primary dark:text-white"
               />
               <div className="min-w-0 flex-1">
                 <div className="truncate font-medium text-foreground">{app.name}</div>

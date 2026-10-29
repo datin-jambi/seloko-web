@@ -216,6 +216,7 @@ export function Sidebar() {
             key={`${current.logoUrl ?? ''}|${current.logoDarkUrl ?? ''}|${current.icon ?? ''}`}
             app={current}
             size="lg"
+            className="text-white"
           />
         ) : (
           <img src="/Assets/images/LOGO%20SELOKO%20S.png" alt="" className="h-8 w-8 shrink-0 object-contain" />

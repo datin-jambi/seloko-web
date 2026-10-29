@@ -68,7 +68,7 @@ export function ProfilePage() {
               <ul className="divide-y divide-border">
                 {apps.map((app) => (
                   <li key={app.id} className="flex items-center gap-3 px-4 py-3">
-                    <AppLogo app={app} size="lg" />
+                    <AppLogo app={app} size="lg" className="text-primary dark:text-white" />
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-sm font-medium">{app.name}</div>
                       <div className="truncate font-mono text-xs text-muted-foreground">

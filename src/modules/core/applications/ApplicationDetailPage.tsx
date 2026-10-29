@@ -15,6 +15,7 @@ import {
   Users,
 } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { AppLogo } from '@/components/shared/AppLogo'
 import { ActiveBadge } from '@/components/shared/ActiveBadge'
 import { ErrorState } from '@/components/shared/ErrorState'
 import { Badge } from '@/components/ui/badge'
@@ -135,7 +136,15 @@ export function ApplicationDetailPage() {
     <>
       {back}
       <PageHeader
-        title={app.name}
+        title={
+          <span className="flex items-center gap-3">
+            {/* Pratinjau logo sadar tema: mask `currentColor` di mode gelap. */}
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-md border border-border bg-muted/40 p-2 text-primary dark:text-white">
+              <AppLogo app={app} size="lg" className="size-full" />
+            </span>
+            <span className="truncate">{app.name}</span>
+          </span>
+        }
         description={
           <span className="flex items-center gap-2">
             <span className="font-mono text-xs text-muted-foreground">[{app.code}]</span>

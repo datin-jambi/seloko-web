@@ -9,7 +9,7 @@ Dokumen ini adalah aturan resmi yang wajib dipatuhi saat menulis kode di `seloko
 * **Konteks aplikasi aktif** (`bapenda-profile`, dsb.) dikirim lewat **query param** (`?appCode=`) atau path API domain (`/api/bapenda/*`), bukan header.
 * **Sumber daftar environment: `GET /applications/me`** (bukan `/applications`). Hanya `audience === 'INTERNAL'` yang boleh tampil, dan hanya aplikasi yang punya halaman (ada di `APP_WORKSPACE`) yang ditawarkan — kalau tidak, sidebar kosong & halaman 404.
 * **`code` aplikasi ≠ segmen URL.** `bapenda-profile` → `/bapenda/…`, `lapak-jambi-web` → `/lapak-jambi/…`. Pakai `appWorkspace()`/`appCodeFromPath()`, jangan menurunkan segmen dari `code`.
-* **Logo aplikasi** memakai rantai fallback `logoDarkUrl` → `logoUrl` → `icon` (dari DB) → ikon netral, lewat `AppLogo`. Jangan menebak ikon dari `code`.
+* **Logo aplikasi** SELALU lewat `AppLogo` (jangan `<img src={logoUrl}>` mentah). Rantai fallback dievaluasi **per tema**: `logoDarkUrl` untuk gelap, `logoUrl` untuk terang; bila hanya ada `logoUrl`, tema gelap memakainya sebagai mask putih (`currentColor`). Slot yang kosong/mati jatuh ke `icon` dari DB → ikon netral. Jangan menebak ikon dari `code`. Detail tabel fallback: PRD 03 §4f.
 * **State Sinkronisasi**: Saat user mengganti aplikasi di App Switcher:
   1. Update active app di Zustand `useAppStore`.
   2. Invalidate query `['menus']` agar sidebar tidak memakai menu environment sebelumnya.

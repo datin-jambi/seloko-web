@@ -17,7 +17,7 @@ Aplikasi ini adalah dashboard frontend internal yang dibangun menggunakan **Reac
 1. **Multi-Tenancy via `X-App-Code` & App Switcher:** Buka [`.agents/rules/seloko-web-standards.md`](file:///.agents/rules/seloko-web-standards.md)
    - Header `X-App-Code` selalu `seloko` (gateway); konteks aplikasi aktif dikirim lewat query param `appCode` atau path domain.
    - App Switcher di header membaca `GET /api/applications/me`, **hanya menampilkan `audience = INTERNAL`** yang punya halaman di repo ini, lalu mengubah active app code, me-reload menu dinamis (`/api/menus/me?appCode=…`), dan berpindah ke beranda workspace tujuan.
-   - Logo aplikasi memakai `logoDarkUrl` → `logoUrl` → `icon` (DB) → ikon netral (`AppLogo`). `code` aplikasi ≠ segmen URL (`lapak-jambi-web` → `/lapak-jambi/…`).
+   - Logo aplikasi **selalu** lewat `AppLogo`, dengan fallback per tema: `logoDarkUrl` (gelap) → `logoUrl` (terang, di-mask putih pada tema gelap bila varian gelap tidak ada) → `icon` DB → ikon netral. `code` aplikasi ≠ segmen URL (`lapak-jambi-web` → `/lapak-jambi/…`).
 2. **Kredensial & Autentikasi (JWT + HttpOnly Cookie):**
    - Access token disimpan di in-memory auth state / memory storage.
    - Refresh token disimpan via `HttpOnly Cookie` dari backend (`withCredentials: true` wajib aktif).

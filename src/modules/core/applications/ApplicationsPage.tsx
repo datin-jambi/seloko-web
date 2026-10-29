@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Eye, Edit2, Plus, Power, PowerOff, Trash2, LayoutGrid, Shield, Building2, Store } from 'lucide-react'
+import { Eye, Edit2, Plus, Power, PowerOff, Trash2 } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { DataTable, Truncate, type Column } from '@/components/shared/DataTable'
 import { FilterSelect, SearchBar } from '@/components/shared/SearchBar'
 import { ActiveBadge } from '@/components/shared/ActiveBadge'
 import { RowActions } from '@/components/shared/RowActions'
+import { AppLogo } from '@/components/shared/AppLogo'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useList } from '@/hooks/use-list'
@@ -24,29 +25,21 @@ const AUDIENCE: [string, string][] = [
   ['PUBLIC', 'Publik'],
 ]
 
-const APP_ICONS: Record<string, React.ElementType> = {
-  shield: Shield,
-  'building-2': Building2,
-  store: Store,
-  'layout-grid': LayoutGrid,
-}
-
 export const APPLICATION_DETAIL = (id: string) => `/seloko/sistem/aplikasi/${id}`
 
 const columns: Column<ApplicationListItem>[] = [
   {
     header: 'Aplikasi',
     cell: (a) => {
-      const IconComponent = (a.icon && APP_ICONS[a.icon]) || LayoutGrid
       return (
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-muted/40 text-primary">
-            {a.logoUrl ? (
-              <img src={a.logoUrl} alt="" className="h-6 w-6 object-contain" />
-            ) : (
-              <IconComponent className="h-4 w-4" />
-            )}
-          </div>
+          {/* Logo WAJIB lewat AppLogo, bukan <img> mentah: AppLogo yang menangani
+              rantai fallback (logo gelap → logo → ikon DB → netral) sekaligus
+              mendeteksi URL mati. `text-primary dark:text-white` dibutuhkan
+              karena pada tema gelap logo dirender sebagai mask ber-`currentColor`. */}
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-md border border-border bg-muted/40 p-1.5 text-primary dark:text-white">
+            <AppLogo app={a} size="md" className="size-full" />
+          </span>
           <div className="min-w-0">
             <Link
               to={APPLICATION_DETAIL(a.id)}
