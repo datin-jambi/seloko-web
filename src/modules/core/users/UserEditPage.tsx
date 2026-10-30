@@ -89,6 +89,7 @@ function EditForm({ user }: { user: UserDetail }) {
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
   const [pwErrors, setPwErrors] = useState<PasswordErrors>({})
 
   // Hanya field yang berubah yang dikirim (API menolak body kosong).
@@ -287,19 +288,30 @@ function EditForm({ user }: { user: UserDetail }) {
               </div>
             </FormField>
             <FormField id="confirm" label="Ulangi kata sandi baru" error={pwErrors.confirm}>
-              <Input
-                id="confirm"
-                type={showPassword ? 'text' : 'password'}
-                autoComplete="new-password"
-                value={confirm}
-                disabled={save.isPending}
-                aria-invalid={!!pwErrors.confirm || undefined}
-                aria-describedby="confirm-msg"
-                onChange={(e) => {
-                  setConfirm(e.target.value)
-                  if (pwErrors.confirm) setPwErrors((prev) => ({ ...prev, confirm: undefined }))
-                }}
-              />
+              <div className="relative">
+                <Input
+                  id="confirm"
+                  type={showConfirm ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  className="pr-9"
+                  value={confirm}
+                  disabled={save.isPending}
+                  aria-invalid={!!pwErrors.confirm || undefined}
+                  aria-describedby="confirm-msg"
+                  onChange={(e) => {
+                    setConfirm(e.target.value)
+                    if (pwErrors.confirm) setPwErrors((prev) => ({ ...prev, confirm: undefined }))
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm((s) => !s)}
+                  aria-label={showConfirm ? 'Sembunyikan ulangi kata sandi' : 'Tampilkan ulangi kata sandi'}
+                  className="absolute inset-y-0 right-0 flex w-9 items-center justify-center text-muted-foreground hover:text-foreground"
+                >
+                  {showConfirm ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
             </FormField>
           </div>
         </section>

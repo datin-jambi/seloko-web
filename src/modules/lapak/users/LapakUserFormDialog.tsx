@@ -82,6 +82,7 @@ export function LapakUserFormDialog({
   const [selected, setSelected] = useState<Set<string>>(initialRoleIds)
   const [organizationId, setOrganizationId] = useState(initialScope)
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const set = (key: keyof typeof v) => (value: string) => {
@@ -290,16 +291,27 @@ export function LapakUserFormDialog({
                     </div>
                   </FormField>
                   <FormField id="lu-confirm" label="Ulangi kata sandi" required error={errors.confirm}>
-                    <Input
-                      id="lu-confirm"
-                      type={showPassword ? 'text' : 'password'}
-                      value={v.confirm}
-                      onChange={(e) => set('confirm')(e.target.value)}
-                      autoComplete="new-password"
-                      aria-invalid={!!errors.confirm || undefined}
-                      aria-describedby="lu-confirm-msg"
-                      disabled={save.isPending}
-                    />
+                    <div className="relative">
+                      <Input
+                        id="lu-confirm"
+                        type={showConfirm ? 'text' : 'password'}
+                        value={v.confirm}
+                        onChange={(e) => set('confirm')(e.target.value)}
+                        autoComplete="new-password"
+                        className="pr-9"
+                        aria-invalid={!!errors.confirm || undefined}
+                        aria-describedby="lu-confirm-msg"
+                        disabled={save.isPending}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirm((s) => !s)}
+                        aria-label={showConfirm ? 'Sembunyikan ulangi kata sandi' : 'Tampilkan ulangi kata sandi'}
+                        className="absolute inset-y-0 right-0 flex w-9 items-center justify-center text-muted-foreground hover:text-foreground"
+                      >
+                        {showConfirm ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                      </button>
+                    </div>
                   </FormField>
                 </>
               )}

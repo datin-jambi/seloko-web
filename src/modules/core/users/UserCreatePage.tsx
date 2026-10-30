@@ -37,6 +37,7 @@ export function UserCreatePage() {
   const [v, setV] = useState<Values>(EMPTY)
   const [errors, setErrors] = useState<CreateUserErrors>({})
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
   // Unggahan langsung ke ImageKit; URL+fileId baru ikut saat form disimpan.
   const [avatar, setAvatar] = useState<UploadedImage | null>(null)
 
@@ -185,7 +186,17 @@ export function UserCreatePage() {
             </div>
           </FormField>
           <FormField id="confirm" label="Ulangi kata sandi" required error={errors.confirm}>
-            <Input {...field('confirm')} type={showPassword ? 'text' : 'password'} autoComplete="new-password" />
+            <div className="relative">
+              <Input {...field('confirm')} type={showConfirm ? 'text' : 'password'} autoComplete="new-password" className="pr-9" />
+              <button
+                type="button"
+                onClick={() => setShowConfirm((s) => !s)}
+                aria-label={showConfirm ? 'Sembunyikan ulangi kata sandi' : 'Tampilkan ulangi kata sandi'}
+                className="absolute inset-y-0 right-0 flex w-9 items-center justify-center text-muted-foreground hover:text-foreground"
+              >
+                {showConfirm ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              </button>
+            </div>
           </FormField>
 
           {/* Hanya superadmin yang boleh membuat superadmin lain. */}
