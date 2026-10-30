@@ -34,6 +34,7 @@ Dokumen ini adalah aturan resmi yang wajib dipatuhi saat menulis kode di `seloko
 * Warna & token mengikuti `.agents/prd/02-design-system.prd.md` (navy/royal blue dari logo Seloko, token CSS HSL di `src/index.css`). Jangan pakai kelas warna Tailwind mentah untuk aksen (`indigo-*`, `blue-*`) — pakai token (`primary`, `muted`, `sidebar`).
 * Sebelum menyatakan UI selesai: `npm run audit:ui`, `npm run lint`, `npm run build` harus lolos.
 * **Semua daftar (tabel all) mulai dengan 10 data per halaman** — `DEFAULT_LIMIT` di `src/hooks/use-list.ts`, selalu dikirim ke API. Jangan set limit awal per halaman. Detail: PRD 03 §4a.
+* **Pencarian yang memanggil server WAJIB debounce, tanpa perlu Enter.** Pakai `SearchBar` (`src/components/shared/SearchBar.tsx`) — komponen itu sudah menunda pengiriman ~350 ms, mengirim langsung saat Enter/×, dan menyinkronkan nilai dari URL (Reset/back-forward). **Jangan** menulis `<Input onChange={...}>` sendiri untuk pencarian list, dan **jangan** memberi `key={params.search}` pada `SearchBar` (remount membuang fokus di tengah mengetik). Untuk pencarian yang sudah punya state lokal + request sendiri, pakai `useDebouncedValue()` (`src/hooks/use-debounced-value.ts`) untuk nilai yang masuk `queryKey`. Pengecualian: filter **di memori** (mis. `IconGrid`, `AppRolesCard` menyaring `all` yang sudah diunduh) boleh instan — tidak ada request per ketikan. Setiap ketikan juga tidak boleh menumpuk riwayat browser: `setSearch` di `useList`/`useLapakList` memakai `replace: true` dan mengembalikan halaman ke 1.
 
 ---
 
@@ -46,7 +47,8 @@ src/
 │   ├── layout/      # Sidebar, Header, AppSwitcher, DashboardLayout
 │   └── shared/      # Pakai ulang: PageHeader, DataTable, RowActions, ConfirmDialog, FormField, SearchBar, PendingApiPage, TopLoader, AppLogo, IconAction, IconPicker, ImageUpload, ListPagination
 ├── config/          # APP_CODES, APP_WORKSPACE (app ↔ segmen URL), WORKSPACE_ALIAS (lapak-jambi → lapak), menu-icons, env
-├── hooks/           # Custom React hooks (use-list: fetch list — page/search/filter/sort di URL)
+├── hooks/           # Custom React hooks (use-list: fetch list — page/search/filter/sort di URL;
+│                    # use-debounced-value: nilai tertunda 350 ms untuk pencarian ke server)
 ├── lib/             # Helper murni (utils, phone (normalisasi +62), axios instance, formatters, query-keys)
 ├── modules/         # Fitur per domain
 │   ├── auth/        # Login page, auth guard

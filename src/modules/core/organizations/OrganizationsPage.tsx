@@ -223,7 +223,6 @@ export function OrganizationsPage() {
         toolbar={
           <>
             <SearchBar
-              key={params.search}
               value={params.search}
               onSearch={setSearch}
               placeholder="Cari kode, nama, atau nama pendek"

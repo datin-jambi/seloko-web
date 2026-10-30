@@ -222,7 +222,6 @@ export function LapakProductsPage() {
         toolbar={
           <>
             <SearchBar
-              key={params.search}
               value={params.search}
               onSearch={setSearch}
               placeholder="Cari nama produk"

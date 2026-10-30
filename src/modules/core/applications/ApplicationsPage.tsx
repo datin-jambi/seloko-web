@@ -159,7 +159,6 @@ export function ApplicationsPage() {
         toolbar={
           <>
             <SearchBar
-              key={params.search}
               value={params.search}
               onSearch={setSearch}
               placeholder="Cari kode atau nama"

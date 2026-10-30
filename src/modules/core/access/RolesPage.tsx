@@ -118,7 +118,7 @@ export function RolesPage() {
         )}
         toolbar={
           <>
-            <SearchBar key={params.search} value={params.search} onSearch={setSearch} placeholder="Cari nama role" />
+            <SearchBar value={params.search} onSearch={setSearch} placeholder="Cari nama role" />
             <FilterSelect
               label="Aplikasi"
               value={params.applicationId}

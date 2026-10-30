@@ -74,7 +74,7 @@ function ArticleList({ title, description, review }: { title: string; descriptio
         emptyTitle={review ? 'Tidak ada berita menunggu review' : 'Belum ada berita'}
         toolbar={
           <>
-            <SearchBar key={params.search} value={params.search} onSearch={setSearch} placeholder="Cari judul" />
+            <SearchBar value={params.search} onSearch={setSearch} placeholder="Cari judul" />
             {!review && (
               <FilterSelect label="Status" value={params.status} options={STATUS_OPTIONS} onChange={(v) => setFilter('status', v)} />
             )}
@@ -113,7 +113,7 @@ export function NewsCategoriesPage() {
         emptyTitle="Belum ada kategori"
         toolbar={
           <>
-            <SearchBar key={params.search} value={params.search} onSearch={setSearch} placeholder="Cari kategori" />
+            <SearchBar value={params.search} onSearch={setSearch} placeholder="Cari kategori" />
             <FilterSelect label="Status" value={params.isActive} options={ACTIVE} onChange={(v) => setFilter('isActive', v)} />
           </>
         }
@@ -142,7 +142,7 @@ export function PagesPage() {
         emptyTitle="Belum ada halaman"
         toolbar={
           <>
-            <SearchBar key={params.search} value={params.search} onSearch={setSearch} placeholder="Cari judul" />
+            <SearchBar value={params.search} onSearch={setSearch} placeholder="Cari judul" />
             <FilterSelect
               label="Status"
               value={params.isPublished}
@@ -193,7 +193,7 @@ export function BannersPage() {
         emptyTitle="Belum ada banner"
         toolbar={
           <>
-            <SearchBar key={params.search} value={params.search} onSearch={setSearch} placeholder="Cari judul" />
+            <SearchBar value={params.search} onSearch={setSearch} placeholder="Cari judul" />
             <FilterSelect label="Status" value={params.isActive} options={ACTIVE} onChange={(v) => setFilter('isActive', v)} />
           </>
         }

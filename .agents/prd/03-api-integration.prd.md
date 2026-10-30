@@ -236,7 +236,7 @@ Sumber kebenaran parameter: `List*QuerySchema` di `../seloko-api/src/modules/**/
 |---|---|---|
 | `page` | int ≥1, default 1 | Tidak ditulis ke URL bila 1 |
 | `limit` | default API beda-beda (10 / 20 / 50), maks 100 (permissions & menus: 200) | **Aturan: semua daftar mulai dengan 10 data** (`DEFAULT_LIMIT` di `use-list.ts`). Limit selalu dikirim ke API — jangan bergantung pada default API. User boleh ganti di footer (`PAGE_SIZES` = 10/20/50/100, aman untuk semua endpoint). Nilai 10 tidak ditulis ke URL |
-| `search` | string, di-trim | Dikirim saat Enter, bukan tiap ketik |
+| `search` | string, di-trim | **Debounce 350 ms lewat `SearchBar`** — dikirim otomatis setelah berhenti mengetik (Enter/× tetap langsung). Jangan kirim per ketikan tanpa debounce |
 | Filter boolean (`isActive`, `isPublished`, `isSuperAdmin`, `isSystemRole`, `showOnPublicMap`) | string `"true"` / `"false"` | Kosong = semua (param tidak dikirim) |
 | Filter enum (`status`, `accountType`, `audience`) | nilai enum persis | Label Indonesia di UI, nilai asli ke API |
 | Filter relasi (`applicationId`, `categoryId`) | UUID | Opsi diambil dari endpoint list terkait |

@@ -100,7 +100,7 @@ export function UsersPage() {
         )}
         toolbar={
           <>
-            <SearchBar key={params.search} value={params.search} onSearch={setSearch} placeholder="Cari nama, email, atau username" />
+            <SearchBar value={params.search} onSearch={setSearch} placeholder="Cari nama, email, atau username" />
             <FilterSelect
               label="Jenis"
               value={params.accountType}

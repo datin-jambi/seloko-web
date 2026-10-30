@@ -118,7 +118,7 @@ export function MenusPage() {
         }
         toolbar={
           <>
-            <SearchBar key={params.search} value={params.search} onSearch={setSearch} placeholder="Cari label atau kode" />
+            <SearchBar value={params.search} onSearch={setSearch} placeholder="Cari label atau kode" />
             <FilterSelect
               label="Aplikasi"
               title={selectedApp ? `Kode: ${selectedApp.code}` : undefined}

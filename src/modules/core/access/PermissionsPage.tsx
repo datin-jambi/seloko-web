@@ -106,7 +106,7 @@ export function PermissionsPage() {
         )}
         toolbar={
           <>
-            <SearchBar key={params.search} value={params.search} onSearch={setSearch} placeholder="Cari kode atau nama" />
+            <SearchBar value={params.search} onSearch={setSearch} placeholder="Cari kode atau nama" />
             <FilterSelect
               label="Aplikasi"
               title={selectedApp ? `Kode: ${selectedApp.code}` : undefined}

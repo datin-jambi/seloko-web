@@ -168,7 +168,6 @@ export function LapakUsersPage() {
         toolbar={
           <>
             <SearchBar
-              key={params.search}
               value={params.search}
               onSearch={setSearch}
               placeholder="Cari nama, email, NIP, atau username"

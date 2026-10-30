@@ -191,7 +191,6 @@ export function LapakCategoriesPage() {
         toolbar={
           <>
             <SearchBar
-              key={params.search}
               value={params.search}
               onSearch={setSearch}
               placeholder="Cari nama, slug, atau deskripsi"
