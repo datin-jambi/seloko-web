@@ -145,7 +145,13 @@ export function DataTable<T>({
                           {c.cell(row)}
                         </td>
                       ))}
-                      {actions && <td className="h-11 px-2 text-right align-middle">{actions(row)}</td>}
+                      {actions && (
+                        // Sel aksi tidak ikut memicu klik baris: area kosong di sekitar
+                        // tombol tetap milik baris, jadi hentikan bubbling-nya.
+                        <td className="h-11 px-2 text-right align-middle" onClick={(e) => e.stopPropagation()}>
+                          {actions(row)}
+                        </td>
+                      )}
                     </tr>
                   ))}
             </tbody>

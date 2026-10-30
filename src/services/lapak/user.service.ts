@@ -15,8 +15,12 @@ import type {
  * milik aplikasi Lapak.
  */
 export const lapakUserService = {
-  /** Role Lapak yang boleh diberikan (akun pegawai). */
-  roles: () => lapakGet<LapakRoleOption[]>('/lapak/users/roles'),
+  /** Role Lapak yang boleh diberikan, opsional disaring per jenis akun. */
+  roles: (accountType?: 'INTERNAL' | 'PUBLIC') =>
+    lapakGet<LapakRoleOption[]>('/lapak/users/roles', accountType ? { accountType } : undefined),
+
+  /** Detail satu pengguna Lapak. */
+  get: (id: string) => lapakGet<LapakUser>(`/lapak/users/${id}`),
 
   create: (body: CreateLapakUserBody) => lapakWrite<LapakUser>('post', '/lapak/users', body),
 

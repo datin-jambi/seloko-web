@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { isAxiosError } from 'axios'
 import { toast } from 'sonner'
-import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import { Eye, EyeOff, Info, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -22,7 +22,6 @@ import { apiErrorMessage, apiFieldErrors } from '@/lib/utils'
 import { normalizePhoneId } from '@/lib/phone'
 import type {
   LapakRoleAssignmentInput,
-  LapakRoleOption,
   LapakUser,
   UpdateLapakUserBody,
 } from '@/types/lapak'
@@ -45,14 +44,12 @@ export function LapakUserFormDialog({
   open,
   onOpenChange,
   user,
-  roles,
   opds,
   onSaved,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   user?: LapakUser | null
-  roles: LapakRoleOption[]
   opds: { id: string; name: string }[]
   onSaved?: () => void
 }) {
@@ -81,9 +78,32 @@ export function LapakUserFormDialog({
   })
   const [selected, setSelected] = useState<Set<string>>(initialRoleIds)
   const [organizationId, setOrganizationId] = useState(initialScope)
+  const [accountType, setAccountType] = useState<'INTERNAL' | 'PUBLIC'>(user?.accountType ?? 'INTERNAL')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // Role diambil per jenis akun: pegawai dari aplikasi CMS, warga dari aplikasi
+  // publik. Server sudah memfilter aplikasi + audiens, jadi tidak ada role nyasar.
+  const rolesQuery = useQuery({
+    queryKey: ['lapak', 'users', 'roles', accountType],
+    queryFn: () => lapakUserService.roles(accountType),
+    staleTime: 5 * 60_000,
+  })
+  const roles = rolesQuery.data ?? []
+
+  // Sabuk pengaman: hanya role seaudiens dengan jenis akun yang boleh dipilih.
+  const visibleRoles = roles.filter((r) => r.audience === accountType)
+  // Server menolak reset kata sandi untuk akun sendiri & superadmin.
+  const canSetPassword = !lockRoles && !(isEdit && user.isSuperAdmin)
+
+  /** Ganti jenis akun (hanya saat membuat akun) → buang role yang tak lagi valid. */
+  const changeAccountType = (next: 'INTERNAL' | 'PUBLIC') => {
+    setAccountType(next)
+    const allowed = new Set(roles.filter((r) => r.audience === next).map((r) => r.id))
+    setSelected((prev) => new Set([...prev].filter((id) => allowed.has(id))))
+    if (errors.roles) setErrors((prev) => ({ ...prev, roles: undefined as unknown as string }))
+  }
 
   const set = (key: keyof typeof v) => (value: string) => {
     setV((prev) => ({ ...prev, [key]: value }))
@@ -116,6 +136,8 @@ export function LapakUserFormDialog({
       body.phoneNumber = phoneNumber || null
     }
     if (rolesDirty && !lockRoles) body.roles = rolesPayload
+    // Kata sandi hanya dikirim bila diisi (tidak pernah ditampilkan API).
+    if (v.password) body.password = v.password
     return body
   }
 
@@ -125,11 +147,13 @@ export function LapakUserFormDialog({
       if (!isEdit) {
         return lapakUserService.create({
           fullName: v.fullName.trim(),
-          username: v.username.trim().toLowerCase(),
+          // Akun eksternal (warga) login dengan email — username tidak dipakai.
+          username: accountType === 'INTERNAL' ? v.username.trim().toLowerCase() : undefined,
           email: v.email.trim().toLowerCase(),
           password: v.password,
-          nip: v.nip.trim() || undefined,
+          nip: accountType === 'INTERNAL' ? v.nip.trim() || undefined : undefined,
           phoneNumber: phoneNumber || undefined,
+          accountType,
           roles: rolesPayload,
         })
       }
@@ -165,10 +189,16 @@ export function LapakUserFormDialog({
     const next: Record<string, string> = {}
     if (v.fullName.trim().length < 2) next.fullName = 'Nama minimal 2 karakter.'
     if (!isEdit) {
-      if (v.username.trim().length < 3) next.username = 'Username minimal 3 karakter.'
-      else if (!/^[a-z0-9_.-]+$/.test(v.username.trim()))
-        next.username = 'Hanya huruf kecil, angka, titik, _ atau -.'
+      if (accountType === 'INTERNAL') {
+        if (v.username.trim().length < 3) next.username = 'Username minimal 3 karakter.'
+        else if (!/^[a-z0-9_.-]+$/.test(v.username.trim()))
+          next.username = 'Hanya huruf kecil, angka, titik, _ atau -.'
+      }
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.email.trim())) next.email = 'Format email tidak valid.'
+    }
+    // Kata sandi wajib saat membuat akun; saat mengubah opsional (hanya bila diisi).
+    const passwordTouched = !isEdit || v.password.length > 0 || v.confirm.length > 0
+    if (passwordTouched && canSetPassword) {
       if (v.password.length < 8) next.password = 'Kata sandi minimal 8 karakter.'
       else if (!/[A-Z]/.test(v.password)) next.password = 'Harus ada minimal 1 huruf besar.'
       else if (!/[0-9]/.test(v.password)) next.password = 'Harus ada minimal 1 angka.'
@@ -208,13 +238,28 @@ export function LapakUserFormDialog({
             <DialogDescription>
               {isEdit
                 ? 'Perubahan hanya berlaku untuk data akun dan role di aplikasi Lapak. Role aplikasi lain tidak disentuh.'
-                : 'Akun pegawai baru untuk aplikasi Lapak Jambi. Role Lapak langsung diberikan, jadi pengguna bisa masuk setelah dibuat.'}
+                : 'Akun baru untuk aplikasi Lapak Jambi — pilih internal (pegawai) atau eksternal (warga). Role Lapak langsung diberikan, jadi pengguna bisa masuk setelah dibuat.'}
             </DialogDescription>
           </DialogHeader>
 
           <DialogBody className="space-y-4">
             <section className="grid items-start gap-3 sm:grid-cols-2">
               <h2 className="text-sm font-semibold sm:col-span-2">Akun</h2>
+              {!isEdit && (
+                <p className="flex gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-xs sm:col-span-2">
+                  <Info
+                    className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-300"
+                    aria-hidden
+                  />
+                  <span className="text-muted-foreground">
+                    <span className="font-medium text-foreground">
+                      Username dan email tidak dapat diubah setelah akun dibuat.
+                    </span>{' '}
+                    Periksa kembali sebelum menyimpan — setelah tersimpan, perubahan hanya bisa dilakukan admin{' '}
+                    <strong>Seloko</strong> (menu Pengguna).
+                  </span>
+                </p>
+              )}
               <FormField
                 id="lu-fullName"
                 label="Nama lengkap"
@@ -226,30 +271,91 @@ export function LapakUserFormDialog({
               </FormField>
 
               {isEdit ? (
-                <div className="grid gap-1 sm:col-span-2">
-                  <span className="text-xs text-muted-foreground">
-                    Username <span className="font-mono text-foreground">{user.username ?? '—'}</span> · Email{' '}
-                    <span className="text-foreground">{user.email}</span>
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    Username, email, dan jenis akun tidak dapat diubah dari sini.
-                  </span>
-                </div>
+                <>
+                  <div className="flex gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-xs sm:col-span-2">
+                    <Info
+                      className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-300"
+                      aria-hidden
+                    />
+                    <div className="space-y-1">
+                      <p className="font-medium text-foreground">
+                        Username, email, dan jenis akun tidak dapat diubah dari Lapak Jambi.
+                      </p>
+                      <p className="text-muted-foreground">
+                        Ketiganya terikat ke identitas akun di pusat — hubungi admin <strong>Seloko</strong> (menu
+                        Pengguna) untuk mengubahnya. Di halaman ini yang bisa diubah: nama, NIP, telepon, role Lapak,
+                        dan kata sandi.
+                      </p>
+                    </div>
+                  </div>
+                  <dl className="grid gap-2 text-sm sm:col-span-2 sm:grid-cols-2">
+                    <div>
+                      <dt className="text-xs text-muted-foreground">Username</dt>
+                      <dd className="font-mono">{user.username ?? '—'}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted-foreground">Email</dt>
+                      <dd className="break-all">{user.email}</dd>
+                    </div>
+                  </dl>
+                </>
               ) : (
                 <>
-                  <FormField id="lu-username" label="Username" required error={errors.username} hint="Huruf kecil, angka, titik, _ atau -">
-                    <Input
-                      id="lu-username"
-                      value={v.username}
-                      onChange={(e) => set('username')(e.target.value.toLowerCase())}
-                      autoComplete="off"
-                      spellCheck={false}
-                      aria-invalid={!!errors.username || undefined}
-                      aria-describedby="lu-username-msg"
+                  <FormField
+                    id="lu-accountType"
+                    label="Jenis akun"
+                    required
+                    hint={
+                      accountType === 'INTERNAL'
+                        ? 'Pegawai — masuk dengan username atau email.'
+                        : 'Warga/eksternal — masuk dengan email, tanpa username.'
+                    }
+                  >
+                    <Select
+                      value={accountType}
+                      onValueChange={(val) => changeAccountType(val as 'INTERNAL' | 'PUBLIC')}
                       disabled={save.isPending}
-                    />
+                    >
+                      <SelectTrigger id="lu-accountType">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="INTERNAL">Internal (pegawai)</SelectItem>
+                        <SelectItem value="PUBLIC">Eksternal (warga)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </FormField>
-                  <FormField id="lu-email" label="Email" required error={errors.email}>
+                  {accountType === 'INTERNAL' ? (
+                    <FormField
+                      id="lu-username"
+                      label="Username"
+                      required
+                      error={errors.username}
+                      hint="Huruf kecil, angka, titik, _ atau -"
+                    >
+                      <Input
+                        id="lu-username"
+                        value={v.username}
+                        onChange={(e) => set('username')(e.target.value.toLowerCase())}
+                        autoComplete="off"
+                        spellCheck={false}
+                        aria-invalid={!!errors.username || undefined}
+                        aria-describedby="lu-username-msg"
+                        disabled={save.isPending}
+                      />
+                    </FormField>
+                  ) : (
+                    <p className="self-end rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
+                      Akun eksternal tidak memakai username — pengguna masuk dengan email dan kata sandi.
+                    </p>
+                  )}
+                  <FormField
+                    id="lu-email"
+                    label="Email"
+                    required
+                    error={errors.email}
+                    className={accountType === 'PUBLIC' ? 'sm:col-span-2' : undefined}
+                  >
                     <Input
                       id="lu-email"
                       type="email"
@@ -261,10 +367,48 @@ export function LapakUserFormDialog({
                       disabled={save.isPending}
                     />
                   </FormField>
+                </>
+              )}
+            </section>
+
+            <section className="grid items-start gap-4 border-t border-border pt-4 sm:grid-cols-2">
+              <h2 className="text-sm font-semibold sm:col-span-2">Profil</h2>
+              {accountType === 'INTERNAL' ? (
+                <FormField id="lu-nip" label="NIP" error={errors.nip} hint="Kosongkan untuk pegawai non-ASN">
+                  <Input {...field('nip')} inputMode="numeric" className="tabular-nums" />
+                </FormField>
+              ) : (
+                <p className="self-end rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
+                  NIP hanya untuk akun pegawai.
+                </p>
+              )}
+              <FormField id="lu-phoneNumber" label="Telepon" error={errors.phoneNumber} hint="Ditulis otomatis sebagai +62">
+                <Input
+                  {...field('phoneNumber')}
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  placeholder="0812 3456 7890"
+                  onBlur={() => set('phoneNumber')(normalizePhoneId(v.phoneNumber))}
+                />
+              </FormField>
+            </section>
+
+            <section className="grid items-start gap-4 border-t border-border pt-4 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <h2 className="text-sm font-semibold">Kata sandi</h2>
+                <p className="text-xs text-muted-foreground">
+                  {isEdit
+                    ? 'Kosongkan bila tidak ingin mengubah. Menyimpan kata sandi baru akan mengakhiri semua sesi pengguna ini, jadi ia harus masuk ulang.'
+                    : 'Min. 8 karakter, 1 huruf besar, 1 angka.'}
+                </p>
+              </div>
+              {canSetPassword ? (
+                <>
                   <FormField
                     id="lu-password"
-                    label="Kata sandi"
-                    required
+                    label={isEdit ? 'Kata sandi baru' : 'Kata sandi'}
+                    required={!isEdit}
                     error={errors.password}
                     hint="Min. 8 karakter, 1 huruf besar, 1 angka"
                   >
@@ -290,7 +434,12 @@ export function LapakUserFormDialog({
                       </button>
                     </div>
                   </FormField>
-                  <FormField id="lu-confirm" label="Ulangi kata sandi" required error={errors.confirm}>
+                  <FormField
+                    id="lu-confirm"
+                    label={isEdit ? 'Ulangi kata sandi baru' : 'Ulangi kata sandi'}
+                    required={!isEdit}
+                    error={errors.confirm}
+                  >
                     <div className="relative">
                       <Input
                         id="lu-confirm"
@@ -314,24 +463,13 @@ export function LapakUserFormDialog({
                     </div>
                   </FormField>
                 </>
+              ) : (
+                <p className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground sm:col-span-2">
+                  {isEdit && user.isSuperAdmin
+                    ? 'Kata sandi akun superadmin hanya bisa diubah oleh superadmin di Seloko.'
+                    : 'Kata sandi akun sendiri tidak diubah dari halaman ini.'}
+                </p>
               )}
-            </section>
-
-            <section className="grid items-start gap-4 border-t border-border pt-4 sm:grid-cols-2">
-              <h2 className="text-sm font-semibold sm:col-span-2">Profil</h2>
-              <FormField id="lu-nip" label="NIP" error={errors.nip} hint="Kosongkan untuk pegawai non-ASN">
-                <Input {...field('nip')} inputMode="numeric" className="tabular-nums" />
-              </FormField>
-              <FormField id="lu-phoneNumber" label="Telepon" error={errors.phoneNumber} hint="Ditulis otomatis sebagai +62">
-                <Input
-                  {...field('phoneNumber')}
-                  type="tel"
-                  inputMode="tel"
-                  autoComplete="tel"
-                  placeholder="0812 3456 7890"
-                  onBlur={() => set('phoneNumber')(normalizePhoneId(v.phoneNumber))}
-                />
-              </FormField>
             </section>
 
             <section className="grid gap-3 border-t border-border pt-4">
@@ -347,10 +485,12 @@ export function LapakUserFormDialog({
                 <legend className="mb-1 text-xs font-medium text-muted-foreground">
                   Role <span className="text-destructive">*</span>
                 </legend>
-                {roles.length === 0 && (
-                  <p className="text-xs text-muted-foreground">Belum ada role aktif di aplikasi Lapak.</p>
+                {visibleRoles.length === 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Belum ada role {accountType === 'INTERNAL' ? 'pegawai' : 'eksternal'} di aplikasi Lapak.
+                  </p>
                 )}
-                {roles.map((r) => (
+                {visibleRoles.map((r) => (
                   <label
                     key={r.id}
                     className="flex cursor-pointer items-start gap-2 rounded-md border border-border px-2 py-1.5 text-sm transition-colors hover:bg-muted/40"

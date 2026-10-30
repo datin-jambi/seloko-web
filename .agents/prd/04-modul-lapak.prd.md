@@ -206,13 +206,32 @@ Daftar pengguna yang **terdaftar di aplikasi Lapak** — hanya superadmin & admi
 - UI `LapakUsersPage` memakai `useLapakList('/lapak/users')` + `DataTable`; gerbang tampilan
   dari `useLapakAccess().canManage` → `ForbiddenPage` bila bukan pengelola.
 - **Halaman ini adalah manajemen penuh, bukan baca-saja.** Tombol *Tambah pengguna* memanggil
-  `POST /lapak/users` (akun `INTERNAL` + role Lapak dalam satu transaksi, jadi pengguna bisa
-  langsung masuk), dan ikon pensil per baris membuka `PUT /lapak/users/:id`.
-- **Yang bisa diubah dari sini**: nama, NIP, telepon, dan role Lapak + lingkup OPD. Username,
-  email, jenis akun, dan password tidak — itu tetap wilayah Seloko (password hanya diset saat
-  pembuatan akun, supaya admin Lapak tidak bisa mengambil alih akun yang juga punya role lain).
-- **Pilihan role diambil dari `GET /lapak/users/roles`** (role aplikasi Lapak, `audience`
-  INTERNAL saja). Form memakai `LapakUserFormDialog`, dan pilihan OPD memakai
+  `POST /lapak/users` (akun + role Lapak dalam satu transaksi, jadi pengguna bisa langsung
+  masuk), ikon mata membuka **halaman detail** `/lapak-jambi/users/:id`, dan ikon pensil
+  membuka `PUT /lapak/users/:id`.
+- **Jenis akun bisa dipilih saat membuat**: *Internal (pegawai)* memakai role aplikasi CMS
+  `lapak-jambi-web`; *Eksternal (warga)* memakai role aplikasi publik `lapak-jambi-app` dan
+  tidak punya username (masuk dengan email). Form menyembunyikan field username/NIP untuk
+  eksternal dan memuat ulang pilihan role sesuai jenis akun.
+- **Nama pengguna di daftar adalah tautan ke halaman detail, dan hover berlaku untuk SELURUH
+  baris** — `DataTable` diberi `onRowClick` (baris memakai `group/row`, `hover:bg-muted/50`,
+  `cursor-pointer`), sehingga hover di kolom mana pun membuat nama ikut **tebal + bergaris bawah**
+  (`group-hover/row:…`). Klik di luar tombol/tautan membuka detail; klik ikon aksi tidak ikut
+  memicu (guard `button/a/[role=menuitem]` + sel aksi menghentikan bubbling). Tautan nama tetap
+  jalur keyboard.
+- **Form tambah memuat peringatan sebelum menyimpan**: *"Username dan email tidak dapat diubah
+  setelah akun dibuat"* → setelah tersimpan, perubahan hanya lewat admin Seloko. Dialog ubah
+  memakai peringatan yang sama dengan tambahan "jenis akun".
+- **Daftar punya filter `Jenis`** (Internal/Eksternal) di samping pencarian & status; tiap baris
+  menampilkan `AccountTypeBadge` sehingga dua jenis akun tidak tertukar.
+- **Username, email, dan jenis akun terkunci di Lapak.** Dialog ubah & halaman detail
+  menampilkan peringatan eksplisit: ubah lewat admin **Seloko** (menu Pengguna). Yang bisa
+  diubah dari sini: nama, NIP, telepon, role Lapak + lingkup OPD, dan kata sandi.
+- **Kata sandi bisa direset dari dialog ubah** (kecuali superadmin & akun sendiri). Menyimpan
+  kata sandi baru mencabut semua sesi pengguna itu, jadi ia harus masuk ulang; UI menyebutkan
+  hal ini sebelum disimpan.
+- **Pilihan role diambil dari `GET /lapak/users/roles?accountType=…`** di dalam dialog (bukan
+  sekali di halaman), supaya role selalu cocok dengan jenis akun. Pilihan OPD memakai
   `lapakProductService.organizationChoices()` → `GET /lapak/opd/tampilan`.
 - **Lingkup OPD pada form berlaku untuk semua role terpilih** (satu pilihan). Saat mengubah,
   `roles` hanya dikirim bila operator benar-benar mengubah role/lingkup, sehingga penugasan

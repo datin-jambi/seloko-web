@@ -30,6 +30,7 @@ import { LapakProductsPage } from '@/modules/lapak/products/LapakProductsPage'
 import { LapakProductDetailPage } from '@/modules/lapak/products/LapakProductDetailPage'
 import { LapakProductApprovalPage } from '@/modules/lapak/products/LapakProductApprovalPage'
 import { LapakUsersPage } from '@/modules/lapak/users/LapakUsersPage'
+import { LapakUserDetailPage } from '@/modules/lapak/users/LapakUserDetailPage'
 import { LapakOpdDetailPage } from '@/modules/lapak/LapakOpdDetailPage'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { NotFoundPage } from '@/components/shared/NotFoundPage'
@@ -171,6 +172,13 @@ export function App() {
                   {/* Pengguna Lapak: hanya superadmin & admin Lapak (server menegakkan hal sama). */}
                   {LAPAK_PREFIXES.map((base) => (
                     <Route key={`${base}/users`} path={`${base}/users`} element={<LapakUsersPage />} />
+                  ))}
+                  {LAPAK_PREFIXES.map((base) => (
+                    <Route
+                      key={`${base}/users/:id`}
+                      path={`${base}/users/:id`}
+                      element={<LapakUserDetailPage />}
+                    />
                   ))}
                   {/* Master kategori layanan — dikelola Bapenda (lihat lapak-access). */}
                   {LAPAK_PREFIXES.map((base) => (

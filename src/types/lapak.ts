@@ -341,6 +341,9 @@ export interface LapakUser {
   isActive: boolean
   isSuperAdmin: boolean
   lastLoginAt: string | null
+  emailVerifiedAt: string | null
+  createdAt: string
+  updatedAt: string
   roles: LapakUserRole[]
 }
 
@@ -349,6 +352,8 @@ export interface LapakRoleOption {
   id: string
   name: string
   description: string | null
+  /** Audiens role — harus sama dengan jenis akun pengguna. */
+  audience: 'INTERNAL' | 'PUBLIC'
 }
 
 /** Satu role yang dikirim saat menambah/mengubah pengguna. */
@@ -360,11 +365,14 @@ export interface LapakRoleAssignmentInput {
 
 export interface CreateLapakUserBody {
   fullName: string
-  username: string
+  /** Wajib untuk INTERNAL; kosong untuk PUBLIC (warga masuk dengan email). */
+  username?: string
   email: string
   password: string
   nip?: string
   phoneNumber?: string
+  /** INTERNAL = pegawai, PUBLIC = warga/eksternal. */
+  accountType?: 'INTERNAL' | 'PUBLIC'
   roles: LapakRoleAssignmentInput[]
 }
 
@@ -372,6 +380,8 @@ export interface UpdateLapakUserBody {
   fullName?: string
   nip?: string | null
   phoneNumber?: string | null
+  /** Reset kata sandi (opsional, hanya bila diisi). */
+  password?: string
   /** Replace-set untuk aplikasi Lapak saja. */
   roles?: LapakRoleAssignmentInput[]
 }
