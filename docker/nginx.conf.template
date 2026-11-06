@@ -1,0 +1,77 @@
+# SELOKO WEB — nginx produksi.
+#
+# Berkas ini template: entrypoint image nginx menjalankan envsubst untuk
+# variabel ${...} lalu menulis hasilnya ke /etc/nginx/conf.d/default.conf.
+# Satu-satunya variabel: ${API_UPSTREAM} (default `api:3000`, lihat Dockerfile).
+#
+# Kenapa /api diproxy dari origin yang sama (bukan CORS ke host lain):
+# refresh token adalah cookie HttpOnly dengan SameSite=Strict dan Path=/api/auth.
+# Kalau SPA dan API beda origin, cookie tidak ikut terkirim dan /auth/refresh
+# selalu 401 "No refresh token provided". Same-origin lewat proxy = selalu
+# terkirim, dan CORS tidak perlu dibuka sama sekali.
+
+# Alamat API di-resolve DINAMIS (bukan `upstream` statis): container `api` bisa
+# dibuat ulang dengan IP baru tanpa me-restart nginx, dan nginx tetap start
+# walau API belum hidup (proxy membalas 502, bukan semua trafik mati).
+resolver 127.0.0.11 valid=10s ipv6=off;
+
+server {
+  listen 80;
+  server_name _;
+
+  set $api_upstream "${API_UPSTREAM}";
+
+  root /usr/share/nginx/html;
+  index index.html;
+
+  server_tokens off;
+  client_max_body_size 50m;   # samakan dengan batas unggah @fastify/multipart
+
+  # ── Aset ber-hash (Vite menaruh hash di nama berkas) → cache panjang ────────
+  location /assets/ {
+    include /etc/nginx/snippets/security-headers.conf;
+    expires 1y;
+    add_header Cache-Control "public, immutable";
+    try_files $uri =404;
+  }
+
+  # ── index.html tidak boleh di-cache: hash aset berubah tiap rilis ──────────
+  location = /index.html {
+    include /etc/nginx/snippets/security-headers.conf;
+    add_header Cache-Control "no-store" always;
+  }
+
+  # ── Proxy API: path diteruskan apa adanya (/api/auth/login → api:3000/api/...) ─
+  location /api/ {
+    include /etc/nginx/snippets/security-headers.conf;
+    proxy_pass http://$api_upstream;
+    proxy_http_version 1.1;
+    proxy_set_header Connection "";
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_read_timeout 90s;
+    proxy_send_timeout 90s;
+    proxy_request_buffering off;   # unggah berkas tidak ditahan di disk nginx
+  }
+
+  # ── Healthcheck untuk Docker/compose ──────────────────────────────────────
+  location = /healthz {
+    access_log off;
+    default_type text/plain;
+    return 200 "ok\n";
+  }
+
+  # ── SPA: semua rute lain jatuh ke index.html (React Router) ───────────────
+  location / {
+    include /etc/nginx/snippets/security-headers.conf;
+    add_header Cache-Control "no-store" always;
+    try_files $uri $uri/ /index.html;
+  }
+
+  # Berkas titik (.env, .git, dsb.) tidak pernah disajikan.
+  location ~ /\. {
+    deny all;
+  }
+}

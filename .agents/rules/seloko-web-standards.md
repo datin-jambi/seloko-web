@@ -125,6 +125,7 @@ Dokumen di `.agents/` dan `AGENTS.md` adalah sumber kebenaran untuk agent beriku
 | App Switcher, store, routing, arsitektur modul | `.agents/prd/01-seloko-web-architecture.prd.md` |
 | Cara kerja berulang baru (pola halaman, form, upload, dsb.) | Skill baru `.agents/skills/<nama>/SKILL.md` + daftar di `.agents/README.md` |
 | PRD baru | File `.agents/prd/NN-<nama>.prd.md` + daftar di `.agents/prd/README.md` |
+| Dockerfile / nginx / compose / env produksi | §6 file ini + perintah di `AGENTS.md` |
 | Keputusan/koreksi dari user yang mengubah aturan | Aturan terkait (rules/PRD/skill) — tulis aturannya, bukan riwayatnya |
 | Fitur roadmap selesai | Status roadmap di `AGENTS.md` |
 
@@ -135,3 +136,35 @@ Cara menulis:
 - Skill baru memakai frontmatter `name` + `description` seperti skill yang ada.
 
 Verifikasi: `npm run check:agents` (`scripts/check-agents-docs.mjs`) memastikan path yang dirujuk ada, folder `src/` tercatat di §4, skill/PRD terdaftar di indeks, dan script npm tercatat di `AGENTS.md`. Isi aturan (seperti header atau alur auth) tidak bisa dicek otomatis — baca ulang bagian terkait saat mengubah kodenya.
+
+---
+
+## 6. Deployment Docker & Keamanan Produksi
+
+Berkas deployment hidup di dua repo: `Dockerfile` + `docker/` di **seloko-web**, `Dockerfile` + `docker-compose.prod.yml` + `.env.prod.example` di **seloko-api**. Kompose produksi dijalankan dari `../seloko-api` (web di-build dengan `build.context: ../seloko-web`).
+
+Aturan wajib:
+
+* **`.env` (dan `.env.prod`) tidak pernah di-commit.** Nilai `VITE_*` punya fallback di `src/config/constants.ts` yang sudah benar untuk produksi: `VITE_API_BASE_URL=/api` relatif → nginx mem-proxy `/api` ke container API. `.env` juga di-.dockerignore, jadi image tidak bergantung mesin pengembang.
+* **SPA & API satu origin lewat proxy nginx, bukan CORS.** Refresh token = cookie HttpOnly `SameSite=Strict` `Path=/api/auth`. Beda origin → cookie tidak terkirim → `/auth/refresh` selalu 401. Karena itu `docker/nginx.conf.template` mem-proxy `/api/` ke upstream (env runtime `API_UPSTREAM`, default `api:3000`) dan backend tidak perlu membuka origin luar.
+* **`index.html` memakai `<script src="/theme-init.js">` eksternal, bukan inline.** Syarat agar `Content-Security-Policy: script-src 'self'` (tanpa `unsafe-inline`) tetap jalan; inline script dipindah ke `public/theme-init.js`. Jangan kembalikan ke inline.
+* **Header keamanan satu sumber: `docker/security-headers.conf`.** `add_header` tidak diwarisi ke location yang punya `add_header` sendiri, jadi berkas ini di-`include` di SETIAP location (`/assets/`, `= /index.html`, `/api/`, `/`). HSTS sengaja nonaktif (komentar) — aktifkan di sini bila sudah HTTPS.
+* **Aset ber-hash cache 1 tahun; `index.html` & fallback SPA `no-store`.** Kalau `no-store` hilang, rilis baru tidak kelihatan sampai hard-refresh.
+* **Kompose produksi: DB/Redis/broker tanpa `ports:` (jaringan compose internal), hanya `web` yang buka port host.** `postgres`/`redis`/`rabbitmq` pakai healthcheck; `api` menunggu semuanya sehat; `worker` (konsumen audit) memakai image `seloko-api:latest` dengan `command: node dist/workers/consumers/audit.consumer.js`.
+* **Migrasi DB otomatis saat start** (`CMD ["sh", "-c", "npx prisma migrate deploy && node dist/server.js"]`), jadi `prisma` CLI harus ikut di image → jangan ganti ke `npm ci --omit=dev`.
+* **ImageKit private key hanya di env server** (`.env.prod` → container API), tidak pernah di frontend; frontend hanya tahu `IMAGEKIT_URL_ENDPOINT`.
+
+Perintah:
+
+```
+# image web saja
+docker build -t seloko-web .            # dari seloko-web
+
+# seluruh stack produksi (dari seloko-api)
+cp .env.prod.example .env.prod          # isi JWT_SECRET, COOKIE_SECRET, dst.
+docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+```
+
+`.env.prod.example` berisi variabel yang diwajibkan compose (`:?` → gagal cepat kalau kosong): `POSTGRES_PASSWORD`, `REDIS_PASSWORD`, `RABBITMQ_PASSWORD`, `JWT_SECRET`, `COOKIE_SECRET`, kredensial ImageKit. Generate secret: `openssl rand -base64 48`.
+
+Audit dependensi sebelum rilis: `npm audit` (web) dan `npm audit` (api) paling sedikit 0 critical/high. `npm audit fix` aman untuk web; di API `@fastify/jwt` 9→10 dan `zod` 3→4 adalah upgrade breaking — uji dengan `npm test` setelahnya.

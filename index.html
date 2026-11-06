@@ -9,13 +9,7 @@
       name="description"
       content="Dashboard internal Badan Pengelola Keuangan dan Pendapatan Daerah Provinsi Jambi"
     />
-    <script>
-      // Pasang tema sebelum render agar tidak berkedip.
-      if (
-        localStorage.theme === 'dark' ||
-        (!('theme' in localStorage) && matchMedia('(prefers-color-scheme: dark)').matches)
-      ) document.documentElement.classList.add('dark')
-    </script>
+    <script src="/theme-init.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
