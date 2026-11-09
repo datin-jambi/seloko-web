@@ -33,6 +33,7 @@ import { LapakOrdersPage } from '@/modules/lapak/orders/LapakOrdersPage'
 import { LapakPaymentsPage } from '@/modules/lapak/payments/LapakPaymentsPage'
 import { LapakTicketsPage } from '@/modules/lapak/tickets/LapakTicketsPage'
 import { LapakReportsPage } from '@/modules/lapak/reports/LapakReportsPage'
+import { LapakSkrdPage } from '@/modules/lapak/skrd/LapakSkrdPage'
 import { LapakUsersPage } from '@/modules/lapak/users/LapakUsersPage'
 import { LapakUserDetailPage } from '@/modules/lapak/users/LapakUserDetailPage'
 import { LapakOpdDetailPage } from '@/modules/lapak/LapakOpdDetailPage'
@@ -75,7 +76,6 @@ const pending = (title: string, note: string) => <PendingApiPage title={title} n
  */
 const LAPAK_PENDING: [string, string][] = [
   ['objek-retribusi', 'belum ada entitas objek retribusi di API'],
-  ['pengaturan-skrd', 'modul SKRD belum dibuat'],
   ['reservasi', 'modul reservasi belum dibuat'],
   ['transaksi', 'modul transaksi belum ada di API'],
   ['penerima', 'modul penerima retribusi belum ada di API'],
@@ -177,6 +177,9 @@ export function App() {
                   ))}
                   {LAPAK_PREFIXES.map((base) => (
                     <Route key={`${base}/tiket`} path={`${base}/tiket`} element={<LapakTicketsPage />} />
+                  ))}
+                  {LAPAK_PREFIXES.map((base) => (
+                    <Route key={`${base}/pengaturan-skrd`} path={`${base}/pengaturan-skrd`} element={<LapakSkrdPage />} />
                   ))}
                   {LAPAK_PREFIXES.map((base) => (
                     <Route key={`${base}/laporan`} path={`${base}/laporan`} element={<LapakReportsPage />} />

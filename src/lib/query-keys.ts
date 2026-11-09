@@ -84,6 +84,7 @@ export const lapakKeys = {
   orders: ['lapak', 'orders'] as const,
   order: (id: string) => ['lapak', 'orders', id] as const,
   skrd: ['lapak', 'skrd'] as const,
+  skrdSettings: ['lapak', 'skrd', 'settings'] as const,
   tickets: ['lapak', 'tickets'] as const,
   /** Profil OPD + katalog publiknya (`/lapak/organizations/:code`). */
   catalogOpd: (code: string) => ['lapak', 'catalog', code] as const,
