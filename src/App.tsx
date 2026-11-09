@@ -29,6 +29,7 @@ import { LapakCategoriesPage } from '@/modules/lapak/categories/LapakCategoriesP
 import { LapakProductsPage } from '@/modules/lapak/products/LapakProductsPage'
 import { LapakProductDetailPage } from '@/modules/lapak/products/LapakProductDetailPage'
 import { LapakProductApprovalPage } from '@/modules/lapak/products/LapakProductApprovalPage'
+import { LapakOrdersPage } from '@/modules/lapak/orders/LapakOrdersPage'
 import { LapakUsersPage } from '@/modules/lapak/users/LapakUsersPage'
 import { LapakUserDetailPage } from '@/modules/lapak/users/LapakUserDetailPage'
 import { LapakOpdDetailPage } from '@/modules/lapak/LapakOpdDetailPage'
@@ -74,7 +75,6 @@ const LAPAK_PENDING: [string, string][] = [
   ['pengaturan-skrd', 'modul SKRD belum dibuat'],
   ['reservasi', 'modul reservasi belum dibuat'],
   ['transaksi', 'modul transaksi belum ada di API'],
-  ['pesanan', 'halaman pesanan belum dibuat meski API /lapak/orders tersedia'],
   ['pembayaran', 'modul pembayaran belum dibuat'],
   ['tiket', 'halaman tiket belum dibuat meski API /lapak/tickets tersedia'],
   ['penerima', 'modul penerima retribusi belum ada di API'],
@@ -168,6 +168,9 @@ export function App() {
                   {/* Direktori OPD: data dari master Organisasi Seloko, khusus jenis OPD. */}
                   {LAPAK_PREFIXES.map((base) => (
                     <Route key={`${base}/opd`} path={`${base}/opd`} element={<LapakOpdPage />} />
+                  ))}
+                  {LAPAK_PREFIXES.map((base) => (
+                    <Route key={`${base}/pesanan`} path={`${base}/pesanan`} element={<LapakOrdersPage />} />
                   ))}
                   {/* Pengguna Lapak: hanya superadmin & admin Lapak (server menegakkan hal sama). */}
                   {LAPAK_PREFIXES.map((base) => (

@@ -414,3 +414,72 @@ export interface CreateBlackoutBody {
   endDate: string
   reason?: string
 }
+
+// ─── Pesanan (CMS, daftar saja) ───────────────────────────────────────────────
+
+export type OrderStatus =
+  | 'DRAFT'
+  | 'MENUNGGU_VERIFIKASI'
+  | 'MENUNGGU_PEMBAYARAN'
+  | 'MENUNGGU_KONFIRMASI'
+  | 'LUNAS'
+  | 'AKTIF'
+  | 'SELESAI'
+  | 'DITOLAK'
+  | 'DIBATALKAN'
+  | 'KEDALUWARSA'
+  | 'REFUND'
+
+export interface LapakOrderItem {
+  id: string
+  productId: string
+  productName: string
+  rateName: string
+  unit: string
+  price: number
+  qty: number
+  lineTotal: number
+  startAt: string | null
+  endAt: string | null
+  note: string | null
+}
+
+/** Pemohon yang sudah dimasking server (NIK `1234********3456`, telepon `0812****7890`). */
+export interface LapakOrderApplicant {
+  name: string
+  nik: string | null
+  npwp: string | null
+  phone: string | null
+  email: string | null
+  institution: string | null
+  address: string | null
+}
+
+/** Ringkasan SKRD yang menempel pada pesanan (null bila belum terbit). */
+export interface LapakOrderSkrd {
+  id: string
+  number: string
+  documentType: 'SKRD' | 'DIPERSAMAKAN'
+  issuer: 'BAPENDA' | 'OPD'
+  issuerCode: string
+  issuerName: string
+  amount: number
+  issuedAt: string
+  dueAt: string
+  status: 'TERBIT' | 'LUNAS' | 'CANCELLED'
+}
+
+export interface LapakOrder {
+  id: string
+  code: string
+  status: OrderStatus
+  organization: { code: string; name: string }
+  items: LapakOrderItem[]
+  subtotal: number
+  total: number
+  purpose: string | null
+  expiresAt: string | null
+  createdAt: string
+  skrd: LapakOrderSkrd | null
+  applicant: LapakOrderApplicant
+}
