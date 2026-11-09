@@ -15,6 +15,7 @@ import { formatRupiah } from './format-rupiah'
 import { ProductFormDialog } from './ProductFormDialog'
 import { useLapakAccess } from '../lapak-access'
 import { ProductRatesCard } from './ProductRatesCard'
+import { ProductAvailabilityCard } from './ProductAvailabilityCard'
 
 /**
  * Detail produk. Menampilkan tarif/addon/persyaratan/fasilitas sebagai bacaan;
@@ -194,6 +195,8 @@ export function LapakProductDetailPage() {
         <div className="space-y-4">
           {/* Tarif punya alur persetujuan sendiri — kartu ini yang menanganinya. */}
           <ProductRatesCard productId={p.id} />
+
+          <ProductAvailabilityCard productId={p.id} />
 
           <Panel title={`Addon (${p.addons.length})`}
             count={p.addons.length} empty="Belum ada addon.">

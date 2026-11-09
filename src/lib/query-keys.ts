@@ -79,6 +79,8 @@ export const lapakKeys = {
   product: (id: string) => ['lapak', 'products', id] as const,
   productPublic: ['lapak', 'products', 'public'] as const,
   rates: ['lapak', 'rates'] as const,
+  /** Jam operasional & tanggal tutup satu produk. */
+  availability: (productId: string) => ['lapak', 'availability', productId] as const,
   orders: ['lapak', 'orders'] as const,
   order: (id: string) => ['lapak', 'orders', id] as const,
   skrd: ['lapak', 'skrd'] as const,

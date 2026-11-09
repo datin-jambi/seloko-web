@@ -385,3 +385,32 @@ export interface UpdateLapakUserBody {
   /** Replace-set untuk aplikasi Lapak saja. */
   roles?: LapakRoleAssignmentInput[]
 }
+
+// ─── Jadwal Produk (availability) ─────────────────────────────────────────────
+
+/** Satu baris jam buka. Hari tanpa baris = tutup. `weekday` 0 = Minggu … 6 = Sabtu. */
+export interface LapakOperatingHour {
+  id: string
+  weekday: number
+  /** HH:MM. `closeTime` < `openTime` = lintas tengah malam. */
+  openTime: string
+  closeTime: string
+}
+
+export interface ReplaceHoursBody {
+  hours: { weekday: number; openTime: string; closeTime: string }[]
+}
+
+/** Rentang tanggal tutup (inklusif), YYYY-MM-DD. */
+export interface LapakBlackout {
+  id: string
+  startDate: string
+  endDate: string
+  reason: string | null
+}
+
+export interface CreateBlackoutBody {
+  startDate: string
+  endDate: string
+  reason?: string
+}

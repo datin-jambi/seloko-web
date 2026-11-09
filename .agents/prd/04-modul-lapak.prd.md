@@ -24,7 +24,7 @@ bawah **wajib** sama persis dengan `path` menu, kalau tidak menu bisa diklik tap
 | **P2** | Produk · `/lapak-jambi/produk` | `/lapak/products` (8) | ✅ selesai |
 | **P3** | (publik) | `/lapak/organizations/:code` (2) | 🟡 |
 | **P4** | Produk → kartu Tarif | `/lapak/rates` (8) | ✅ selesai |
-| **P5** | Produk → tab Jadwal | `/lapak/availability` (6) | 🟠 setelah P2 |
+| **P5** | Produk → kartu Jadwal | `/lapak/availability` (6) | ✅ selesai |
 | **P6** | Pesanan · `/lapak-jambi/pesanan` | `/lapak/orders` (5) | 🟠 setelah P2 |
 | **P7** | SKRD · `/lapak-jambi/pengaturan-skrd` | `/lapak/skrd` (10) | 🟠 setelah P6 |
 | **P8** | Tiket · `/lapak-jambi/tiket` | `/lapak/tickets` (5) | 🟠 setelah P6 |
