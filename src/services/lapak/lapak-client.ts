@@ -53,12 +53,12 @@ export async function lapakGet<T>(url: string, params?: Record<string, unknown>)
 }
 
 /** GET berpaginasi — mengembalikan `rows` + `meta` apa adanya. */
-export async function lapakGetPage<T>(
+export async function lapakGetPage<T, S = never>(
   url: string,
   params?: Record<string, unknown>,
-): Promise<{ rows: T[]; meta?: LapakMeta }> {
-  const res = await apiClient.get<LapakResponse<T[]>>(url, { params })
-  return { rows: res.data.data, meta: res.data.meta }
+): Promise<{ rows: T[]; meta?: LapakMeta; summary?: S }> {
+  const res = await apiClient.get<LapakResponse<T[]> & { summary?: S }>(url, { params })
+  return { rows: res.data.data, meta: res.data.meta, summary: res.data.summary }
 }
 
 /** POST/PUT/PATCH/DELETE. */

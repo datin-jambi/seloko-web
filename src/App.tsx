@@ -30,6 +30,9 @@ import { LapakProductsPage } from '@/modules/lapak/products/LapakProductsPage'
 import { LapakProductDetailPage } from '@/modules/lapak/products/LapakProductDetailPage'
 import { LapakProductApprovalPage } from '@/modules/lapak/products/LapakProductApprovalPage'
 import { LapakOrdersPage } from '@/modules/lapak/orders/LapakOrdersPage'
+import { LapakPaymentsPage } from '@/modules/lapak/payments/LapakPaymentsPage'
+import { LapakTicketsPage } from '@/modules/lapak/tickets/LapakTicketsPage'
+import { LapakReportsPage } from '@/modules/lapak/reports/LapakReportsPage'
 import { LapakUsersPage } from '@/modules/lapak/users/LapakUsersPage'
 import { LapakUserDetailPage } from '@/modules/lapak/users/LapakUserDetailPage'
 import { LapakOpdDetailPage } from '@/modules/lapak/LapakOpdDetailPage'
@@ -75,13 +78,10 @@ const LAPAK_PENDING: [string, string][] = [
   ['pengaturan-skrd', 'modul SKRD belum dibuat'],
   ['reservasi', 'modul reservasi belum dibuat'],
   ['transaksi', 'modul transaksi belum ada di API'],
-  ['pembayaran', 'modul pembayaran belum dibuat'],
-  ['tiket', 'halaman tiket belum dibuat meski API /lapak/tickets tersedia'],
   ['penerima', 'modul penerima retribusi belum ada di API'],
   ['artikel', 'modul artikel belum dibuat'],
   ['galeri', 'modul galeri belum dibuat'],
   ['banner', 'modul banner belum dibuat'],
-  ['laporan', 'modul laporan belum ada di API'],
   ['audit', 'belum ada endpoint log audit'],
   ['pengguna', 'kelola pengguna Lapak belum dibuat — pakai menu Seloko → Pengguna'],
   ['pengaturan', 'modul pengaturan Lapak belum ada di API'],
@@ -171,6 +171,15 @@ export function App() {
                   ))}
                   {LAPAK_PREFIXES.map((base) => (
                     <Route key={`${base}/pesanan`} path={`${base}/pesanan`} element={<LapakOrdersPage />} />
+                  ))}
+                  {LAPAK_PREFIXES.map((base) => (
+                    <Route key={`${base}/pembayaran`} path={`${base}/pembayaran`} element={<LapakPaymentsPage />} />
+                  ))}
+                  {LAPAK_PREFIXES.map((base) => (
+                    <Route key={`${base}/tiket`} path={`${base}/tiket`} element={<LapakTicketsPage />} />
+                  ))}
+                  {LAPAK_PREFIXES.map((base) => (
+                    <Route key={`${base}/laporan`} path={`${base}/laporan`} element={<LapakReportsPage />} />
                   ))}
                   {/* Pengguna Lapak: hanya superadmin & admin Lapak (server menegakkan hal sama). */}
                   {LAPAK_PREFIXES.map((base) => (

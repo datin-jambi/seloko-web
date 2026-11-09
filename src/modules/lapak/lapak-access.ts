@@ -65,6 +65,12 @@ export function useLapakAccess() {
     canPublishProduct: can('product:publish'),
     canDeleteProduct: can('product:delete'),
     canListOrders: can('order:list') || can('order:read'),
+    canVerifyPayment: can('payment:approve'),
+    canListPayments: can('payment:read'),
+    canUseTicket: can('ticket:approve'),
+    canManageSkrd: can('order:update'),
+    canExportReport: can('report:export'),
+    canReadReport: can('report:read'),
     canReadTickets: can('ticket:read'),
     isLoading: app.isPending || perms.isPending,
   }

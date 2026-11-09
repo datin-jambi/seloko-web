@@ -25,9 +25,9 @@ bawah **wajib** sama persis dengan `path` menu, kalau tidak menu bisa diklik tap
 | **P3** | (publik) | `/lapak/organizations/:code` (2) | 🟡 |
 | **P4** | Produk → kartu Tarif | `/lapak/rates` (8) | ✅ selesai |
 | **P5** | Produk → kartu Jadwal | `/lapak/availability` (6) | ✅ selesai |
-| **P6** | Pesanan · `/lapak-jambi/pesanan` | `/lapak/orders` (5) | 🟡 daftar CMS saja (quote/checkout ada di lj-app) |
+| **P6** | Pesanan · `/lapak-jambi/pesanan` | `/lapak/orders` (5) | ✅ daftar CMS (quote/checkout ada di lj-app) |
 | **P7** | SKRD · `/lapak-jambi/pengaturan-skrd` | `/lapak/skrd` (10) | 🟠 setelah P6 |
-| **P8** | Tiket · `/lapak-jambi/tiket` | `/lapak/tickets` (5) | 🟠 setelah P6 |
+| **P8** | Tiket · `/lapak-jambi/tiket` | `/lapak/tickets` (5) | ✅ daftar + tandai terpakai |
 | **P9** | Pengaturan · `/lapak-jambi/pengaturan` | `/lapak/expiry` (5) | 🟡 |
 | **P10** | Reservasi · `/lapak-jambi/reservasi`, Laporan · `/lapak-jambi/laporan` | `/lapak/reservations` (4), `/lapak/reports` (2) | 🟡 |
 

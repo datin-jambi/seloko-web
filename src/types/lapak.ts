@@ -483,3 +483,133 @@ export interface LapakOrder {
   skrd: LapakOrderSkrd | null
   applicant: LapakOrderApplicant
 }
+
+// ─── Pembayaran, Tiket, SKRD, Laporan ─────────────────────────────────────────
+
+export type LapakPaymentStatus =
+  | 'MENUNGGU_BUKTI'
+  | 'MENUNGGU_KONFIRMASI'
+  | 'LUNAS'
+  | 'DITOLAK'
+  | 'KEDALUWARSA'
+
+export interface LapakPayment {
+  id: string
+  orderId: string
+  orderCode: string
+  method: 'MANUAL_TRANSFER'
+  status: LapakPaymentStatus
+  amount: number
+  organization: { code: string; name: string }
+  bank: { name: string | null; account: string | null; holder: string | null }
+  proofUrl: string | null
+  proofFileId: string | null
+  senderName: string | null
+  senderBank: string | null
+  note: string | null
+  rejectReason: string | null
+  paidAt: string | null
+  confirmedAt: string | null
+  expiresAt: string | null
+  createdAt: string
+}
+
+export interface VerifyPaymentBody {
+  /** Opsional. Bila diisi, nilai ini yang dicatat (kelebihan bayar / pembulatan bank). */
+  amount?: number
+  note?: string
+}
+
+export interface RejectPaymentBody {
+  /** Wajib, 5–500 karakter. Dibaca warga. */
+  reason: string
+}
+
+export type LapakTicketStatus = 'AKTIF' | 'DIGUNAKAN' | 'KEDALUWARSA' | 'DIBATALKAN'
+export type LapakTicketKind = 'TICKET' | 'BOOKING' | 'CONTRACT' | 'RESULT' | 'SCHEDULE' | 'HANDOVER'
+
+export interface LapakTicket {
+  id: string
+  orderItemId: string
+  orderId: string
+  orderCode: string
+  kind: LapakTicketKind
+  code: string
+  status: LapakTicketStatus
+  productName: string
+  rateName: string
+  organization: { code: string; name: string }
+  validFrom: string | null
+  validUntil: string | null
+  usedAt: string | null
+  createdAt: string
+}
+
+export type SkrdStatus = 'TERBIT' | 'LUNAS' | 'CANCELLED'
+
+export interface LapakSkrd {
+  id: string
+  number: string
+  documentType: 'SKRD' | 'DIPERSAMAKAN'
+  issuer: 'BAPENDA' | 'OPD'
+  issuerCode: string
+  issuerName: string
+  amount: number
+  issuedAt: string
+  dueAt: string
+  status: SkrdStatus
+  orderCode: string
+  applicantName: string
+}
+
+export interface LapakSkrdSetting {
+  id: string
+  organizationCode: string | null
+  issuer: 'BAPENDA' | 'OPD'
+  numberFormat: string
+  signerName: string
+  signerNip: string | null
+  signerPosition: string | null
+  bankName: string | null
+  bankAccount: string | null
+  bankHolder: string | null
+  dueDays: number
+  isActive: boolean
+}
+
+export interface SkrdSettingBody {
+  organizationCode?: string
+  issuer: 'BAPENDA' | 'OPD'
+  numberFormat: string
+  signerName: string
+  signerNip?: string
+  signerPosition?: string
+  bankName?: string
+  bankAccount?: string
+  bankHolder?: string
+  dueDays: number
+}
+
+export interface LapakTransactionRow {
+  orderId: string
+  code: string
+  createdAt: string
+  organizationCode: string
+  organizationName: string
+  status: OrderStatus
+  amount: number
+  skrdNumber: string | null
+  skrdStatus: string | null
+  paymentStatus: string | null
+  paidAt: string | null
+  applicantName: string
+  purpose: string | null
+  itemCount: number
+  tickets: { total: number; used: number }
+}
+
+export interface LapakTransactionSummary {
+  totalAmount: number
+  totalOrders: number
+  byStatus: { status: OrderStatus; count: number; amount: number }[]
+}

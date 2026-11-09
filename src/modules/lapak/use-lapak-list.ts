@@ -21,7 +21,7 @@ type ListApi<T> = ReturnType<typeof useLapakList<T>>
  * selain `page` kembali ke halaman 1. `DataTable` hanya butuh bentuk
  * `ListState`, jadi keduanya bisa dipertukarkan.
  */
-export function useLapakList<T>(
+export function useLapakList<T, S = never>(
   path: string,
   fixed: Record<string, string> = {},
   /**
@@ -43,7 +43,7 @@ export function useLapakList<T>(
   const query = useQuery({
     queryKey: ['lapak-list', path, allParams],
     queryFn: async () => {
-      const { rows, meta: m } = await lapakGetPage<T>(path, allParams)
+      const { rows, meta: m, summary } = await lapakGetPage<T, S>(path, allParams)
       const meta: PaginationMeta | undefined = m && {
         page: m.page,
         limit: m.limit,
@@ -54,7 +54,7 @@ export function useLapakList<T>(
       }
       // `meta` boleh tidak ada pada endpoint tak berpaginasi — `rows` tetap
       // dikembalikan, jadi tabel tidak kosong.
-      return { rows, meta }
+      return { rows, meta, summary }
     },
     placeholderData: keepPreviousData,
   })
@@ -80,6 +80,7 @@ export function useLapakList<T>(
   return {
     rows: query.data?.rows,
     meta: query.data?.meta,
+    summary: query.data?.summary,
     isLoading: query.isPending,
     error: query.error,
     refetch: () => void query.refetch(),
